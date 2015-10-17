@@ -9,9 +9,7 @@ function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv(y, theta, par_NAIS_init, 
 %     x_smooth = zeros(T,N);
     for ii = 1:N
         if (mod(ii,100) == 0)
-            fprintf('\n'); 
             fprintf('nais_param ii = %i\n',ii); 
-            fprintf('\n'); 
         end
         par_SV = theta(ii,1:3); 
         % par_SV = [0.4982    0.9992    0.0002];

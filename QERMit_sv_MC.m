@@ -113,7 +113,7 @@ subplot(2,2,1); plot(cum_w); hold on; plot(0.01*ones(2*N),'r'); hold off; title(
 subplot(2,2,2); plot(lnk_opt_h1);   title('lnk opt h1');
 subplot(2,2,3); plot(w_opt_h1);     title('w opt h1');
 subplot(2,2,4); plot(lnd_opt_h1);   title('lnd opt h1');
-% 
+% % 
 % figure(2)
 % subplot(2,2,1); plot(lnk2); title('lnk2');
 % subplot(2,2,2); plot(lng_y2); title('lngy2');

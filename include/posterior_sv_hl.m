@@ -18,9 +18,7 @@ function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv_hl(y, theta, VaR, par_NAI
 %     x_smooth = zeros(T,N);
     for ii = 1:N      
         if (mod(ii,100) == 0)
-            fprintf('\n'); 
             fprintf('nais_loglik ii = %i\n',ii); 
-            fprintf('\n'); 
         end
         par_SV = theta(ii,1:3); 
 %         [par_NAIS_iter, x_smooth(:,ii)] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS

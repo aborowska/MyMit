@@ -260,13 +260,13 @@ for sim = 1:N_sim
     ES_IS(sim,1) = IS_estim(1,2);
     PL_opt= fn_PL(y_opt);
 [PL_opt_h1, ind] = sort(PL_opt);
-% w_opt_h1 = w_opt(ind)/sum(w_opt);
-% cum_w = cumsum(w_opt_h1);
-% 
-% lnd_opt_h1 = lnd(ind);
-% lnk_opt_h1 = lnk(ind);
-% 
-% 
+w_opt_h1 = w_opt(ind)/sum(w_opt);
+cum_w = cumsum(w_opt_h1);
+
+lnd_opt_h1 = lnd(ind);
+lnk_opt_h1 = lnk(ind);
+
+
 figure(11)
 set(gcf,'units','normalized','outerposition',[0 0 1 1]);
 set(gcf,'defaulttextinterpreter','latex');
