@@ -6,8 +6,9 @@ function d = posterior_debug(x, y, a, b)
     pdf = -Inf*ones(N,1);
     ind = (prior(:,1)==true);
 
-    pdf(ind) = - 0.5*T*log(x(ind,:)) -0.5*sum(y.^2)./x(ind,:);
-    
+%     pdf(ind) = - 0.5*T*log(x(ind,:)) -0.5*sum(y.^2)./x(ind,:);
+    pdf(ind) = -0.5*(T*log(2*pi) + T*log(x(ind,:)) + sum(y.^2)./x(ind,:));
+
     d = prior(:,2) + pdf;
 end
 
@@ -17,6 +18,10 @@ function R = prior_debug(x, a, b)
     r2 = -Inf*ones(length(x),1);
     
     ind = (r1 == true); 
-    r2(ind,:) = a*log(b) - log(gamma(a)) - (a+1).*log(x(ind,:)) - b./x(ind,:);
+    if (a == 0) % flat prior
+        r2(ind,:) = 1; 
+    else % conjugate prior inv gamma
+        r2(ind,:) = a*log(b) - log(gamma(a)) - (a+1).*log(x(ind,:)) - b./x(ind,:);
+    end
     R = [r1, r2];
 end

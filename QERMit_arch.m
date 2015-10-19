@@ -24,9 +24,9 @@ S = var(data);
 mu_init = 0.03;
 mu_hl = [0.15, -3];
 M = 10000;
-N_sim = 20;
+N_sim = 1;
 
-plot_on = false;
+plot_on = true;
 print_on  = false;
 
 MitISEM_Control
@@ -41,7 +41,8 @@ kernel = @(a) posterior_arch(a, data, S, L);
 
 % for QERMit 2.: draws from the joint
 [draw1, lnk1, ind_red1] = fn_rmvgt_robust(M, mit1, kernel);
-draw1 = [draw1,randn(M,1)];
+eps1 = randn(M,1);
+draw1 = [draw1,eps1];
 
    
 if plot_on
@@ -288,11 +289,11 @@ for sim = 1:N_sim
     %% IS weights
     L = true;
     kernel = @(a) posterior_arch_whole(a, data, S, L);
-lnk_hl = lnk2 + 0.5*(log(2*pi) + draw2(:,2).^2);
-pdf_all = [lnk1; lnk_hl];
-lnk_opt = lnk1 - 0.5*(log(2*pi) + eps1.^2);
-lnk_opt = [lnk_opt; lnk2];
-prior_all = lnk_opt - pdf_all;
+% lnk_hl = lnk2 + 0.5*(log(2*pi) + draw2(:,2).^2);
+% pdf_all = [lnk1; lnk_hl];
+% lnk_opt = lnk1 - 0.5*(log(2*pi) + eps1.^2);
+% lnk_opt = [lnk_opt; lnk2];
+% prior_all = lnk_opt - pdf_all;
 
     lnk = kernel(draw_opt);
     exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1),mit1,false, GamMat);
@@ -309,18 +310,18 @@ prior_all = lnk_opt - pdf_all;
     VaR_IS(sim,1) = IS_estim(1,1);
     ES_IS(sim,1) = IS_estim(1,2);
     PL_opt= fn_PL(y_opt);
-[PL_opt_h1, ind] = sort(PL_opt);
-w_opt_h1 = w_opt(ind)/sum(w_opt);
-cum_w = cumsum(w_opt_h1);
-lnd_opt_h1 = lnd(ind);
-lnk_opt_h1 = lnk(ind);
- 
-
-figure(11)
-subplot(2,2,1); plot(cum_w); hold on; plot(0.01*ones(M),'r'); hold off; title('cum w');
-subplot(2,2,2); plot(lnk_opt_h1);   title('lnk opt h1');
-subplot(2,2,3); plot(w_opt_h1);     title('w opt h1');
-subplot(2,2,4); plot(lnd_opt_h1);   title('lnd opt h1');
+% [PL_opt_h1, ind] = sort(PL_opt);
+% w_opt_h1 = w_opt(ind)/sum(w_opt);
+% cum_w = cumsum(w_opt_h1);
+% lnd_opt_h1 = lnd(ind);
+% lnk_opt_h1 = lnk(ind);
+%  
+% 
+% figure(11)
+% subplot(2,2,1); plot(cum_w); hold on; plot(0.01*ones(M),'r'); hold off; title('cum w');
+% subplot(2,2,2); plot(lnk_opt_h1);   title('lnk opt h1');
+% subplot(2,2,3); plot(w_opt_h1);     title('w opt h1');
+% subplot(2,2,4); plot(lnd_opt_h1);   title('lnd opt h1');
 
     if plot_on    
         figure(8)

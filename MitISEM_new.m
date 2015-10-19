@@ -40,7 +40,8 @@ function [mit_new, summary] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat
     display(ind_red);
     lnd = dmvgt(theta, mit_init, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
-
+    [CV, ~] = fn_CVstop(w, CV_old, CV_tol);
+    
 %% Step 1: Adaptation - apply ISEM to the initial = adapted naive
 %     % update scale and location using IS-EM
 %     % fixing df 
@@ -92,12 +93,15 @@ function [mit_new, summary] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat
     display(ind_red);
     lnd = dmvgt(theta, mit_adapt, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
-
+    [CV_new, ~] = fn_CVstop(w, CV_old, CV_tol);
+    CV = [CV, CV_new];
+    
 %% Step 2: APPLY ISEM
     % optimize mixture using IS weighted EM and get draws from the new mit
     % optimize mode, scale and df
     cont.df.opt = true;
-    [mit_new, summary_adapt] = fn_optimt(theta, mit_init, w, cont, GamMat);
+    mit_old = mit_adapt;
+    [mit_new, summary_adapt] = fn_optimt(theta, mit_adapt, w, cont, GamMat);
 
     % get draws and log kernel evaluation
     [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel);
@@ -106,7 +110,8 @@ function [mit_new, summary] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat
     w = fn_ISwgts(lnk, lnd, norm);
 	
 	% stopping criteria
-	[CV, ~] = fn_CVstop(w, CV_old, CV_tol);
+    [CV_new, ~] = fn_CVstop(w, CV_old, CV_tol);
+    CV = [CV, CV_new];    
     
     H = length(mit_new.p);  % number of components
 
@@ -128,6 +133,7 @@ function [mit_new, summary] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat
 
         % COBINE OLD AND NC
         % combine the old mixture mit_new and the new component mit_nc
+        mit_old = mit_new;
         mit_new = fn_updateMit(mit_new, mit_nc); 
 
         % DRAW FROM COMBINED
@@ -153,6 +159,7 @@ function [mit_new, summary] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat
 
         % evaluate convergence
         CV_old = CV(size(CV,2));
+        
         [CV_new, hstop_new] = fn_CVstop(w, CV_old, CV_tol);
         CV = [CV, CV_new]
         if (H > 1)
@@ -166,4 +173,9 @@ function [mit_new, summary] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat
         summary.EM = summary_new;
     end
     summary.CV = CV; 
+    
+        
+    if (CV(end) > CV(end-1))
+        mit_new = mit_old;
+    end
 end

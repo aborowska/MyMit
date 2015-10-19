@@ -6,8 +6,8 @@ addpath('include/MEX/');
 % s = RandStream('mt19937ar','Seed',1);
 % RandStream.setGlobalStream(s); 
 
-x = (0:0.00001:100)'+0.00001;
-GamMat = gamma(x);
+x_gam = (0:0.00001:100)'+0.00001;
+GamMat = gamma(x_gam);
 
 % data = csvread('GSPC_ret_tgarch.csv');
 % data = 100*data;
@@ -141,7 +141,7 @@ for sim = 1:SS
 
     %% High loss, 10 days horizon
     % approximate the high loss distribution of (theta,eps*) where eps*={eps_T+1,...,eps_T+hp}
-    p_bar = 0.01;
+    p_bar = 0.01*sim;
     hp = 1; % prediction horizon 
 
     h_T = volatility_t_garch(theta, data, S);
@@ -153,18 +153,29 @@ for sim = 1:SS
     theta_hl = theta(ind,:);
     theta_hl = theta_hl(1:p_bar*M,:);
 
-    VaR_prelim(sim) = PL_hp(p_bar*M);
-    fprintf('hp = %i, y_T = %4.2f, VaR_prelim = %4.5f. \n', hp, y_T, VaR_prelim(sim))
+    VaR_prelim(sim) = PL_hp(round(p_bar*M));
+    fprintf('p_bar = %4.2f, y_T = %4.2f, VaR_prelim = %4.5f. \n', p_bar, y_T, VaR_prelim(sim))
 end
+
+figure(158)
+set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
+set(gcf,'defaulttextinterpreter','latex');
+plot(0.01:0.01:0.1,VaR_prelim)
+xlabel('$$p_{bar}$$')
+ylabel('$$VaR_{prelim}(p_{bar})$$')
+% set(ax,'XTickLabel',{'0.01','0.02','0.03','0.04','0.05','0.06','0.07','0.08','0.09','0.10'});
+% ax.XTickLabel = {'0.01','0.02','0.03','0.04','0.05','0.06','0.07','0.08','0.09','0.10'};
+plotTickLatex2D;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% QERMit 1c.:
 % get mit approximation of the conditional joint density of
 % parameters and future returns given the returns are below VaR_prelim
 % approximation of the joint high loss distribution
 % here: not future returns but future disturbances  (varepsilons)
-
+p_bar = 0.01
 VaR_prel = VaR_prelim;
-VaR_prelim = mean(VaR_prel);
+VaR_prelim = VaR_prelim(1,1);
 
 %% High loss density approximation
 L = true;
@@ -259,21 +270,21 @@ for sim = 1:N_sim
     VaR_IS(sim,1) = IS_estim(1,1);
     ES_IS(sim,1) = IS_estim(1,2);
     PL_opt= fn_PL(y_opt);
-[PL_opt_h1, ind] = sort(PL_opt);
-w_opt_h1 = w_opt(ind)/sum(w_opt);
-cum_w = cumsum(w_opt_h1);
-
-lnd_opt_h1 = lnd(ind);
-lnk_opt_h1 = lnk(ind);
-
-
-figure(11)
-set(gcf,'units','normalized','outerposition',[0 0 1 1]);
-set(gcf,'defaulttextinterpreter','latex');
-subplot(2,2,1); plot(cum_w); hold on; plot(0.01*ones(M),'r'); hold off; title('cum w');
-subplot(2,2,2); plot(lnk_opt_h1);   title('lnk opt h1');
-subplot(2,2,3); plot(w_opt_h1);     title('w opt h1');
-subplot(2,2,4); plot(lnd_opt_h1);   title('lnd opt h1');
+% [PL_opt_h1, ind] = sort(PL_opt);
+% w_opt_h1 = w_opt(ind)/sum(w_opt);
+% cum_w = cumsum(w_opt_h1);
+% 
+% lnd_opt_h1 = lnd(ind);
+% lnk_opt_h1 = lnk(ind);
+% 
+% 
+% figure(11)
+% set(gcf,'units','normalized','outerposition',[0 0 1 1]);
+% set(gcf,'defaulttextinterpreter','latex');
+% subplot(2,2,1); plot(cum_w); hold on; plot(0.01*ones(M),'r'); hold off; title('cum w');
+% subplot(2,2,2); plot(lnk_opt_h1);   title('lnk opt h1');
+% subplot(2,2,3); plot(w_opt_h1);     title('w opt h1');
+% subplot(2,2,4); plot(lnd_opt_h1);   title('lnd opt h1');
 
 
     if plot_on    
