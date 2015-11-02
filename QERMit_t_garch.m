@@ -1,7 +1,6 @@
 %% Initialisation
 clear all
-addpath('include/');
-addpath('include/MEX/');
+addpath(genpath('include/'));
 
 % s = RandStream('mt19937ar','Seed',1);
 % RandStream.setGlobalStream(s); 

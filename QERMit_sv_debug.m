@@ -1,7 +1,6 @@
 clear all
 N = 1000;
-addpath('include/');
-addpath('include/NAIS/');
+addpath(genpath('include/'));
 addpath('results/');
 
 prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5))];

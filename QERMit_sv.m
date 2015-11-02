@@ -4,8 +4,7 @@
 %% Settings
 clear all
 
-addpath('include/');
-addpath('include/NAIS/');
+addpath(genpath('include/'));
 addpath('results/');
 
 % s = RandStream('mt19937ar','Seed',1);
