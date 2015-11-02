@@ -15,12 +15,12 @@ function [mit_new, summary] = fn_optimt(theta, mit, w, cont, GamMat)
         % apply/repeat optimization if mixture component is shrank
           while (shrinkmit)
             iter = iter + 1;
-fprintf('iter = %i\n', iter)
+% fprintf('iter = %i\n', iter)
             % ISEM iteration
             mit_new = fn_ISEM(theta, mit_old, w, cont, GamMat);
-fprintf('mit.mu: %s\n', sprintf('%6.4f ', mit_new.mu));
-fprintf('mit.df: %s\n', sprintf('%6.4f ', mit_new.df));
-fprintf('mit.p: %s\n', sprintf('%6.4f ', mit_new.p));
+% fprintf('mit.mu: %s\n', sprintf('%6.4f ', mit_new.mu));
+% fprintf('mit.df: %s\n', sprintf('%6.4f ', mit_new.df));
+% fprintf('mit.p: %s\n', sprintf('%6.4f ', mit_new.p));
 
             % shrink mit density only if H>1
              if (H == 1)
@@ -28,7 +28,9 @@ fprintf('mit.p: %s\n', sprintf('%6.4f ', mit_new.p));
     %            mit_old = mit_new; % ?????
              else
                  [shrinkmit, mit_old] = fn_shrink_mit(mit_new, cont.mit.tol_pr);
-                 fprintf('Crash in fn.shrink.mit: %i \n',shrinkmit);
+                 if (shrinkmit > 0) 
+                    fprintf('Crash in fn.shrink.mit: %i \n',shrinkmit);
+                 end
              end
 
              if (shrinkmit)

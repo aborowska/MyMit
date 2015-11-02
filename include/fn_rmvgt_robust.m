@@ -1,19 +1,24 @@
 function [theta, lnk, ind_red, x, lng_y, lnw_x, x_smooth] = fn_rmvgt_robust(N, mit, kernel, DUPA)
 % robust sampling from mixture of multivariate t densities
-% sampler are redrawn from mit if they correspond to a bad region with zero
-% kernel density  (i.e. these with -Inf weights)        
+% samples are redrawn from mit if they correspond to a bad region with zero
+% kernel density  (i.e. these with -Inf weights)     
+% "Standard" kerenl evaluation is modified to account for the state space models 
+% (in that case there are four inputs and 3-4 additional outputs)
+        
+        % Mixtue of t (mit) parameters:
         mu = mit.mu;
         Sigma = mit.Sigma;
         df = mit.df;
         p = mit.p;
-        display('rmvgt2')
+%         display('rmvgt2')
 
-        x_smooth = [];
+        x_smooth = []; % smoothed signal from NAIS
         
         if ((nargin == 4) && isa(DUPA,'double'))
-            theta = DUPA; % theta=theta_init; cont=cont.nais; par_NAIS=par_NAIS_init;
+            % If theta is given
+            theta = DUPA; % [for debugging: theta=theta_init; cont=cont.nais; par_NAIS=par_NAIS_init;]
         else
-            theta = rmvgt2(N, mu, Sigma, df, p); 
+            theta = rmvgt2(N, mu, Sigma, df, p); % Sampling from the mixture of t
         end
         
         % lnk - N vector of log-kernel evaluations at draws
@@ -28,12 +33,13 @@ function [theta, lnk, ind_red, x, lng_y, lnw_x, x_smooth] = fn_rmvgt_robust(N, m
             [lnk, x, lng_y, lnw_x] =  kernel(theta);
         end
         
+        % Resampling 
         ind_red = 0;
         while any(lnk == -Inf)
             ind_red = ind_red + 1;
             ind = find(lnk == -Inf);
             n_resamp = length(ind);
-            fprintf('resampling %d draws.\n', n_resamp)
+%             fprintf('resampling %d draws.\n', n_resamp)
             draw_new = rmvgt2(n_resamp, mu, Sigma, df, p);
             theta(ind,:) = draw_new;
 

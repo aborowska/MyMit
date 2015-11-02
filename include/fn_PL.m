@@ -1,8 +1,9 @@
 function [val_return] = fn_PL(vars, L)
 % profit loss function value at c 
-% if natin>1
-% if L == 1 ==> VaR 
-% if L == 2 ==> PL density estimator at c
+% if nargin>1
+% if L == 1 ==> VaR esimtation via IS
+% if L == 2 ==> PL density estimator at c (to explicitly compute NSE of VaR)
+
 % w - weights corresponding to y
 
     f_pl = @(y) 100*(exp(y/100) - 1); % percentage profit loss
@@ -21,7 +22,13 @@ function [val_return] = fn_PL(vars, L)
             % i.e.: find c s.t. p_hat(PL(X)<=c)=p_bar 
             p_bar = vars.p_bar;
             ind_var = min(find(cum_w > p_bar))-1; 
-            VaR_IS = PL(ind_var);
+            if isempty(ind_var)
+                ind_var = length(y)-1;
+            end
+            if (ind_var == 0)
+                ind_var = 1;
+            end
+            VaR_IS = (PL(ind_var+1) + PL(ind_var))/2; % intrapolate
             ES_IS = sum((w(1:ind_var)/sum(w(1:ind_var))).*PL(1:ind_var));
             val_return = [VaR_IS, ES_IS]; 
         elseif (L == 2) % compute p_hat(c)

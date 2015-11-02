@@ -41,5 +41,5 @@ function dens = dmvt(x, mu, Sigma, df, GamMat)
 %     dens = c*(1+(x-mu)*inv(Sigma)*(x-mu)'/df)^e;
     tmp = (x-mu)/Sigma;
     tmp = sum(tmp.*(x-mu));
-    dens = c*(1+tmp/df)^e;
+    dens = exp(log(c) + log((1+tmp/df)^e));
 end

@@ -19,7 +19,7 @@ function dens = dmvgt(theta, mit, L, GamMat)
         dens = log(dens);
     end
     
-    L = double(L);
+    L = 
     lnd_mex = dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, GamMat, 1);
     fprintf('\n *** sum(abs(lnd_mex-lnd)>eps)  = %6.4f ***\n\n', sum(abs(lnd_mex-dens)>eps) );
 

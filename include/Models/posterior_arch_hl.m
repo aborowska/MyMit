@@ -29,7 +29,7 @@ function d = posterior_arch_hl(theta, data, S, VaR, L)
         end
     end
     if (~L)
-        d = exp(d);
+        d = exp(d - max(d));
     end
 end
 
@@ -39,10 +39,13 @@ function R = prior_arch_hl(alpha, eps, y, S, VaR)
     % prior is an Nx2 matrix: 
     % 1 col - constraint satisfied?
     % 2 col - prior val an the corresponding point
-    c = 100*log(1+ VaR/100);
-    b = c*ones(length(alpha),1)./sqrt(S+(y^2-S).*alpha);
+%     c = 100*log(1+ VaR/100);
+%     b = c*ones(length(alpha),1)./sqrt(S+(y^2-S).*alpha);
     c1 = ((alpha >= 0) & (alpha < 1));
-    c2 = (eps <= b); 
+%     c2 = (eps <= b); 
+    h = S*(1-alpha) + (y^2)*alpha;
+    c2 = (fn_PL(sqrt(h).*eps) <= VaR);
+
     r1 = (c1 & c2);
     r2 = -Inf*ones(length(alpha),1);
     r2(r1==true) = 1;
