@@ -1,48 +1,70 @@
+% All computational functions are in the folder "include"
+% exept for MitISEM which is in the main "MyMit" folder.
+% MitISEM is in 2 versions, the one with "_new" is currently being used.
+% Plot functions are in include/Plots and are produced when plot_on = true.
+% Prior and posterior functions are in incude/Models and they follow the
+% idea from the R packages AdMit and MitISEM.
+
 %% Initialisation
 % clc
 clear all
+close all
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
-addpath('include/');
-addpath('.git/');
+addpath(genpath('include/'));
+% addpath('include/Debug/');
 
-x_gam = (0:0.00001:50)' + 0.00001;
+
+v_new = ver('symbolic');
+v_new = v_new.Release;
+if strcmp(v_new,'(R2014b)')
+    v_new = 1;
+else
+    v_new = 0;
+end
+
+plot_on = false; % whether the plots are genereated
+print_on = true;
+plot_on2 = true;
+save_on = true;
+
+% Tabularised values of the gamma function to speed up the copmutaions
+x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
 
+model = 'WN';
+% Artificial, white noise data 
 T = 10000;
-y = randn(T,1);
+y = randn(T,1); 
+y = y - mean(y);
+
+hp_on = true; % explicitly approximate the high PROFIT density, i.e. the one for the COMPLIMENT of the high LOSS region
+if hp_on
+    model = [model,'_hp'];
+end
 
 
+% sigma is the VARIANCE of the error term, i.e. y_t ~ NID(0, sigma)
+% should be sigma2, but I skip the power for readibility
 sigma_init = 0.9;
 M = 10000;
-N_sim = 2;
+N_sim1 = 10; % number of MC replications for VaR_prelim
+N_sim = 10; % number of MC replications for VaR_IS
 
-p_bar = 0.05;
-p_bar2 = 0.05;
-
+% Control parameters for  MitISEM 
 MitISEM_Control
+cont.mit.dfnc = 10;
+cont.mit.N = 10000;
 
-% hyper params:
-a = 1;
+% Different control parameters might be used for high loss approximation
+cont2 = cont;
+cont2.mit.dfnc = 10;
+cont2.mit.Hmax = 10;
+
+
+% hyper parameters for the prior for sigma2(inv. gamma)
+a = 1; % if a == 0, then the flat prior is used; if a == 1, then the conjugate prior (inv. gamma)
 b = 1; 
-% logkernel
-kernel_init = @(x) - posterior_debug(x, y, a, b);
-kernel = @(x) posterior_debug(x, y, a, b);
-% kernel([-10:1:10]')
-% posterior_debug([-1,0,1,1.5,0.2,-1]', [0,1,2,3,4]', 1, 1)
-% mu_init = sigma_init;
-cont.mit.dfnc = 1;
-[mit1_df1, summary1_df1] = MitISEM(kernel_init, kernel, sigma_init, cont, GamMat);
-
-% s = RandStream('mt19937ar','Seed',1);
-% RandStream.setGlobalStream(s); 
-% cont.mit.dfnc = 5;
-% [mit1_df5, summary1_df5] = MitISEM(kernel_init, kernel, sigma_init, cont, GamMat);
-
-
-% draw from posterior
-[draw1_df1, lnk1_df1, ~] = fn_rmvgt_robust(M, mit1_df1, kernel);
-% [draw1_df5, lnk1_df5, ~] = fn_rmvgt_robust(M, mit1_df5, kernel);
 
 % Posterior, theoretical moments
 a_post = a + T/2;
@@ -51,153 +73,286 @@ mean_post = b_post/(a_post-1);
 var_post = (b_post.^2)/(((a_post-1)^2)*(a_post-2));
 std_post = sqrt(var_post);
 
-% MH
-[sigma1_df1, accept_df1] = Mit_MH(M+1000, kernel, mit1_df1, GamMat);
-fprintf('(df1) MH acceptance rate: %4.2f. \n',accept_df1);
-% [sigma1_df5, accept_df5] = Mit_MH(M+1000, kernel, mit1_df5, GamMat);
-% fprintf('(df5) MH acceptance rate: %4.2f. \n',accept_df5);
+P_bars = [0.01, 0.05, 0.1, 0.5];
+% p_bar = 0.010; % quantile alpha for VaR (100*alpha% VaR)
+% [ususally 0.01 or 0.05; 0.5 or 0.99 for debugging]
+% p_bar2 = 0.02; % quantile for "somewhat higher value of alpha" to compute% VaR_prelim 
 
-sigma1_df1 = sigma1_df1(1001:M+1000);
-% sigma1_df5 = sigma1_df5(1001:M+1000);
+    VaR_prelim = zeros(N_sim1,1);
+    VaR_prelim_MC = zeros(N_sim1,length(P_bars));
+    ES_prelim = zeros(N_sim1,length(P_bars));
+    accept = zeros(N_sim1,length(P_bars));
+    
+    VaR_IS = zeros(N_sim,length(P_bars));
+    ES_IS = zeros(N_sim,length(P_bars));
+    hl_w = zeros(N_sim,length(P_bars)); % Sum of weights for high losses
+    hp_w = zeros(N_sim,length(P_bars)); % Sum of weights for high profits
 
-% % [h1, ~, bounds1] = autocorr(sigma1_df1,50);
-% % % [h5, ~, bounds5] = autocorr(sigma1_df5,50);
-% % autocorr(sigma1_df1,50);
-% % % autocorr(sigma1_df5,50);
-% % L1 = min(find((h1<bounds1(1,1)) & (h1>bounds1(2,1))));
-% % % L5 = min(find((h5<bounds5(1,1)) & (h5>bounds5(2,1))));
-% % IF1 = 1 + 2*sum(h1(1:L1));
-% % % IF5 = 1 + 2*sum(h5(1:L5));
+for p_bar = P_bars
+    fprintf('\np_bar: %4.2f\n',p_bar);
 
+    % logkernel
+    kernel_init = @(x) - posterior_debug(x, y, a, b, true);
+    kernel = @(x) posterior_debug(x, y, a, b, true);
 
-% Future logreturns
-eps1_df1 = randn(M,1);
-y_T1_df1 = sqrt(sigma1_df1).*eps1_df1; 
-% eps1_df5 = randn(M,1);
-% y_T1_df5 = sqrt(sigma1_df5).*eps1_df5; 
-
+    %% MC for VaR_prelim
+    % If the MC compuations of VaR_prelim are supposed to be based on the same
+    % mixture of t (so that we disregard the noise in the construction
+    % process), then comment out the following line ...
+    % [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
  
-[PL_T1_df1, ind_df1] = sort(fn_PL(y_T1_df1));
-VaR_prelim_df1 = PL_T1_df1(p_bar*M);
-fprintf('(df1) Preliminary VAR estimate: %6.4f. \n',VaR_prelim_df1);
-VaR_const_df1 = PL_T1_df1(p_bar2*M);
-fprintf('(df1) VAR estimate to construct mit2: %6.4f. \n',VaR_const_df1);
+    for sim = 1:N_sim1
+        % ... and comment the following line:
+        [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
 
-% [PL_T1_df5, ind_df5]= sort(fn_PL(y_T1_df5));
-% VaR_prelim_df5 = PL_T1_df5(p_bar*M);
-% fprintf('(df5) Preliminary VAR estimate: %6.4f. \n',VaR_prelim_df5);
+        % draw from posterior
+        [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel);
+        % the moments of draw1 can be copmared with the theoretical moments 
 
-draw_df1 = [sigma1_df1, eps1_df1];
-% draw_df5 = [sigma1_df5, eps1_df5];
+        % Metropolis-Hastings to compute VaR_prelim
+        [sigma1, accept(sim,P_bars==p_bar)] = Mit_MH(M+1000, kernel, mit1, GamMat);
+        fprintf('(%s) MH acceptance rate: %4.2f. \n', model, accept(sim,P_bars==p_bar));
+        sigma1 = sigma1(1001:M+1000);
 
-sigma1_hl_df1 = sigma1_df1(ind_df1); sigma1_hl_df1 = sigma1_hl_df1(1:p_bar*M); % mean: 1.0075
-% sigma1_hl_df5 = sigma1_df5(ind_df5); sigma1_hl_df5 = sigma1_hl_df5(1:p_bar*M); % mean: 1.0075
+        % Future logreturns
+        eps1 = randn(M,1);
+        y_T1 = sqrt(sigma1).*eps1; 
 
-eps_hl_df1 = eps1_df1(ind_df1); eps_hl_df1 = eps_hl_df1(1:p_bar*M); % mean: -2.65
-% eps_hl_df5 = eps1_df5(ind_df5); eps_hl_df5 = eps_hl_df5(1:p_bar*M); % mean: -2.67
+        % fn_PL computes (among others) the profit-loss value of the given returns
+        [PL_T1, ind] = sort(fn_PL(y_T1));
+        VaR_prelim(sim,1) = PL_T1(p_bar*M); % VaR_prelim = 0; VaR_prelim = Inf;
+        ES_prelim(sim,P_bars==p_bar) = mean(PL_T1(1:p_bar*M));    
+        fprintf('(%s) Preliminary 100*%4.2f%% VaR estimate: %6.4f. \n', model, p_bar, VaR_prelim(sim,1));
+     end
 
-%% High loss df1
-kernel_init = @(x) - posterior_debug_hl(x, y, a, b, VaR_const_df1);
-kernel = @(x) posterior_debug_hl(x, y, a, b, VaR_const_df1);
-mu_hl = [1, -3];
+    % take one value of VaR_prelim to construct mit2
+    VaR_prelim_MC(:,P_bars==p_bar) = VaR_prelim;
+%     VaR_prelim = VaR_prelim_MC(N_sim1,1);       % the last one
+    % VaR_prelim = 0;
+    VaR_prelim = mean(VaR_prelim);              % the mean
 
-cont2 = cont;
-% cont2.mit.Hmax = 2;
-cont2.mit.dfnc = 1;
-[mit2_df1, summary2] = MitISEM(kernel_init, kernel, mu_hl, cont2, GamMat);
-[draw2_df1, lnk2_df1, ~] = fn_rmvgt_robust(M, mit2_df1, kernel);
-draw_opt_df1 = [draw_df1; draw2_df1];
-lnk_opt_df1 = lnk1_df1 - 0.5*(log(2*pi) + eps1_df1.^2);
-lnk_opt_df1 = [lnk_opt_df1; lnk2_df1];
+    wn_plot0;  % Plot the approximation to the posterior
 
-% profile on
-exp_lnd1_df1 = 0.5*normpdf(draw_opt_df1(:,2)).*dmvgt(draw_opt_df1(:,1),mit1_df1,false, GamMat);
-% profile off
-% profile viewer
-% 
-% profile on
-exp_lnd2_df1 = 0.5*dmvgt(draw_opt_df1,mit2_df1,false, GamMat);
-% profile off
-% profile viewer
+    %% Choose the starting point (mu_hl) for the constuction of the approximation 
+    % to the high loss (hl) region density
+    sigma1_hl = sigma1(ind); 
+    eps_hl = eps1(ind); 
+    draw_hl = [sigma1_hl, eps_hl];
+    % Take as mu_hl the last draw which leads to the PL lower than VaR_prelim 
+    % (to ensure that the restictions in the numerical optimisation for the initial coponent are satisfied)
+    PL_draw_hl = fn_PL(sqrt(draw_hl(:,1)).*draw_hl(:,2));
+    mu_hl = draw_hl(max(find(PL_draw_hl<VaR_prelim)),:);
 
-exp_lnd_df1 = exp_lnd1_df1 + exp_lnd2_df1;
-lnd_opt_df1 = log(exp_lnd_df1);
-w_opt_df1 =  fn_ISwgts(lnk_opt_df1, lnd_opt_df1, false);
-y_opt_df1 = sqrt(draw_opt_df1(:,1)).*draw_opt_df1(:,2);
-dens = struct('y',y_opt_df1,'w',w_opt_df1,'p_bar',p_bar);
-IS_estim_df1 = fn_PL(dens, 1);
-VaR_IS_df1 = IS_estim_df1(1,1);
-ES_IS_df1 = IS_estim_df1(1,2);
+    %% Might be based on weighted average of the "negative draws"
+    % sigma1_hl = sigma1_hl(1:p_bar*M);
+    % eps1_hl = eps1_hl(1:p_bar*M);
+    % lnk_hl = kernel(sigma1_hl) - 0.5*(log(2*pi) + eps_hl.^2);
+    % w_hl = lnk_hl - max(lnk_hl);
+    % w_hl = exp(w_hl);
+    % w_hl = w_hl/sum(w_hl);
+    % [mu_hl, Sigma_hl] = fn_muSigma(draw_hl, w_hl);
 
-PL_opt_df1 = fn_PL(y_opt_df1);
-[PL_opt_h1_df1, ind] = sort(PL_opt_df1);
-hold on
-plot(PL_opt_h1_df1)
-pos =  max(find(PL_opt_h1_df1<=VaR_IS_df1));
-scatter(pos, VaR_IS_df1,'MarkerFaceColor','red')
-hold off
+    %% Alternatively: take the inital component as given (e.g. when numerical optimisation crashes)
+    % (not based on mode and Hessian of the target)
+    % use draws leading to very negative losses
+    % mit_hl.mu = mu_hl;
+    % mit_hl.Sigma = Sigma_hl;
+    % mit_hl.df = 5;
+    % mit_hl.p = 1;
 
+    %% High loss  
+    kernel_init = @(x) - posterior_debug_hl(x, y, a, b, VaR_prelim, true);
+    kernel = @(x) posterior_debug_hl(x, y, a, b, VaR_prelim, true);
 
-%% High loss df5
-kernel_init = @(x) - posterior_debug_hl(x, y, a, b, VaR_prelim_df5);
-kernel = @(x) posterior_debug_hl(x, y, a, b, VaR_prelim_df5);
-mu_hl = [1, -3];
+    % [mit2, summary2] = MitISEM(mit_hl, kernel, mu_hl, cont2, GamMat);
+    [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
+ 
+    wn_plot1; %  Plots for high loss density and its approximation by mit2
 
-cont2 = cont;
-% cont2.mit.Hmax = 2;
-cont2.mit.dfnc = 5;
-[mit2_df5, summary2_df5] = MitISEM(kernel_init, kernel, mu_hl, cont2, GamMat);
-[draw2_df5, lnk2_df5, ~] = fn_rmvgt_robust(M, mit2_df5, kernel);
-draw_opt_df5 = [draw_df5; draw2_df5];
-lnk_opt_df5 = lnk1_df5 - 0.5*(log(2*pi) + eps1_df5.^2);
-lnk_opt_df5 = [lnk_opt_df5; lnk2_df5];
+%% High profit
+    if hp_on
+        kernel_init = @(x) - posterior_debug_hp(x, y, a, b, VaR_prelim, true);
+        kernel = @(x) posterior_debug_hp(x, y, a, b, VaR_prelim, true);
+        mu_hp = mean(draw_hl((PL_draw_hl>VaR_prelim),:));
+        [mit3, summary3] = MitISEM_new(kernel_init, kernel, mu_hp, cont2, GamMat);
+        
+        plot_HighProfit;
+    end    
+    
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % MONTE CARLO VaR_IS and ES_IS (and their NSEs) ESTIMATION 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% profile on
-exp_lnd1_df5 = 0.5*normpdf(draw_opt_df5(:,2)).*dmvgt(draw_opt_df5(:,1),mit1_df5,false, GamMat);
-% profile off
-% profile viewer
+    for sim = 1:N_sim
+        % DRAWS FROM THE OPTIMAL CANDIDATE
+        % M draws from the whole space and M draws from the high loss subspace
+        % ==> 2M draws in total corresponding to the optimal 50-50 candidate
 
-% profile on
-exp_lnd2_df5 = 0.5*dmvgt(draw_opt_df5,mit2_df5,false, GamMat);
-% profile off
-% profile viewer
+        % draw sigma2 from the posterior approximation (mit1) 
+        % lnk1 is the correponding log kernel evaluation
+        if hp_on
+            kernel = @(x) posterior_debug_hp(x, y, a, b, VaR_prelim, true);
+            [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit3, kernel); % Robust drawing from the multivariate mixture of t
+        else            
+            kernel = @(x) posterior_debug(x, y, a, b, true);
+            [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel); % Robust drawing from the multivariate mixture of t
+            % draw future disturbance for the standard normal distribution
+            eps1 = randn(M,1);
+            draw1 = [draw1,eps1]; % "Combined" draw (parameter + disturbance)
+            % the logkernel evaluations for the draw from "the whole": corrected by the corresponding logkernel value for epsilon)        
+            lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
+        end
 
-exp_lnd_df5 = exp_lnd1_df5 + exp_lnd2_df5;
-lnd_opt_df5 = log(exp_lnd_df5);
-w_opt_df5 =  fn_ISwgts(lnk_opt_df5, lnd_opt_df5, false);
-y_opt_df5 = sqrt(draw_opt_df5(:,1)).*draw_opt_df5(:,2);
-dens = struct('y',y_opt_df5,'w',w_opt_df5,'p_bar',p_bar);
-IS_estim_df5 = fn_PL(dens, 1);
-VaR_IS_df5 = IS_estim_df5(1,1);
-ES_IS_df5 = IS_estim_df5(1,2);
+        % Draw from the high loss approximation (mit2)
+        kernel = @(x) posterior_debug_hl(x, y, a, b, VaR_prelim, true);
+        [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel);
 
-PL_opt_df5= fn_PL(y_opt_df5);
-[PL_opt_h1_df5, ind] = sort(PL_opt_df5);
-hold on
-plot(PL_opt_h1)
-pos =  max(find(PL_opt_h1<=VaR_IS));
-scatter(pos, VaR_IS,'MarkerFaceColor','red')
-hold off
+        % "Optimal" draw = from the optimal 50-50 candidate
+        draw_opt = [draw1; draw2];
+        
+        wn_plot2;  % Approximation to the optimal posterior density
 
+        % IMPORTANCE WEIGHTS
+        % Use the computed logkernel evaluations: combine the logkernel evaluations
+        lnk_opt = [lnk1; lnk2];
 
-%%  
-if plot_on
-    figure(3)
-    set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
-    set(gcf,'defaulttextinterpreter','latex');
-    xx = 0.85:0.01:1.15;
-    yy = -5:0.01:5;
-    Mit2 = MitISEM_plot(mit2_df5, 3, xx, yy, GamMat);
-    title('(White noise logreturns) Approximation to the high loss density $$q_{2,Mit}(\sigma^2,\varepsilon_{T+1})$$.')
-    xlabel('$$\sigma^2$$')
-    ylabel('$$\varepsilon_{T+1}$$')
-%    plotTickLatex2D;
-    set(gca,'TickLabelInterpreter','latex')
-    campos([-3,-30,150]);
-    if print_on
-        name = 'figures/q2_mit_mitisem.png';
-        fig = gcf;
-        fig.PaperPositionMode = 'auto';
-        print(name,'-dpng','-r0')
+        % formula (10) from the QERMit paper: evaluation on the optimal candidate
+        
+        % 0.5*q_1(sigma2)*p(eps) [independent distubances]
+        if hp_on
+            exp_lnd1 = 0.5*dmvgt(draw_opt,mit3,false, GamMat);
+        else
+%             exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1),mit1,false, GamMat);
+            exp_lnd1 = 0.5*exp(-0.5*(log(2*pi) + draw_opt(:,2).^2) + dmvgt(draw_opt(:,1), mit1, true, GamMat));
+        end
+        
+        % 0.5*q_2(sigma2,eps) 
+        exp_lnd2 = 0.5*dmvgt(draw_opt,mit2,false, GamMat);
+        exp_lnd = exp_lnd1 + exp_lnd2;
+        lnd_opt = log(exp_lnd); % take log to comute the importance weights in fn_ISwgts
+        w_opt =  fn_ISwgts(lnk_opt, lnd_opt, false); % false - not normalised --> will be in fn_PL function
+
+        if (p_bar == 0.5) % then the theoretical VaR is 0
+            hl_w(sim,P_bars==p_bar) = sum( w_opt(draw_opt(:,2)<0,:)/sum(w_opt) );    
+            hp_w(sim,P_bars==p_bar) = sum( w_opt(draw_opt(:,2)>0,:)/sum(w_opt) );    
+        else
+            hl_w(sim,P_bars==p_bar) = sum( w_opt(sqrt(draw_opt(:,1)).*draw_opt(:,2)<VaR_prelim,:)/sum(w_opt) );    
+            hp_w(sim,P_bars==p_bar) = sum( w_opt(sqrt(draw_opt(:,1)).*draw_opt(:,2)>VaR_prelim,:)/sum(w_opt) );  
+        end
+        
+        fprintf('Sum of weights for high losses: %6.4f and for high profits: %6.4f.\n', hl_w(sim,P_bars==p_bar), hp_w(sim,P_bars==p_bar));
+
+        % VaR_IS ESTIMATION
+        y_opt = sqrt(draw_opt(:,1)).*draw_opt(:,2); % the correponding logreturns
+        dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
+        IS_estim = fn_PL(dens, 1); %  computed for the case when (L == 1) 
+        VaR_IS(sim,P_bars==p_bar) = IS_estim(1,1);
+        ES_IS(sim,P_bars==p_bar) = IS_estim(1,2);
+
+        fprintf('(%s) IS 100*%4.2f%% VAR estimate: %6.4f. \n', model, p_bar, VaR_IS(sim,P_bars==p_bar));
+        fprintf('(%s) IS 100*%4.2f%%ES estimate: %6.4f. \n', model, p_bar, ES_IS(sim,P_bars==p_bar));  
+
+    %     PL_opt = fn_PL(y_opt);
+    %     [PL_opt_h1, ind] = sort(PL_opt);
+    %     hold on
+    %     plot(PL_opt_h1)
+    %     pos =  max(find(PL_opt_h1<=VaR_IS(sim,1)));
+    %     scatter(pos, VaR_IS(sim,1),'MarkerFaceColor','red')
+    %     hold off
+
+    end
+    
+%     if plot_on2
+%         figure(2000+100*p_bar)
+%         hold on
+%         xx = 0.45:0.01:0.55;
+%         yy = 0.55:-0.01:0.45;
+%         plot(xx,yy,'r')
+%         scatter(hl_w,hp_w)
+%         plot(xx,xx,'g')
+%         hold off
+%         ylabel({'sum of weights for high profits'});
+%         xlabel({'sum of weights for high losses'});
+%     end
+    
+    mean_VaR_prelim = mean(VaR_prelim_MC(:,P_bars==p_bar));
+    mean_ES_prelim = mean(ES_prelim(:,P_bars==p_bar));
+
+    NSE_VaR_prelim = std(VaR_prelim_MC(:,P_bars==p_bar));
+    NSE_ES_prelim = std(ES_prelim(:,P_bars==p_bar));
+    
+    mean_VaR_IS = mean(VaR_IS(:,P_bars==p_bar));
+    mean_ES_IS = mean(ES_IS(:,P_bars==p_bar));
+
+    NSE_VaR_IS = std(VaR_IS(:,P_bars==p_bar));
+    NSE_ES_IS = std(ES_IS(:,P_bars==p_bar));
+
+    fprintf('(%s) 100*%4.2f%% VaR prelim (mean) estimate: %6.4f. \n', model, p_bar, mean_VaR_prelim);
+    fprintf('(%s) NSE VaR prelim: %6.4f. \n', model, NSE_VaR_prelim);
+    fprintf('(%s) VaR prelim: [%6.4f, %6.4f]. \n \n', model, mean_VaR_prelim - NSE_VaR_prelim, mean_VaR_prelim + NSE_VaR_prelim);
+
+    fprintf('(%s) 100*%4.2f%% VaR IS (mean) estimate: %6.4f. \n', model, p_bar, mean_VaR_IS);
+    fprintf('(%s) NSE VaR IS estimate: %6.4f. \n', model, NSE_VaR_IS);
+    fprintf('(%s) VaR: [%6.4f, %6.4f]. \n \n', model, mean_VaR_IS - NSE_VaR_IS, mean_VaR_IS + NSE_VaR_IS);
+
+    fprintf('(%s) 100*%4.2f%% ES prelim (mean) estimate: %6.4f. \n', model, p_bar, mean_ES_prelim);
+    fprintf('(%s) NSE ES prelim: %6.4f. \n', model, NSE_ES_prelim);
+    fprintf('(%s) ES prelim: [%6.4f, %6.4f]. \n \n', model, mean_ES_prelim - NSE_ES_prelim, mean_ES_prelim + NSE_ES_prelim);
+
+    fprintf('(%s) 100*%4.2f%% ES IS (mean) estimate: %6.4f. \n', model, p_bar, mean_ES_IS);
+    fprintf('(%s) NSE ES IS estimate: %6.4f. \n', model, NSE_ES_IS);
+    fprintf('(%s) ES: [%6.4f, %6.4f]. \n', model, mean_ES_IS - NSE_ES_IS, mean_ES_IS + NSE_ES_IS);
+
+    if plot_on2
+        figure(180+100*p_bar)
+        set(gcf, 'visible', 'off');
+%         set(gcf,'defaulttextinterpreter','latex');
+        boxplot([VaR_prelim_MC(:,P_bars==p_bar), VaR_IS(:,P_bars==p_bar)],'labels',{'VaR_prelim MC','VaR_IS'})        
+        title(['(',model,' M = ',num2str(M),') ','100*', num2str(p_bar),'% VaR estimates: prelim and IS.'])
+        if v_new
+            set(gca,'TickLabelInterpreter','latex')
+        else
+            plotTickLatex2D;
+        end
+        if print_on
+            name = ['figures/(',model,')', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
+            fig = gcf;
+            fig.PaperPositionMode = 'auto';
+            print(name,'-dpng','-r0')
+        end
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%        
+        
+        figure(1800+100*p_bar)
+        set(gcf, 'visible', 'off');
+%         set(gcf,'defaulttextinterpreter','latex');
+        hold on; 
+        bar(VaR_IS(:,P_bars==p_bar),'FaceColor',[0 0.4470 0.7410], 'EdgeColor','w'); 
+        plot(0:(N_sim+1), (mean_VaR_prelim - NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
+        plot(0:(N_sim+1), (mean_VaR_prelim + NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
+        plot(0:(N_sim+1), mean_VaR_prelim*ones(N_sim+2,1),'r'); 
+        hold off;
+        if v_new
+            set(gca,'TickLabelInterpreter','latex')
+        else
+            plotTickLatex2D;
+        end
+        title(['(',model,' M = ',num2str(M),') ','100*', num2str(p_bar),'% VaR IS estimates and the mean VaR prelim (+/- NSE VaR prelim).'])
+
+        if print_on
+            name = ['figures/(',model,')', num2str(p_bar),'_VaR_bar_',num2str(M),'.png'];
+            fig = gcf;
+            fig.PaperPositionMode = 'auto';
+            print(name,'-dpng','-r0')
+        end
+    
+    
+    end
+    if save_on
+        gen_out2;
     end
 end
+
+% set(1:n, 'visible', 'on');
+set(180+100*P_bars, 'visible', 'on');
+set(1800+100*P_bars, 'visible', 'on');
