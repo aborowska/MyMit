@@ -91,7 +91,7 @@ P_bars = [0.01, 0.05, 0.1, 0.5];
 for p_bar = P_bars
     fprintf('\np_bar: %4.2f\n',p_bar);
 
-    % logkernel
+    % logkernel 
     kernel_init = @(x) - posterior_debug(x, y, a, b, true);
     kernel = @(x) posterior_debug(x, y, a, b, true);
 
