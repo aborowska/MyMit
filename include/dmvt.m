@@ -11,7 +11,7 @@ function dens = dmvt(x, mu, Sigma, df, GamMat)
 %     tmp = round((df+d)*100000);   % round to the 4th decimal number
 %     c1 = GamMat(tmp); % read the correponding value of th gamma 
     c0 = df+d;
-    if c0 < 200
+    if c0 < 100
         c1 =  GamMat(floor(c0*50000));   
     else
         c1 = gamma(c0/2);
@@ -20,7 +20,7 @@ function dens = dmvt(x, mu, Sigma, df, GamMat)
 %     tmp = round(tmp*100000);   
 %     c2 = GamMat(tmp); % read the correponding value of th gamma 
      
-    if df < 200
+    if df < 100
         c2 = GamMat(round(df*50000)); % read the correponding value of th gamma
     else
         c2 = gamma(df/2);

@@ -19,9 +19,15 @@ function dens = dmvgt(theta, mit, L, GamMat)
         dens = log(dens);
     end
     
-    L = double(L);
-    lnd_mex = dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, GamMat, 1);
-    fprintf('\n *** sum(abs(lnd_mex-lnd)> eps)  = %6.4f ***\n\n', sum(abs(lnd_mex-dens)>eps) );
+%     L = double(L);
+%     dens = dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, GamMat, 1);
 
+    lnd_mex = dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, GamMat, 1);
+    fprintf('\n *** sum(abs(lnd_mex-lnd)> eps)  = %6.4f ***\n', sum(abs(lnd_mex-dens)>eps) );
+    fprintf(' *** sum(abs(lnd_mex-lnd)) = %16.14f ***\n\n', sum(abs(lnd_mex-dens)));
+    if (sum(abs(lnd_mex-dens)) > 1e-4 )
+        keyboard
+        [val, MM] = max(abs(lnd_mex-dens));  % lnd_mex(MM)-dens(MM)
+    end
     
 end

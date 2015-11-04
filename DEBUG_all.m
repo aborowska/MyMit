@@ -24,9 +24,9 @@ else
 end
 
 plot_on = false; % whether the plots are genereated
-print_on = true;
+print_on = false;
 plot_on2 = true;
-save_on = true;
+save_on = false;
 
 % Tabularised values of the gamma function to speed up the copmutaions
 x_gam = (0:0.00001:50)' + 0.00001; 
@@ -82,6 +82,7 @@ P_bars = [0.01, 0.05, 0.1, 0.5];
     VaR_prelim_MC = zeros(N_sim1,length(P_bars));
     ES_prelim = zeros(N_sim1,length(P_bars));
     accept = zeros(N_sim1,length(P_bars));
+    CV = zeros(N_sim1,length(P_bars));
     
     VaR_IS = zeros(N_sim,length(P_bars));
     ES_IS = zeros(N_sim,length(P_bars));
@@ -104,7 +105,8 @@ for p_bar = P_bars
     for sim = 1:N_sim1
         % ... and comment the following line:
         [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
-
+        CV(sim,P_bars==p_bar) = summary1.CV(end);
+        
         % draw from posterior
         [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel);
         % the moments of draw1 can be copmared with the theoretical moments 
@@ -140,8 +142,7 @@ for p_bar = P_bars
     draw_hl = [sigma1_hl, eps_hl];
     % Take as mu_hl the last draw which leads to the PL lower than VaR_prelim 
     % (to ensure that the restictions in the numerical optimisation for the initial coponent are satisfied)
-    PL_draw_hl = fn_PL(sqrt(draw_hl(:,1)).*draw_hl(:,2));
-    mu_hl = draw_hl(max(find(PL_draw_hl<VaR_prelim)),:);
+    mu_hl = draw_hl(max(find(PL_T1 < VaR_prelim)),:);
 
     %% Might be based on weighted average of the "negative draws"
     % sigma1_hl = sigma1_hl(1:p_bar*M);

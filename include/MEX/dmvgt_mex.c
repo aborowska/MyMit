@@ -16,7 +16,7 @@ void dmvt_mex(double *x, double *mu, double *Sigma, double *df,
     mwSignedIndex  *IPIV; /* pointer to ints */
     int ind;
     double *xmu;
-    double c0, c1, c2, c, e, tmp, etmp;
+    double c0, c1, c2, c, e, tmp, etmp, df5;
     double sqrt_det_Sigma;
     char *cht = "T";
     
@@ -42,7 +42,18 @@ void dmvt_mex(double *x, double *mu, double *Sigma, double *df,
     
     if (df[0] <= 100)
     {
-        ind = floor(df[0]*50000) - 1;
+//         ind = floor(df[0]*50000) - 1; /* useround insteadas follows: */
+        df5 = df[0]*50000;
+        if ((df5 - floor(df5)) < (floor(df5+1) - df5))
+        {
+            ind = floor(df5);
+        }
+        else
+        {
+            ind = floor(df5 + 1);
+        }
+//     	mexPrintf("ind df = %i\n",ind);       
+        ind = ind -  1;
         c2 = GamMat[ind];
     }
     else
@@ -60,7 +71,7 @@ void dmvt_mex(double *x, double *mu, double *Sigma, double *df,
     {
         sqrt_det_Sigma = sqrt_det_Sigma*Sigma[i+d*i];
     }
-    sqrt_det_Sigma = pow(sqrt_det_Sigma,0.5);
+    sqrt_det_Sigma = pow(fabs(sqrt_det_Sigma),0.5);
 //     mexPrintf("sqrt_det_Sigma = %6.4f\n",sqrt_det_Sigma);
 
     c = df[0]*PI;
@@ -89,7 +100,7 @@ void dmvt_mex(double *x, double *mu, double *Sigma, double *df,
 //             mexPrintf("tmp[%i] = %6.4f\n",i,tmp);
         } 
         tmp = 1 + tmp/df[0];
-//         mexPrintf("tmp = %6.4f\n",tmp);        
+//         mexPrintf("tmp = %16.14f\n",tmp);        
         etmp = pow(tmp,e);
 //         mexPrintf("etmp = %16.14f\n",etmp);
         dens[j] = exp(log(c) + log(etmp));

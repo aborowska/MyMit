@@ -6,7 +6,7 @@ if plot_on
     figure(2)
     set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
     set(gcf,'defaulttextinterpreter','latex');
-    xx = min(draw1(:,1)):0.01:max(draw1(:,1));
+    xx = min(alpha1(:,1)):0.01:max(alpha1(:,1));
     yy = c./f_stdev(xx);
     hold on
     xlabel('$$\alpha$$')
@@ -16,7 +16,7 @@ if plot_on
     % h = area(xx,yy);
     % h.FaceColor = [1,0.4,0.3];
     % h.EdgeColor = 'red';
-    scatter(draw1(:,1),draw1(:,2),10,'k.')
+    scatter(alpha1(:,1),eps1(:,1),10,'k.')
     hold off
     title('(arch) Joint density $$p(\alpha,\varepsilon_{T+1}|y)$$ and hight loss subspace')
     if v_new
