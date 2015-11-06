@@ -53,12 +53,12 @@ N_sim = 10; % number of MC replications for VaR_IS
 
 % Control parameters for  MitISEM 
 MitISEM_Control
-cont.mit.dfnc = 10;
+cont.mit.dfnc = 5;
 cont.mit.N = 10000;
 
 % Different control parameters might be used for high loss approximation
 cont2 = cont;
-cont2.mit.dfnc = 10;
+cont2.mit.dfnc = 1;
 cont2.mit.Hmax = 10;
 
 
@@ -73,7 +73,7 @@ mean_post = b_post/(a_post-1);
 var_post = (b_post.^2)/(((a_post-1)^2)*(a_post-2));
 std_post = sqrt(var_post);
 
-P_bars = [0.01, 0.05, 0.1, 0.5];
+P_bars = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5];
 % p_bar = 0.010; % quantile alpha for VaR (100*alpha% VaR)
 % [ususally 0.01 or 0.05; 0.5 or 0.99 for debugging]
 % p_bar2 = 0.02; % quantile for "somewhat higher value of alpha" to compute% VaR_prelim 
@@ -101,7 +101,7 @@ for p_bar = P_bars
     % mixture of t (so that we disregard the noise in the construction
     % process), then comment out the following line ...
     % [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
- 
+
     for sim = 1:N_sim1
         % ... and comment the following line:
         [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
@@ -174,7 +174,7 @@ for p_bar = P_bars
     if hp_on
         kernel_init = @(x) - posterior_debug_hp(x, y, a, b, VaR_prelim, true);
         kernel = @(x) posterior_debug_hp(x, y, a, b, VaR_prelim, true);
-        mu_hp = mean(draw_hl((PL_draw_hl>VaR_prelim),:));
+        mu_hp = mean(draw_hl((PL_T1>VaR_prelim),:));
         [mit3, summary3] = MitISEM_new(kernel_init, kernel, mu_hp, cont2, GamMat);
         
         plot_HighProfit;
