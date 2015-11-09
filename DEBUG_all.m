@@ -24,9 +24,9 @@ else
 end
 
 plot_on = false; % whether the plots are genereated
-print_on = false;
+print_on = true;
 plot_on2 = true;
-save_on = false;
+save_on = true;
 
 % Tabularised values of the gamma function to speed up the copmutaions
 x_gam = (0:0.00001:50)' + 0.00001; 
@@ -38,18 +38,11 @@ T = 10000;
 y = randn(T,1); 
 y = y - mean(y);
 
-hp_on = true; % explicitly approximate the high PROFIT density, i.e. the one for the COMPLIMENT of the high LOSS region
-if hp_on
-    model = [model,'_hp'];
-end
-
-
 % sigma is the VARIANCE of the error term, i.e. y_t ~ NID(0, sigma)
 % should be sigma2, but I skip the power for readibility
 sigma_init = 0.9;
 M = 10000;
-N_sim1 = 10; % number of MC replications for VaR_prelim
-N_sim = 10; % number of MC replications for VaR_IS
+N_sim = 100; % number of MC replications
 
 % Control parameters for  MitISEM 
 MitISEM_Control
@@ -73,16 +66,17 @@ mean_post = b_post/(a_post-1);
 var_post = (b_post.^2)/(((a_post-1)^2)*(a_post-2));
 std_post = sqrt(var_post);
 
-P_bars = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5];
+P_bars = [0.01, 0.05, 0.1, 0.5];
+% P_bars = [0.05];
+
 % p_bar = 0.010; % quantile alpha for VaR (100*alpha% VaR)
 % [ususally 0.01 or 0.05; 0.5 or 0.99 for debugging]
-% p_bar2 = 0.02; % quantile for "somewhat higher value of alpha" to compute% VaR_prelim 
 
-    VaR_prelim = zeros(N_sim1,1);
-    VaR_prelim_MC = zeros(N_sim1,length(P_bars));
-    ES_prelim = zeros(N_sim1,length(P_bars));
-    accept = zeros(N_sim1,length(P_bars));
-    CV = zeros(N_sim1,length(P_bars));
+    VaR_prelim = zeros(N_sim,1);
+    VaR_prelim_MC = zeros(N_sim,length(P_bars));
+    ES_prelim = zeros(N_sim,length(P_bars));
+    accept = zeros(N_sim,length(P_bars));
+    CV = zeros(N_sim,length(P_bars));
     
     VaR_IS = zeros(N_sim,length(P_bars));
     ES_IS = zeros(N_sim,length(P_bars));
@@ -102,13 +96,15 @@ for p_bar = P_bars
     % process), then comment out the following line ...
     % [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
 
-    for sim = 1:N_sim1
+    for sim = 1:N_sim
+        
         % ... and comment the following line:
         [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
         CV(sim,P_bars==p_bar) = summary1.CV(end);
         
         % draw from posterior
-        [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel);
+        resampl_on = true; % ? true? false?
+        [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, resampl_on);
         % the moments of draw1 can be copmared with the theoretical moments 
 
         % Metropolis-Hastings to compute VaR_prelim
@@ -129,7 +125,7 @@ for p_bar = P_bars
 
     % take one value of VaR_prelim to construct mit2
     VaR_prelim_MC(:,P_bars==p_bar) = VaR_prelim;
-%     VaR_prelim = VaR_prelim_MC(N_sim1,1);       % the last one
+%     VaR_prelim = VaR_prelim_MC(N_sim,1);       % the last one
     % VaR_prelim = 0;
     VaR_prelim = mean(VaR_prelim);              % the mean
 
@@ -170,43 +166,30 @@ for p_bar = P_bars
  
     wn_plot1; %  Plots for high loss density and its approximation by mit2
 
-%% High profit
-    if hp_on
-        kernel_init = @(x) - posterior_debug_hp(x, y, a, b, VaR_prelim, true);
-        kernel = @(x) posterior_debug_hp(x, y, a, b, VaR_prelim, true);
-        mu_hp = mean(draw_hl((PL_T1>VaR_prelim),:));
-        [mit3, summary3] = MitISEM_new(kernel_init, kernel, mu_hp, cont2, GamMat);
-        
-        plot_HighProfit;
-    end    
-    
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % MONTE CARLO VaR_IS and ES_IS (and their NSEs) ESTIMATION 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     for sim = 1:N_sim
+  resampl_on = false;
         % DRAWS FROM THE OPTIMAL CANDIDATE
         % M draws from the whole space and M draws from the high loss subspace
         % ==> 2M draws in total corresponding to the optimal 50-50 candidate
 
         % draw sigma2 from the posterior approximation (mit1) 
         % lnk1 is the correponding log kernel evaluation
-        if hp_on
-            kernel = @(x) posterior_debug_hp(x, y, a, b, VaR_prelim, true);
-            [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit3, kernel); % Robust drawing from the multivariate mixture of t
-        else            
-            kernel = @(x) posterior_debug(x, y, a, b, true);
-            [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel); % Robust drawing from the multivariate mixture of t
-            % draw future disturbance for the standard normal distribution
-            eps1 = randn(M,1);
-            draw1 = [draw1,eps1]; % "Combined" draw (parameter + disturbance)
-            % the logkernel evaluations for the draw from "the whole": corrected by the corresponding logkernel value for epsilon)        
-            lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
-        end
+           
+        kernel = @(x) posterior_debug(x, y, a, b, true);
+        [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, resampl_on); % Robust drawing from the multivariate mixture of t
+        % draw future disturbance for the standard normal distribution
+        eps1 = randn(M,1);
+        draw1 = [draw1, eps1]; % "Combined" draw (parameter + disturbance)
+        % the logkernel evaluations for the draw from "the whole": corrected by the corresponding logkernel value for epsilon)        
+        lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
 
         % Draw from the high loss approximation (mit2)
-        kernel = @(x) posterior_debug_hl(x, y, a, b, VaR_prelim, true);
-        [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel);
+        kernel = @(x) posterior_debug_hl(x, y, a, b, Inf, true);
+        [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel, resampl_on);
 
         % "Optimal" draw = from the optimal 50-50 candidate
         draw_opt = [draw1; draw2];
@@ -220,12 +203,9 @@ for p_bar = P_bars
         % formula (10) from the QERMit paper: evaluation on the optimal candidate
         
         % 0.5*q_1(sigma2)*p(eps) [independent distubances]
-        if hp_on
-            exp_lnd1 = 0.5*dmvgt(draw_opt,mit3,false, GamMat);
-        else
-%             exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1),mit1,false, GamMat);
-            exp_lnd1 = 0.5*exp(-0.5*(log(2*pi) + draw_opt(:,2).^2) + dmvgt(draw_opt(:,1), mit1, true, GamMat));
-        end
+
+%        exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1),mit1,false, GamMat);
+        exp_lnd1 = 0.5*exp(-0.5*(log(2*pi) + draw_opt(:,2).^2) + dmvgt(draw_opt(:,1), mit1, true, GamMat));
         
         % 0.5*q_2(sigma2,eps) 
         exp_lnd2 = 0.5*dmvgt(draw_opt,mit2,false, GamMat);

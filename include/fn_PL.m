@@ -6,13 +6,14 @@ function [val_return] = fn_PL(vars, L)
 
 % w - weights corresponding to y
 
-    f_pl = @(y) 100*(exp(y/100) - 1); % percentage profit loss
+    f_pl = @(aa) 100*(exp(aa/100) - 1); % percentage profit loss
     
     if (nargin > 1) % if there is L
         y = vars.y;
         w = vars.w;
        
         PL = f_pl(sum(y,2));
+        PL(imag(PL)~=0) = -Inf;
         [PL, ind] = sort(PL); 
         w = w(ind,:);
         w = w/sum(w);
@@ -29,7 +30,8 @@ function [val_return] = fn_PL(vars, L)
                 ind_var = 1;
             end
             VaR_IS = (PL(ind_var+1) + PL(ind_var))/2; % intrapolate
-            ES_IS = sum((w(1:ind_var)/sum(w(1:ind_var))).*PL(1:ind_var));
+            ES_IS =  (w(1:ind_var)/sum(w(1:ind_var))).*PL(1:ind_var);
+            ES_IS = sum(ES_IS(isfinite(ES_IS)));
             val_return = [VaR_IS, ES_IS]; 
         elseif (L == 2) % compute p_hat(c)
             c = vars.c;

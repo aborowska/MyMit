@@ -6,7 +6,9 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     CV_tol = cont.mit.CV_tol;
     CV_old = cont.mit.CV_old;
     norm = cont.mit.norm;
-        
+     
+    resampl_on = true;
+    
 %% Step 0: Initialization
     % get/define initial mit density shape scale and degrees of freedom
     % aka: naive proposal density
@@ -32,11 +34,11 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
         mit_init.p = 1;
         
     elseif isa(kernel_init, 'struct')
-        mit_init= kernel_init;
+        mit_init = kernel_init;
     end
     
     % get draws and IS weights from naive  
-    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_init, kernel);
+    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_init, kernel, resampl_on);
 %     display(ind_red);
     lnd = dmvgt(theta, mit_init, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
@@ -53,7 +55,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 %     mit_adapt.p = 1;
 %     
 %     % get draws and IS weights from adapted  
-%     [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_adapt, kernel);
+%     [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_adapt, kernel, resampl_on);
 %     display(ind_red);
 %     lnd = dmvgt(theta, mit_adapt, true, GamMat);
 %     w = fn_ISwgts(lnk, lnd, norm);
@@ -67,7 +69,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 % %     cont.df.opt = false;
 %     [mit_new, summary_adapt] = fn_optimt(theta, mit_adapt, w, cont, GamMat);
 % 
-%     [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel);
+%     [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
 %     display(ind_red);
 % 
 %     lnd = dmvgt(theta, mit_new, true, GamMat);
@@ -89,7 +91,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     mit_adapt.p = 1;
     
     % get draws and IS weights from adapted  
-    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_adapt, kernel);
+    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_adapt, kernel, resampl_on);
 %     display(ind_red);
     lnd = dmvgt(theta, mit_adapt, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
@@ -104,7 +106,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     [mit_new, summary_adapt] = fn_optimt(theta, mit_adapt, w, cont, GamMat);
 
     % get draws and log kernel evaluation
-    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel);
+    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
 %     display(ind_red);
     lnd = dmvgt(theta, mit_new, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
@@ -138,7 +140,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 
         % DRAW FROM COMBINED
         % get draws and log kernel evaluation from the new mixture mit_new 
-        [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel);
+        [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
 %         display(ind_red);
 
         lnd = dmvgt(theta, mit_new, true, GamMat);
@@ -151,7 +153,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 
         % DRAW FROM UPDATED
         % get new draws from mit and evaluate new IS weights
-        [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel);
+        [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
 %         display(ind_red);   
 
         lnd = dmvgt(theta, mit_new, true, GamMat);

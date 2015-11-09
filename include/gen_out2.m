@@ -1,8 +1,4 @@
-if strcmp(model,'WN')
-    fileID = fopen(['results/',model,'_',num2str(p_bar),'_a_',num2str(a),'_',num2str(M),'.txt'],'w');
-else
-    fileID = fopen(['results/',model,'_',num2str(p_bar),'_',num2str(M),'.txt'],'w');
-end
+fileID = fopen(['results/',model,'_',num2str(p_bar),'_',num2str(M),'.txt'],'w');
 
 fprintf(fileID,'----------------------------------------\n');
 fprintf(fileID,'Model %s: \n',model);
@@ -10,7 +6,6 @@ fprintf(fileID,'----------------------------------------\n');
 
 fprintf(fileID,'Controls: \n');
 fprintf(fileID,'----------------------------------------\n');
-fprintf(fileID,'N_sim1:  %2i\n',N_sim1);
 fprintf(fileID,'N_sim:  %2i\n',N_sim);
 fprintf(fileID,'N:  %2i\n',cont.mit.N);
 fprintf(fileID,'M:  %2i\n',M);

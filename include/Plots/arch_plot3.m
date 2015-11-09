@@ -7,7 +7,7 @@ if (plot_on && (sim == N_sim))
     xlabel('$$\alpha$$')
     ylabel('$$\varepsilon_{T+1}$$')
     hold off
-    title('(MitISEM) Draws from the optimal importance density $$q_{opt}(\alpha,\varepsilon_{T+1}|y)$$.')
+    title('(arch) Draws from the optimal importance density $$q_{opt}(\alpha,\varepsilon_{T+1}|y)$$.')
     if v_new
         set(gca,'TickLabelInterpreter','latex')
     else
@@ -34,7 +34,7 @@ if (plot_on && (sim == N_sim))
     set(MP,'LineStyle','none')
     xlabel('$$\alpha$$')
     ylabel('$$\varepsilon_{T+1}$$','Position',[0.57,6.3,-3.6])
-    title('(MitISEM) Joint density $$p(\alpha,\varepsilon_{T+1}|y)$$.')
+    title('(arch) Joint density $$p(\alpha,\varepsilon_{T+1}|y)$$.')
     if v_new
         set(gca,'TickLabelInterpreter','latex')
     else
@@ -55,7 +55,7 @@ if (plot_on && (sim == N_sim))
     set(gcf,'defaulttextinterpreter','latex');
     Mit_opt = 0.5*Mit1 + 0.5*Mit2;
     surf(X1,X2,Mit_opt,'EdgeColor','interp'); %colormap(bone); colormap(hot)
-    title('(MitISEM) Approximation to the optimal posterior density')
+    title('(arch) Approximation to the optimal posterior density')
     if v_new
         set(gca,'TickLabelInterpreter','latex')
     else

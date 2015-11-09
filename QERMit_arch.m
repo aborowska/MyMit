@@ -34,13 +34,7 @@ f_stdev = @(aa) sqrt(S+(y_T^2-S)*aa); % then the one-day-ahead forecast given al
 mu_init = 0.03;
 % mu_hl = [0.15, -3]; % <-- for p_bar = 0.01 
 M = 10000;
-N_sim1 = 10;
-N_sim = 10;
-
-hp_on = true; % explicitly approximate the high PROFIT density, i.e. the one for the COMPLIMENT of the high LOSS region
-if hp_on
-    model = [model,'_hp'];
-end
+N_sim = 100;
 
 plot_on = false;
 print_on  = true;
@@ -55,22 +49,17 @@ cont2 = cont;
 % cont2.mit.Hmax = 10;
 % cont2.mit.dfnc = 5;
 % cont2.mit.CV_tol = 0.1;
-cont2.df.range = [1, 50];
-if hp_on
-    cont3 = cont;
-    cont3.mit.Hmax = 5;
-    cont3.mit.N = 10000;
-    cont3.mit.CV_tol = 0.01;
-end
+cont2.df.range = [1, 40];
 
 
 % p_bar = 0.05; % p_bar = 1-alpha, 100alpha% VaR
-P_bars = [0.01, 0.02, 0.05, 0.1, 0.5];
+P_bars = [0.01, 0.05, 0.1, 0.5];
+% P_bars = 0.01;
 
-    VaR_prelim = zeros(N_sim1,1);
-    VaR_prelim_MC = zeros(N_sim1,length(P_bars));
-    ES_prelim = zeros(N_sim1,length(P_bars));
-    accept = zeros(N_sim1,length(P_bars));
+    VaR_prelim = zeros(N_sim,1);
+    VaR_prelim_MC = zeros(N_sim,length(P_bars));
+    ES_prelim = zeros(N_sim,length(P_bars));
+    accept = zeros(N_sim,length(P_bars));
     
     VaR_IS = zeros(N_sim,length(P_bars));
     ES_IS = zeros(N_sim,length(P_bars));
@@ -84,7 +73,7 @@ for p_bar = P_bars
     kernel = @(a) posterior_arch(a, data, S, true);
 %     [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
 
-    for sim = 1:N_sim1
+    for sim = 1:N_sim
         [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
 
         %% QERMit 1b.:
@@ -108,7 +97,7 @@ for p_bar = P_bars
 
     % take one value of VaR_prelim to construct mit2
     VaR_prelim_MC(:,P_bars==p_bar) = VaR_prelim;
-%     VaR_prelim = VaR_prelim_MC(N_sim1,1);       % the last one
+%     VaR_prelim = VaR_prelim_MC(N_sim,1);       % the last one
     VaR_prelim = mean(VaR_prelim);              % the mean
     
     
@@ -138,17 +127,6 @@ for p_bar = P_bars
 
     arch_plot2; %  The high loss density and the approximation to the high loss density
     
-%% High profit    
-    if hp_on 
-        kernel_init = @(x) - posterior_arch_hp(x, data, S, VaR_prelim, true);
-        kernel = @(x) posterior_arch_hp(x, data, S, VaR_prelim, true);
-
-        mu_hp = mean(draw_hl((PL_T1 > VaR_prelim),:));
-        % fn_PL(f_stdev(mu_hp(1,1))*mu_hl(1,2))
-        [mit3, summary3] = MitISEM_new(kernel_init, kernel, mu_hp, cont3, GamMat);
-        plot_HighProfit;
-    end
-
     %% QERMit 2: 
     % use the mixture 0.5*mit1 + 0.5*mit2 as the importance density
     % to estimate VaR and ES for theta and y (or alpha in eps)
@@ -157,18 +135,16 @@ for p_bar = P_bars
     % MONTE CARLO VaR_IS and ES_IS (and their NSEs) ESTIMATION 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for sim = 1:N_sim
-        if hp_on
-            kernel = @(x) posterior_arch_hp(x, data, S, VaR_prelim, true);
-            [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit3, kernel); % Robust drawing from the multivariate mixture of t        
-        else
-            kernel = @(a) posterior_arch(a, data, S, true);
-            [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel);
-            eps1 = randn(M,1);
-            draw1 = [draw1, eps1];
-            lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
-        end
-        kernel = @(a) posterior_arch_hl(a, data, S, VaR_prelim, true);
-        [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel);
+        resampl_on = false;
+        
+        kernel = @(a) posterior_arch(a, data, S, true);
+        [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, resampl_on);
+        eps1 = randn(M,1);
+        draw1 = [draw1, eps1];
+        lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
+ 
+        kernel = @(a) posterior_arch_hl(a, data, S, Inf, true);
+        [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel, resampl_on);
         
         draw_opt = [draw1; draw2];
         
@@ -178,11 +154,7 @@ for p_bar = P_bars
     %     kernel = @(a) posterior_arch_whole(a, data, S, true);
     %     lnk = kernel(draw_opt);
         lnk = [lnk1; lnk2];
-        if hp_on      
-            exp_lnd1 = 0.5*dmvgt(draw_opt,mit3,false, GamMat);
-        else
-            exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1), mit1, false, GamMat);
-        end
+        exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1), mit1, false, GamMat);
         exp_lnd2 = 0.5*dmvgt(draw_opt, mit2, false, GamMat);
         exp_lnd = exp_lnd1 + exp_lnd2;
         lnd = log(exp_lnd);
