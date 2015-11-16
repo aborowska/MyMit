@@ -19,3 +19,5 @@ cont.df.maxit = 1000;
 cont.df.opt = true;
 cont.df.range = [1,10];
 cont.df.tol = eps^(0.25);
+
+cont.resmpl_on = true;

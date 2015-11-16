@@ -16,3 +16,5 @@ cont.IS.perc = [0.25, 0.30, 0.35]; % <-- ARCH
 
 cont.pnc = 0.1; % probability of the new component
 cont.dfnc = 1;  % degrees of freedom of a new component
+
+cont.resampl_on = true;

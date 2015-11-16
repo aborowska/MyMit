@@ -7,7 +7,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     CV_old = cont.mit.CV_old;
     norm = cont.mit.norm;
      
-    resampl_on = true;
+    resampl_on = cont.resmpl_on;
     
 %% Step 0: Initialization
     % get/define initial mit density shape scale and degrees of freedom

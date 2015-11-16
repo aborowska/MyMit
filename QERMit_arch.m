@@ -44,6 +44,7 @@ save_on = true;
 MitISEM_Control
 cont.mit.dfnc = 5;
 cont.mit.N = 1000;
+cont.resmpl_on = false;
 
 cont2 = cont;
 % cont2.mit.Hmax = 10;
@@ -158,7 +159,7 @@ for p_bar = P_bars
         exp_lnd2 = 0.5*dmvgt(draw_opt, mit2, false, GamMat);
         exp_lnd = exp_lnd1 + exp_lnd2;
         lnd = log(exp_lnd);
-        w_opt =  fn_ISwgts(lnk, lnd, false);
+        w_opt = fn_ISwgts(lnk, lnd, false);
 
         hl_w(sim,P_bars==p_bar) = sum( w_opt(f_stdev(draw_opt(:,1)).*draw_opt(:,2)<VaR_prelim,:)/sum(w_opt) );    
         hp_w(sim,P_bars==p_bar) = sum( w_opt(f_stdev(draw_opt(:,1)).*draw_opt(:,2)>VaR_prelim,:)/sum(w_opt) );   
@@ -187,7 +188,7 @@ for p_bar = P_bars
         arch_plot4; % The sorted future profit/losses 
 
         fprintf('(%s) IS 100*%4.2f%% VAR estimate: %6.4f. \n', model, p_bar, VaR_IS(sim,P_bars==p_bar));
-        fprintf('(%s) IS 100*%4.2f%%ES estimate: %6.4f. \n', model, p_bar, ES_IS(sim,P_bars==p_bar));  
+        fprintf('(%s) IS 100*%4.2f%% ES estimate: %6.4f. \n', model, p_bar, ES_IS(sim,P_bars==p_bar));  
     end
 
     mean_VaR_prelim = mean(VaR_prelim_MC(:,P_bars==p_bar));

@@ -24,9 +24,9 @@ else
 end
 
 plot_on = false; % whether the plots are genereated
-print_on = true;
+print_on = false;
 plot_on2 = true;
-save_on = true;
+save_on = false;
 
 % Tabularised values of the gamma function to speed up the copmutaions
 x_gam = (0:0.00001:50)' + 0.00001; 
@@ -48,6 +48,7 @@ N_sim = 100; % number of MC replications
 MitISEM_Control
 cont.mit.dfnc = 5;
 cont.mit.N = 10000;
+cont.resmpl_on = false;
 
 % Different control parameters might be used for high loss approximation
 cont2 = cont;

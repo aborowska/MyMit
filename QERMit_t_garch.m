@@ -1,5 +1,6 @@
 %% Initialisation
 clear all
+close all
 addpath(genpath('include/'));
 
 % s = RandStream('mt19937ar','Seed',1);
@@ -15,26 +16,30 @@ y = 100*y;
 ind_arch = find(y<=-5.5, 1, 'last' );
 y = y(1:ind_arch,1);
 y = y - mean(y);
-data=y;
-
-T = size(y,1);
-
+data = y;
 
 T = size(data,1);
 y_T = data(T);
 S = var(data);
-
-% M = 10000;
-% N_sim = 20;
+ 
 M = 10000;
 N_sim = 10;
-SS = 10;
 
+p_bar = 0.01;
+hp = 1; % prediction horizon 
+    
 model = 't_garch';
     
 save_on = false;
 plot_on = false;
 print_on = false;
+
+MitISEM_Control
+cont.mit.dfnc = 5;
+cont.resmpl_on = false;
+
+cont2 = cont;  
+cont2.mit.Hmax = 2;
 
 if plot_on
 	figure(1)
@@ -54,34 +59,27 @@ if plot_on
 	end
 end
 
-MitISEM_Control
-cont.mit.dfnc = 5;
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% QERMit 1a.:
-L = true;
-hyper = 1;
+% L = true;
+% hyper = 1;
 % theta = [alpha, beta, mu, nu]
 mu_init = [0.03, 0.9, 0.03, 6];
 
-posterior_t_garch(mu_init, data, S, L, hyper, GamMat)
 
-kernel_init = @(a) - posterior_t_garch(a, data, S, L, hyper, GamMat);
-kernel = @(a) posterior_t_garch(a, data, S, L, hyper, GamMat);
+kernel_init = @(a) - posterior_t_garch_mex(a, data ,S, GamMat);
+kernel = @(a) posterior_t_garch_mex(a, data ,S, GamMat);
+kernel(mu_init)
+% kernel_init = @(a) - posterior_t_garch(a, data, S, L, hyper, GamMat);
+% kernel = @(a) posterior_t_garch(a, data, S, L, hyper, GamMat);
 
-[mit1, summary1] = MitISEM(kernel_init, kernel, mu_init, cont, GamMat);
-if save_on
-    save('results/t_garch_mitisem.mat','mit1','summary1');
-end
-
-%% >>>> not necessary when NSE estimation
-% % for QERMit 2.
-% [draw1, lnk1, ind_red1] = fn_rmvgt_robust(M, mit1, kernel);
-% % draw1 = [draw1, trnd(draw1(:,4))]; % ERRORS ARE T!!
-% save('results/t_garch_mitisem_draw1.mat','draw1', 'lnk1', 'ind_red1');
+[mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
 
 %% Figure draws
 if plot_on
+    [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, false);
+    draw1 = [draw1, trnd(draw1(:,4))]; % ERRORS ARE T!!
+
     figure(1)
     set(gcf,'units','normalized','outerposition',[0 0 1 1]);
     set(gcf,'defaulttextinterpreter','latex');
@@ -119,15 +117,14 @@ if plot_on
         print(name,'-dpng','-r0')
     end
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%.
 
 %% QERMit 1b.:
 % generate set opf draws of theta using independence MH with
 % candiate from MitISEM; then simulate returns based on the draw of theta 
 
-VaR_prelim = zeros(SS,1);
-accept = zeros(SS,1);
-for sim = 1:SS  
+VaR_prelim = zeros(N_sim,1);
+accept = zeros(N_sim,1);
+for sim = 1:N_sim  
     [theta, accept(sim,1)] = Mit_MH(M+1000, kernel, mit1, GamMat);
     fprintf('(MitISEM) MH acceptance rate: %6.4f. \n',accept(sim));
     if save_on
@@ -138,11 +135,8 @@ for sim = 1:SS
     % acf = [autocorr(theta(:,1),1), autocorr(theta(:,2),1), autocorr(theta(:,3),1), autocorr(theta(:,4),1)];
     % acf = acf(2,:);
 
-    %% High loss, 10 days horizon
+   %% High loss, 10 days horizon
     % approximate the high loss distribution of (theta,eps*) where eps*={eps_T+1,...,eps_T+hp}
-    p_bar = 0.01*sim;
-    hp = 1; % prediction horizon 
-
     h_T = volatility_t_garch(theta, data, S);
     [y_hp, eps_hp] = predict_t_garch(theta, y_T, S, h_T, hp);
     % get the preliminary 10-day-ahead 99% VaR estimate as the 100th of the ascendingly sorted percentage loss values
@@ -156,35 +150,30 @@ for sim = 1:SS
     fprintf('p_bar = %4.2f, y_T = %4.2f, VaR_prelim = %4.5f. \n', p_bar, y_T, VaR_prelim(sim))
 end
 
-figure(158)
-set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
-set(gcf,'defaulttextinterpreter','latex');
-plot(0.01:0.01:0.1,VaR_prelim)
-xlabel('$$p_{bar}$$')
-ylabel('$$VaR_{prelim}(p_{bar})$$')
-% set(ax,'XTickLabel',{'0.01','0.02','0.03','0.04','0.05','0.06','0.07','0.08','0.09','0.10'});
-% ax.XTickLabel = {'0.01','0.02','0.03','0.04','0.05','0.06','0.07','0.08','0.09','0.10'};
-plotTickLatex2D;
+% take one value of VaR_prelim to construct mit2
+VaR_prelim_MC = VaR_prelim;
+% VaR_prelim = VaR_prelim_MC(N_sim,1);       % the last one
+VaR_prelim = mean(VaR_prelim);              % the mean
+    
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% QERMit 1c.:
 % get mit approximation of the conditional joint density of
 % parameters and future returns given the returns are below VaR_prelim
 % approximation of the joint high loss distribution
 % here: not future returns but future disturbances  (varepsilons)
-p_bar = 0.01
-VaR_prel = VaR_prelim;
-VaR_prelim = VaR_prelim(1,1);
 
 %% High loss density approximation
-L = true;
+% L = true;
+% hyper = 1;
+kernel_init_mex = @(a) - posterior_t_garch_hl_mex(a, data, S, VaR_prelim, GamMat);
+kernel_mex = @(a) posterior_t_garch_hl_mex(a, data, S, VaR_prelim, GamMat);
+
 kernel_init = @(a) - posterior_t_garch_hl(a, data, S, VaR_prelim, L, hyper, GamMat);
 kernel = @(a) posterior_t_garch_hl(a, data, S, VaR_prelim, L, hyper, GamMat);
 % theta = [alpha, beta, mu, nu, eps_T1, ..., eps_Thp] <-- size 14 
 mu_init_hl = [0.07, 0.93, 0.05, 8.5, -1.5*ones(1, hp)];
 % mu_init_hl = [0.0628    0.9311    0.0491    8.2365   -2.9356];
 % mu_hl = median([theta_hl, eps_hl],1);
-% kernel(mu_hl)
 
 %% IS estimation of the initial mixture component 
 draw_hl = [theta_hl, eps_hl];
@@ -203,16 +192,14 @@ mit_hl.Sigma = Sigma_hl;
 mit_hl.df = 5;
 mit_hl.p = 1;
 
-cont2 = cont;  
-cont2.mit.Hmax = 2;
-[mit2, summary2] = MitISEM(mit_hl, kernel, mu_init_hl, cont2, GamMat);
+[mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_init_hl, cont2, GamMat);
+% [mit2_mex, summary2_mex] = MitISEM_new(mit_hl, kernel_mex, mu_init_hl, cont2, GamMat);
+
 %[mit2, summary] = MitISEM(kernel_init, kernel, mu_hl, cont, GamMat);
 if save_on
     save(['results/t_garch_mitisem_hl_',num2str(hp),'.mat'],'mit2','summary2');
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% QERMit 2:
 % use the mixture 0.5*mit1 + 0.5*mit2 as the importance density
 % to estiamte VaR and ES for theta and y (or alpha in eps)
@@ -226,10 +213,11 @@ ES_IS = zeros(N_sim,1);
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MONTE CARLO NSE AND RNE ESTIMATION 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+resampl_on = false;
 for sim = 1:N_sim
     fprintf('NSE sim = %i.\n', sim);
     kernel = @(a) posterior_t_garch(a, data, S, L, hyper, GamMat);
-    [draw1, lnk1, ind_red1] = fn_rmvgt_robust(M/2, mit1, kernel);
+    [draw1, lnk1, ~] = fn_rmvgt_robust(M/2, mit1, kernel, resampl_on);
     eps1 = zeros(M/2, hp);
     for hh = 1:hp
        eps1(:,hh) = trnd(draw1(:,4)); % ERRORS ARE iid T!!
@@ -237,7 +225,7 @@ for sim = 1:N_sim
     draw1_eps1 = [draw1(1:M/2,:), eps1];
     
     kernel = @(a) posterior_t_garch_hl(a, data, S, VaR_prelim, L, hyper, GamMat);
-    [draw2, lnk2, ind_red2] = fn_rmvgt_robust(M/2, mit2, kernel);
+    [draw2, lnk2, ~] = fn_rmvgt_robust(M/2, mit2, kernel, resampl_on);
     % col 1-4 parameters, col 5:5+hp-1 eps
 
     draw_opt = [draw1_eps1; draw2];
