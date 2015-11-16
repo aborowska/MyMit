@@ -2,3 +2,5 @@
 *.png
 *.mat
 *.jpg	
+*.fig
+*.doc
