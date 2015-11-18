@@ -9,7 +9,7 @@ function [y_hp, eps_hp] = predict_t_garch(theta, y_T, S, h_T, hp, eps)
     rho = (nu-2)./nu;
     
     if (nargin == 5)
-        fprintf('hp = %i \n',hp);
+%         fprintf('hp = %i \n',hp);
         eps_hp = trnd(repmat(nu,1,hp));
     else %(with given eps)
         eps_hp = eps;

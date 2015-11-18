@@ -1,14 +1,18 @@
-% profile on
-
-
-%% Settings
+%% Initialisation
+% clc
 clear all
-
+close all
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
 addpath(genpath('include/'));
-addpath('results/');
 
-% s = RandStream('mt19937ar','Seed',1);
-% RandStream.setGlobalStream(s); 
+v_new = ver('symbolic');
+v_new = v_new.Release;
+if strcmp(v_new,'(R2014b)')
+    v_new = 1;
+else
+    v_new = 0;
+end
 
 plot_on = false;
 print_on = false;
@@ -38,14 +42,6 @@ else
     N_sim = 1;
     hp = 1;
     p_bar = 0.01;
-end
-
-v_new = ver('symbolic');
-v_new = v_new.Release;
-if strcmp(v_new,'(R2014b)')
-    v_new = 1;
-else
-    v_new = 0;
 end
 
 %% Constants
@@ -119,12 +115,8 @@ mit_init.Sigma = Sigma;
 mit_init.p = cont.mit.pnc;
 mit_init.df = cont.mit.dfnc;
 
-% B = 10;
-% VaR_prel = zeros(B);
-% VaR_IS = zeros(B);
-% ES_IS = zeros(B);
 
-% for b=1:B
+
     
 if strcmp(model,'sv')
     kernel_prior = @(a) prior_sv(a, prior_const); 
@@ -134,7 +126,6 @@ else
     kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
 end
 [mit1, theta1, x1, w1, lnk1, lng_y1, lnw_x1, CV1] = EMitISEM(y, mit_init, kernel_prior, kernel, cont, GamMat);
-
 
         
 c1 = theta1(:,1);
@@ -177,7 +168,7 @@ M = N;
 
 VaR_prelim = zeros(SS,1);
 accept = zeros(SS,1);
-for sim = 1:SS    
+for sim = 3:SS    
     [theta, x, lnw, lnk, ~, ~, ~, accept(sim,1)] = EMit_MH(y, M+1000, kernel_prior, kernel, mit1, GamMat, true);
     fprintf('(MitISEM) MH acceptance rate: %6.4f. \n',accept(sim,1));
 
@@ -213,33 +204,43 @@ for sim = 1:SS
         y_h1 = sqrt(rho).*exp(0.5*x_h1).*eps_h1;
     end
     
+    ind_real = (imag(y_h1)==0);
+    M_real = sum(ind_real); 
+    y_h1 = y_h1(ind_real,:);
+    eps_h1 = eps_h1(ind_real,:);
+    eta_h1 = eta_h1(ind_real,:);
+    theta = theta(ind_real,:);
+    lnw = lnw(ind_real,:);
+    lnk = lnk (ind_real,:);
+    
+    
     [PL_h1, ind] = sort(fn_PL(y_h1));
 
     eps_hl_init = eps_h1(ind,:); 
-    eps_hl_init = eps_hl_init(1:p_bar*M,:);
+    eps_hl_init = eps_hl_init(1:round(p_bar*M_real),:);
 
     eta_hl_init = eta_h1(ind,:); 
-    eta_hl_init = eta_hl_init(1:p_bar*M,:);
+    eta_hl_init = eta_hl_init(1:round(p_bar*M_real),:);
 
     theta_hl_init = theta(ind,:);
-    theta_hl_init = theta_hl_init(1:p_bar*M,:);
+    theta_hl_init = theta_hl_init(1:round(p_bar*M_real),:);
 
     lnw_hl_init = lnw(ind,:);
-    lnw_hl_init = lnw_hl_init(1:p_bar*M,:);
+    lnw_hl_init = lnw_hl_init(1:round(p_bar*M_real),:);
     
     lnk_hl_init = lnk(ind,:);
-    lnk_hl_init = lnk_hl_init(1:p_bar*M,:);
+    lnk_hl_init = lnk_hl_init(1:round(p_bar*M_real),:);
 
-    VaR_prelim(sim,1) = PL_h1(p_bar*M);
+    VaR_prelim(sim,1) = PL_h1(round(p_bar*M_real));
     fprintf('p_bar = %4.2f, VaR_prelim = %4.5f. \n', p_bar, VaR_prelim(sim,1))
 end
 
 % fprintf('mean VaR_prelim = %4.5f. \n',  mean(VaR_prelim))
 % fprintf('std VaR_prelim = %4.5f. \n',  std(VaR_prelim))
 
-VaR_prel =  VaR_prelim;
-VaR_prelim = mean(VaR_prel);
-% VaR_prel(b) = VaR_prelim;
+VaR_prelim_MC =  VaR_prelim;
+VaR_prelim = mean(VaR_prelim_MC);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% QERMit 1c.:
 % get mit approximation of the conditional joint density of
@@ -423,7 +424,3 @@ if save_on
         save(['results/svt_mitisem_',int2str(N),'.mat']);
     end
 end
-
-%%
-% profile off
-% profile viewer

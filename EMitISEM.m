@@ -7,7 +7,8 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(y, mit_in
     CV_old = cont.mit.CV_old;
     norm = cont.mit.norm;
  
-    resampl_on = true;
+    resampl_on = cont.resmpl_on;
+    
 %% Step 1: Initialisation
     [theta, ~] = fn_rmvgt_robust(N, mit_init, kernel_prior, resampl_on);
 

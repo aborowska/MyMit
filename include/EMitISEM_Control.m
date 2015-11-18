@@ -21,6 +21,8 @@ cont.df.opt = true;
 cont.df.range = [1,10];
 cont.df.tol = eps^(0.25);
 
+cont.resmpl_on = true;
+
 %% NAIS control parameters
 if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt')))
     cont.nais.M = 20; % number of the Gauss-Hermite nodes

@@ -5,6 +5,7 @@ function w = fn_ISwgts(lnk, lnd, norm)
 % lnd - N vector of log candidate density evaluations
 % w - N vector of IS weights 
     w = lnk - lnd;
+    w(imag(w)~=0) = -Inf;
     w = w - max(w); % robustification
     w = exp(w);
     w(isnan(w)) = 0;

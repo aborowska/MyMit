@@ -1,8 +1,9 @@
 #include "mex.h"
 #include "math.h"
+#include "matrix.h"
 
 #define  PI  3.1415926535897932;
-const double M = -1e100;
+// const double M = -1e100;
 
 void duvt_garch(double x, double mu, double sigma, double df, double *GamMat, mwSignedIndex G, double *pdf)
 {
@@ -163,7 +164,8 @@ void posterior_t_garch_mex(double *y, mwSignedIndex N, mwSignedIndex T, double *
         }
         else
         {
-            d[i] = M;  
+//             d[i] = M;  
+            d[i] = -mxGetInf();
         }    
 //         mexPrintf("d[%i] = %6.4f\n",i,d[i]);  
      }

@@ -1,13 +1,15 @@
 #include "mex.h"
 #include "math.h"
+#include "matrix.h"
 
 #define  PI  3.1415926535897932;
-const double M = -1e100;
+// const double M = -1e100;
 
+/******************************************************************* */
 
 void predict_t_garch(double *theta, double *y, double *S, mwSignedIndex N, mwSignedIndex hp, mwSignedIndex T, double *PL_hp)
 {
-    double *omega, *rho ; 
+    double *omega, *rho, rhoh ; 
     double *h, *y_hp ; 
     mwSignedIndex i, j;
         
@@ -24,6 +26,9 @@ void predict_t_garch(double *theta, double *y, double *S, mwSignedIndex N, mwSig
         omega[i] = S[0]*(1-theta[i]-theta[N+i]);
         rho[i] = (theta[3*N+i]-2)/theta[3*N+i];
         h[i] = S[0]; 
+//         mexPrintf("h[%i] = %6.4f \n",0,h[i]);
+//         mexPrintf("omega[%i] = %6.4f\n",i,omega[i] );       
+//         mexPrintf("rho[%i] = %6.4f\n",i,rho[i]);  
         PL_hp[i] = 0;
 //         h[i] = h_T[i];  
     }    
@@ -32,30 +37,42 @@ void predict_t_garch(double *theta, double *y, double *S, mwSignedIndex N, mwSig
     /* volatility_t_garch to get h_T*/   
     for (i=0; i<N; i++) 
     {
-        for (j=1; j<(T+1); j++)
+        for (j=1; j<T; j++)
         {   
             h[i] = theta[N+i]*h[i] + omega[i] + theta[i]*(y[j-1]-theta[2*N+i])*(y[j-1]-theta[2*N+i]);         
+//             mexPrintf("y[%i] = %6.4f \n",j,y[j-1]);
+//             mexPrintf("h[%i] = %6.4f \n",j,h[i]);
         }                  
      }
     
     /* predict: h, y and pl */
     for (i=0; i<N; i++) 
     {
+//         for (j=0; j<4+hp; j++)
+//         {
+//             mexPrintf("theta[%i] = %6.4f \n",j,theta[N*i+j]);    
+//         }
         for (j=1; j<(hp+1); j++)
         {   
             if (j==1)
             {
-                h[i] = theta[N+i]*h[i] + omega[i] + theta[i]*(y[T]-theta[2*N+i])*(y[T]-theta[2*N+i]); /* forecast based on the last observation */
+                h[i] = theta[N+i]*h[i] + omega[i] + theta[i]*(y[T-1]-theta[2*N+i])*(y[T-1]-theta[2*N+i]); /* forecast based on the last observation */
             }
             else
             {
                 h[i] = theta[N+i]*h[i] + omega[i] + theta[i]*(y_hp[i]-theta[2*N+i])*(y_hp[i]-theta[2*N+i]);  /* forcast based on the previous forecast */                      
             }
 /*            y_hp[i] = theta[2*N+i] + sqrt(rho[i]*h[i])*eps[N*j+i]; */
-            y_hp[i] = theta[2*N+i] + sqrt(rho[i]*h[i])*theta[N*(j+4)+i]; 
+//             mexPrintf("h_hp[%i] = %6.4f \n",j,h[i]);
+            rhoh = rho[i]*h[i];
+//             mexPrintf("eps[%i]= %6.4f\n",i,theta[N*(j+3)+i]);
+            y_hp[i] = theta[2*N+i] + pow(rhoh,0.5)*theta[N*(j+3)+i]; 
             PL_hp[i] = PL_hp[i] + y_hp[i];
-        }  
-        PL_hp[i] = 100*exp(0.01*PL_hp[i]-1);
+        } 
+//         mexPrintf("y_hp[%i] = %6.4f \n",i,y_hp[i]);
+//         mexPrintf("PL_hp[%i] = %6.4f \n",i,PL_hp[i]);
+        PL_hp[i] = 100*(exp(0.01*PL_hp[i])-1);
+//         mexPrintf("PL_hp[%i] = %6.4f \n",i,PL_hp[i]);
      }
     
     /* Free allocated memory */
@@ -65,14 +82,17 @@ void predict_t_garch(double *theta, double *y, double *S, mwSignedIndex N, mwSig
     mxFree(y_hp);
 }
 
+/******************************************************************* */
+
 void duvt_garch(double x, double mu, double sigma, double df, double *GamMat, mwSignedIndex G, double *pdf)
 {
     double c0, c1, c2, c, e, tmp, etmp, df5;
     int ind;
     
     c0 = df+1;
+//     mexPrintf("c0 = %16.14f\n",c0);    
     
-    if (c0 <= 100)
+    if (c0 <= 100) /* gamma((nu+1)/2) */
     {
         ind = floor(c0*50000) - 1;
         c1 = GamMat[ind];
@@ -82,8 +102,9 @@ void duvt_garch(double x, double mu, double sigma, double df, double *GamMat, mw
      /*   c1 = tgamma(0.5*c0); */
         c1 = GamMat[G-1];
     }
-    
-    if (df <= 100)
+//     mexPrintf("c1 = %16.14f\n",c1);    
+
+    if (df <= 100) /* gamma(nu/2) */
     {
 //         ind = floor(df[0]*50000) - 1; /* useround insteadas follows: */
         df5 = df*50000;
@@ -103,20 +124,30 @@ void duvt_garch(double x, double mu, double sigma, double df, double *GamMat, mw
     {
         c2 = GamMat[G-1];
     } 
+//     mexPrintf("c2 = %16.14f\n",c2);    
 
     c = df*PI;
     c = pow(c,0.5);
-//     mexPrintf("c = %6.4f\n",c);    
+//     mexPrintf("sqrt(df*pi) = %16.14f\n",c);    
     c2 = c2*c;
+//     mexPrintf("c2*sqrt(df*pi) = %16.14f\n",c2);    
+
     c2 = c2*pow(sigma,0.5);
+//     mexPrintf("sqrt(sigma) = %16.14f\n",pow(sigma,0.5));    
+
     c = c1/c2;
+//     mexPrintf("c1/c2 = %16.14f\n",c);    
+
     e = -0.5*c0; 
+//     mexPrintf("e = %16.14f\n",e);    
     
     tmp = (x-mu)*(x-mu)/sigma;
     tmp = 1 + tmp/df;
     etmp = pow(tmp,e); 
     pdf[0] = exp(log(c) + log(etmp));
 }
+
+/******************************************************************* */
 
 void prior_t_garch_hl(double *theta, double *PL_hp, double *VaR, mwSignedIndex N, mwSignedIndex *r1, double *r2)
 {
@@ -128,34 +159,43 @@ void prior_t_garch_hl(double *theta, double *PL_hp, double *VaR, mwSignedIndex N
     for (i=0; i<N; i++)
     {
         r1[i] = 1;
+//         r2[i] = M;
+        r2[i] = -mxGetInf();
+        
         if ((theta[i] <0 ) || (theta[i] >= 1))
         {
             r1[i] = 0;
         }
+//         mexPrintf("r1[%i] = %i\n",i,r1[i]);   
         if ((theta[i+N] < 0) || (theta[i+N] >= 1))
         {
             r1[i] = 0;
         }
+//         mexPrintf("r1[%i] = %i\n",i,r1[i]);   
         if (theta[i] + theta[i+N] >= 1)
         {
             r1[i] = 0;
         }
+//         mexPrintf("r1[%i] = %i\n",i,r1[i]);           
         if (theta[i+3*N] <= 2)
         {
             r1[i] = 0;
         }
+//         mexPrintf("r1[%i] = %i\n",i,r1[i]);           
         
-        if (PL_hp[0] > VaR[0])
+        if (PL_hp[i] > VaR[0])
         {
             r1[i] = 0;
         }  
-        
+//         mexPrintf("r1[%i] = %i\n",i,r1[i]);   
         if (r1[i] == 1)
         {
             r2[i] = 2 - theta[i+3*N];
         }
     }
 }
+
+/*******************************************************************  */
 
 void posterior_t_garch_hl_mex(double *y, mwSignedIndex N, mwSignedIndex hp, mwSignedIndex T, double *S,
         double *theta, double *VaR, double *GamMat, mwSignedIndex G, double *d)
@@ -182,7 +222,8 @@ void posterior_t_garch_hl_mex(double *y, mwSignedIndex N, mwSignedIndex hp, mwSi
 
     /* Initialise */
     for (i=0; i<N; i++)
-    {
+    {   
+//         mexPrintf("PL_hp[%i] = %6.4f \n",i,PL_hp[i]);   
         omega[i] = S[0]*(1-theta[i]-theta[N+i]);  
         rho[i] = (theta[i+3*N]-2)/theta[i+3*N];
 //         mexPrintf("omega[%i] = %6.4f\n",i,omega[i] );       
@@ -192,8 +233,7 @@ void posterior_t_garch_hl_mex(double *y, mwSignedIndex N, mwSignedIndex hp, mwSi
 //         mexPrintf("mu[%i] = %6.4f\n", i, theta[2*N+i]);
 //         mexPrintf("nu[%i] = %6.4f\n", i, theta[i+3*N]);
     }
-
-         
+        
     /* PDF */
     for (i=0; i<N; i++) 
     {
@@ -204,7 +244,8 @@ void posterior_t_garch_hl_mex(double *y, mwSignedIndex N, mwSignedIndex hp, mwSi
 //         mexPrintf("beta[%i] = %6.4f\n", i, theta[i+N]);
 //         mexPrintf("mu[%i] = %6.4f\n", i, theta[2*N+i]);
 //         mexPrintf("nu[%i] = %6.4f\n", i, theta[i+3*N]);           
-        
+//         mexPrintf("eps[%i] = %6.4f\n", i, theta[i+4*N]);           
+      
         if (r1[i]==1)
         {
             d[i] = r2[i]; /* prior */
@@ -227,19 +268,27 @@ void posterior_t_garch_hl_mex(double *y, mwSignedIndex N, mwSignedIndex hp, mwSi
                 rhoh = rho[i]*h;
 //                 mexPrintf("rhoh = %6.4f\n", rhoh);  
                 duvt_garch(y[j], theta[i+2*N], rhoh, theta[i+3*N], GamMat, G, pdf);
+                pdf[0] = log(pdf[0]);
 //                 mexPrintf("pdf[%i] = %16.14f\n", j, pdf[0]);  
-                d[i] = d[i] + log(pdf[0]);
+                d[i] = d[i] + pdf[0];
+//                 mexPrintf("d[%i] = %6.4f\n",i,d[i]);  
             }
-            
+//             mexPrintf("d[%i] = %16.14f\n",i,d[i]);  
             for (j=1; j<hp+1; j++) /* pdf of future disturbances */
             {
-             duvt_garch(theta[i+N*(j+4)], 0, 1, theta[i+3*N], GamMat, G, pdf);
-             d[i] = d[i] + log(pdf[0]);
+                duvt_garch(theta[i+N*(j+3)], 0, 1, theta[i+3*N], GamMat, G, pdf);
+                pdf[0] = log(pdf[0]);
+//                 mexPrintf("eps[%i] = %16.14f\n", j, theta[i+N*(j+3)]); 
+//                 mexPrintf("nu[%i] = %16.14f\n", j, theta[i+3*N]); 
+//                 mexPrintf("pdf[%i] = %16.14f\n", j, pdf[0]);  
+                d[i] = d[i] + pdf[0];
+//                 mexPrintf("d[%i] = %6.4f\n",i,d[i]);  
             }
         }
         else
         {
-            d[i] = M;  
+//             d[i] = M;  
+            d[i] = -mxGetInf();
         }    
 //         mexPrintf("d[%i] = %6.4f\n",i,d[i]);  
      }
@@ -276,6 +325,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     G = mxGetM(prhs[4]);
     
 //     mexPrintf("N = %i\n", N);  
+//     mexPrintf("hp = %i\n", hp);  
 //     mexPrintf("T = %i\n", T); 
 //     mexPrintf("G = %i\n", G); 
         

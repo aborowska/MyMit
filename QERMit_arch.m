@@ -37,9 +37,9 @@ M = 10000;
 N_sim = 100;
 
 plot_on = false;
-print_on  = true;
+print_on  = false;
 plot_on2 = true;
-save_on = true;
+save_on = false;
 
 MitISEM_Control
 cont.mit.dfnc = 5;
@@ -54,28 +54,28 @@ cont2.df.range = [1, 40];
 
 
 % p_bar = 0.05; % p_bar = 1-alpha, 100alpha% VaR
-P_bars = [0.01, 0.05, 0.1, 0.5];
-% P_bars = 0.01;
+% P_bars = [0.01, 0.05, 0.1, 0.5];
+P_bars = 0.01;
 
-    VaR_prelim = zeros(N_sim,1);
-    VaR_prelim_MC = zeros(N_sim,length(P_bars));
-    ES_prelim = zeros(N_sim,length(P_bars));
-    accept = zeros(N_sim,length(P_bars));
-    
-    VaR_IS = zeros(N_sim,length(P_bars));
-    ES_IS = zeros(N_sim,length(P_bars));
-    hl_w = zeros(N_sim,length(P_bars)); % Sum of weights for high losses
-    hp_w = zeros(N_sim,length(P_bars)); % Sum of weights for high profits
+VaR_prelim = zeros(N_sim,1);
+VaR_prelim_MC = zeros(N_sim,length(P_bars));
+ES_prelim = zeros(N_sim,length(P_bars));
+accept = zeros(N_sim,length(P_bars));
+
+VaR_IS = zeros(N_sim,length(P_bars));
+ES_IS = zeros(N_sim,length(P_bars));
+hl_w = zeros(N_sim,length(P_bars)); % Sum of weights for high losses
+hp_w = zeros(N_sim,length(P_bars)); % Sum of weights for high profits
 
 for p_bar = P_bars
     fprintf('\np_bar: %4.2f\n',p_bar);
     %% QERMit 1a.: 
     kernel_init = @(a) - posterior_arch(a, data, S, true);
     kernel = @(a) posterior_arch(a, data, S, true);
-%     [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
+    [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
 
     for sim = 1:N_sim
-        [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
+%         [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
 
         %% QERMit 1b.:
         % generate set of draws of alpha using independence MH with candidate from MitISEM; 
@@ -137,7 +137,7 @@ for p_bar = P_bars
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     for sim = 1:N_sim
         resampl_on = false;
-        
+        fprintf('NSE sim = %i.\n', sim); 
         kernel = @(a) posterior_arch(a, data, S, true);
         [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, resampl_on);
         eps1 = randn(M,1);
@@ -173,18 +173,7 @@ for p_bar = P_bars
         VaR_IS(sim,P_bars==p_bar) = IS_estim(1,1);
         ES_IS(sim,P_bars==p_bar) = IS_estim(1,2);
         PL_opt = fn_PL(y_opt);
-    % [PL_opt_h1, ind] = sort(PL_opt);
-    % w_opt_h1 = w_opt(ind)/sum(w_opt);
-    % cum_w = cumsum(w_opt_h1);
-    % lnd_opt_h1 = lnd(ind);
-    % lnk_opt_h1 = lnk(ind);  
-    % 
-    % figure(11)
-    % subplot(2,2,1); plot(cum_w); hold on; plot(0.01*ones(M),'r'); hold off; title('cum w');
-    % subplot(2,2,2); plot(lnk_opt_h1);   title('lnk opt h1');
-    % subplot(2,2,3); plot(w_opt_h1);     title('w opt h1');
-    % subplot(2,2,4); plot(lnd_opt_h1);   title('lnd opt h1');
-
+ 
         arch_plot4; % The sorted future profit/losses 
 
         fprintf('(%s) IS 100*%4.2f%% VAR estimate: %6.4f. \n', model, p_bar, VaR_IS(sim,P_bars==p_bar));
