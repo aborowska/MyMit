@@ -308,7 +308,7 @@ end
 PL_h1_2 = fn_PL(y_h1_2);
  
 SV_plot2;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% QERMit 2:
 % use the mixture 0.5*mit1 + 0.5*mit2 as the importance density
 % to estiamte VaR and ES for theta and y (or alpha in eps)
