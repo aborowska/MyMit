@@ -1,7 +1,5 @@
 N_sim = 10;
-cont.mit.N = 2000;
-N = cont.mit.N;
-    
+M = 2000;
 VaR_IS = zeros(N_sim,1);
 ES_IS = zeros(N_sim,1);
 
@@ -22,12 +20,13 @@ for sim = 1:N_sim
         kernel_prior = @(a) prior_svt(a, prior_const); 
         kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
     end
-    [theta1, x1, lnw1, lnk1, lng_y1, lnw_x1, x_smooth1, ~] = EMit_MH(y, N, kernel_prior, kernel, mit1, GamMat, false);
+   
+    [theta1, x1, lnw1, lnk1, lng_y1, lnw_x1, x_smooth1, ~] = EMit_MH(y, M, kernel_prior, kernel, mit1, GamMat, false);
 
-    eta_h1_1 = randn(N,1);
+    eta_h1_1 = randn(M,1);
 
     if strcmp(model,'sv')
-        eps_h1_1 = randn(N,1);
+        eps_h1_1 = randn(M1);
     else
         nu1 = theta1(:,4);
         rho1 = (nu1-2)./nu1;
@@ -43,7 +42,7 @@ for sim = 1:N_sim
         kernel = @(a) posterior_svt_hl(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
     end
 
-    [theta2, x2, lnw2, lnk2, lng_y2, lnw_x2, x_smooth2, ~] = EMit_MH(y, N, kernel_prior, kernel, mit2, GamMat, false);
+    [theta2, x2, lnw2, lnk2, lng_y2, lnw_x2, x_smooth2, ~] = EMit_MH(y, M, kernel_prior, kernel, mit2, GamMat, false);
 
     %%% OPT %%%
     theta_opt = [theta1, eta_h1_1, eps_h1_1; theta2];

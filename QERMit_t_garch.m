@@ -39,11 +39,12 @@ N_sim = 100;
 mu_init = [0.03, 0.9, 0.03, 6];
 
 hp = 1; % prediction horizon 
-    
+
+algo = 'MitISEM';
 model = 't_garch';
     
 plot_on = false;
-print_on  = true;
+print_on  = false;
 plot_on2 = true;
 save_on = true;
 
@@ -58,8 +59,8 @@ cont2.df.range = [1, 40];
 t_garch_plot0;
 
 %  p_bar = 0.01;
-P_bars = [0.01, 0.05, 0.1, 0.5];
-% P_bars = 0.01;
+% P_bars = [0.01, 0.05, 0.1, 0.5];
+P_bars = 0.01;
 
 VaR_prelim = zeros(N_sim,1);
 VaR_prelim_MC = zeros(N_sim,length(P_bars));
@@ -87,7 +88,7 @@ for p_bar = P_bars
         % generate set opf draws of theta using independence MH with
         % candiate from MitISEM; then simulate returns based on the draw of theta 
         [theta1, accept(sim,P_bars==p_bar)] = Mit_MH(M+1000, kernel, mit1, GamMat);
-        fprintf('(MitISEM) MH acceptance rate: %6.4f. \n',accept(sim,P_bars==p_bar));
+        fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept(sim,P_bars==p_bar), model, algo);
         theta1 = theta1(1001:M+1000,:);
 
         %% High loss, 10 days horizon
@@ -100,7 +101,7 @@ for p_bar = P_bars
 
         VaR_prelim(sim,1) = PL_hp(p_bar*M);
         ES_prelim(sim,P_bars==p_bar) = mean(PL_hp(1:p_bar*M));   
-        fprintf('(%s) Preliminary 100*%4.2f%% VaR estimate: %6.4f. \n', model, p_bar, VaR_prelim(sim,1));
+        fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
     end
 
     % take one value of VaR_prelim to construct mit2
@@ -229,8 +230,8 @@ for p_bar = P_bars
             end
         end
 
-        fprintf('(%s) IS 100*%4.2f%% VAR estimate: %6.4f. \n', model, p_bar, VaR_IS(sim,P_bars==p_bar));
-        fprintf('(%s) IS 100*%4.2f%% ES estimate: %6.4f. \n', model, p_bar, ES_IS(sim,P_bars==p_bar));  
+        fprintf('IS 100*%4.2f%% VAR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,P_bars==p_bar), model, algo);
+        fprintf('IS 100*%4.2f%% ES estimate: %6.4f (%s, %s). \n', p_bar, ES_IS(sim,P_bars==p_bar), model, algo);  
     end
 
     mean_VaR_prelim = mean(VaR_prelim_MC(:,P_bars==p_bar));
@@ -245,36 +246,36 @@ for p_bar = P_bars
     NSE_VaR_IS = std(VaR_IS(:,P_bars==p_bar));
     NSE_ES_IS = std(ES_IS(:,P_bars==p_bar));
 
-    fprintf('(%s) 100*%4.2f%% VaR prelim (mean) estimate: %6.4f. \n', model, p_bar, mean_VaR_prelim);
-    fprintf('(%s) NSE VaR prelim: %6.4f. \n', model, NSE_VaR_prelim);
-    fprintf('(%s) VaR prelim: [%6.4f, %6.4f]. \n \n', model, mean_VaR_prelim - NSE_VaR_prelim, mean_VaR_prelim + NSE_VaR_prelim);
+    fprintf('100*%4.2f%% VaR prelim (mean) estimate: %6.4f (%s, %s). \n', p_bar, mean_VaR_prelim, model, algo);
+    fprintf('NSE VaR prelim: %6.4f (%s, %s). \n', NSE_VaR_prelim, model, algo);
+    fprintf('VaR prelim: [%6.4f, %6.4f] (%s, %s). \n \n', mean_VaR_prelim - NSE_VaR_prelim, mean_VaR_prelim + NSE_VaR_prelim, model, algo);
 
-    fprintf('(%s) 100*%4.2f%% VaR IS (mean) estimate: %6.4f. \n', model, p_bar, mean_VaR_IS);
-    fprintf('(%s) NSE VaR IS estimate: %6.4f. \n', model, NSE_VaR_IS);
-    fprintf('(%s) VaR: [%6.4f, %6.4f]. \n \n', model, mean_VaR_IS - NSE_VaR_IS, mean_VaR_IS + NSE_VaR_IS);
+    fprintf('100*%4.2f%% VaR IS (mean) estimate: %6.4f (%s, %s). \n',  p_bar, mean_VaR_IS, model, algo);
+    fprintf('NSE VaR IS estimate: %6.4f (%s, %s). \n', NSE_VaR_IS, model, algo);
+    fprintf('VaR: [%6.4f, %6.4f] (%s, %s). \n \n', mean_VaR_IS - NSE_VaR_IS, mean_VaR_IS + NSE_VaR_IS, model, algo);
 
-    fprintf('(%s) 100*%4.2f%% ES prelim (mean) estimate: %6.4f. \n', model, p_bar, mean_ES_prelim);
-    fprintf('(%s) NSE ES prelim: %6.4f. \n', model, NSE_ES_prelim);
-    fprintf('(%s) ES prelim: [%6.4f, %6.4f]. \n \n', model, mean_ES_prelim - NSE_ES_prelim, mean_ES_prelim + NSE_ES_prelim);
+    fprintf('100*%4.2f%% ES prelim (mean) estimate: %6.4f (%s, %s). \n', p_bar, mean_ES_prelim, model, algo);
+    fprintf('NSE ES prelim: %6.4f (%s, %s). \n',NSE_ES_prelim, model, algo);
+    fprintf('ES prelim: [%6.4f, %6.4f] (%s, %s). \n \n', mean_ES_prelim - NSE_ES_prelim, mean_ES_prelim + NSE_ES_prelim, model, algo);
 
-    fprintf('(%s) 100*%4.2f%% ES IS (mean) estimate: %6.4f. \n', model, p_bar, mean_ES_IS);
-    fprintf('(%s) NSE ES IS estimate: %6.4f. \n', model, NSE_ES_IS);
-    fprintf('(%s) ES: [%6.4f, %6.4f]. \n', model, mean_ES_IS - NSE_ES_IS, mean_ES_IS + NSE_ES_IS);
-    
+    fprintf('100*%4.2f%% ES IS (mean) estimate: %6.4f (%s, %s). \n', p_bar, mean_ES_IS, model, algo);
+    fprintf('NSE ES IS estimate: %6.4f (%s, %s). \n', NSE_ES_IS, model, algo);
+    fprintf('ES: [%6.4f, %6.4f] (%s, %s). \n',  mean_ES_IS - NSE_ES_IS, mean_ES_IS + NSE_ES_IS, model, algo);
+     
     
     if plot_on2
         figure(390+100*p_bar)
 %         set(gcf, 'visible', 'off');
 %         set(gcf,'defaulttextinterpreter','latex');
         boxplot([VaR_prelim_MC(:,P_bars==p_bar), VaR_IS(:,P_bars==p_bar)],'labels',{'VaR_prelim MC','VaR_IS'})        
-        title(['(',model,' M = ',num2str(M),') ','100*', num2str(p_bar),'% VaR estimates: prelim and IS.'])
+        title(['100*', num2str(p_bar),'% VaR estimates: prelim and IS (',model,', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])
         if v_new
             set(gca,'TickLabelInterpreter','latex')
         else
             plotTickLatex2D;
         end
         if print_on
-            name = ['figures/(',model,')', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
+            name = ['figures/(',model,'_',algo,')', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
             fig = gcf;
             fig.PaperPositionMode = 'auto';
             print(name,'-dpng','-r0')
@@ -291,7 +292,7 @@ for p_bar = P_bars
         plot(0:(N_sim+1), (mean_VaR_prelim + NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
         plot(0:(N_sim+1), mean_VaR_prelim*ones(N_sim+2,1),'r'); 
         hold off;
-        title(['(',model,' M = ',num2str(M),') ','100*', num2str(p_bar),'% VaR IS estimates and the mean VaR prelim (+/- NSE VaR prelim).'])
+        title(['100*', num2str(p_bar),'% VaR IS estimates and the mean VaR prelim (+/- NSE VaR prelim) (',model,', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])    
     
         if v_new
             set(gca,'TickLabelInterpreter','latex')
@@ -299,7 +300,7 @@ for p_bar = P_bars
             plotTickLatex2D;
         end
         if print_on
-            name = ['figures/(',model,')', num2str(p_bar),'_VaR_bar_',num2str(M),'.png'];
+            name = ['figures/(',model,'_',algo,')', num2str(p_bar),'_VaR_bar_',num2str(M),'.png'];
             fig = gcf;
             fig.PaperPositionMode = 'auto';
             print(name,'-dpng','-r0')

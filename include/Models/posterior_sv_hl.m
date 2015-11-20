@@ -3,7 +3,8 @@ function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv_hl(y, theta, VaR, par_NAI
     T = size(y,1);
     
     x_smooth = [];
-    
+%     prior = prior_sv(theta(:,1:3), prior_const);
+     
     c = theta(:,1);
     phi = theta(:,2);
     sigma2 = theta(:,3);
@@ -20,11 +21,16 @@ function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv_hl(y, theta, VaR, par_NAI
         if (mod(ii,100) == 0)
             fprintf('nais_loglik ii = %i\n',ii); 
         end
-        par_SV = theta(ii,1:3); 
-%         [par_NAIS_iter, x_smooth(:,ii)] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
-        [par_NAIS_iter] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
-        b(:,ii) = par_NAIS_iter.b;
-        C(:,ii) = par_NAIS_iter.C;
+%         if (prior(ii,1) ~= -Inf)
+            par_SV = theta(ii,1:3); 
+    %         [par_NAIS_iter, x_smooth(:,ii)] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
+            [par_NAIS_iter] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
+            b(:,ii) = par_NAIS_iter.b;
+            C(:,ii) = par_NAIS_iter.C;
+%         else
+%             par_NAIS.b(:,ii) = par_NAIS_init.b;
+%             par_NAIS.C(:,ii) = par_NAIS_init.C;
+%         end
     end
     par_NAIS.b = b;
     par_NAIS.C = C;

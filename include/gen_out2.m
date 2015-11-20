@@ -1,16 +1,26 @@
-fileID = fopen(['results/',model,'_',num2str(p_bar),'_',num2str(M),'.txt'],'w');
+fileID = fopen(['results/',model,'_',algo,'_',num2str(p_bar),'_',num2str(M),'.txt'],'w');
 
-fprintf(fileID,'----------------------------------------\n');
-fprintf(fileID,'Model %s: \n',model);
+fprintf(fileID,'Model: %s \n',model);
+fprintf(fileID,'Algorithm: %s \n',algo);
 fprintf(fileID,'----------------------------------------\n');
 
 fprintf(fileID,'Controls: \n');
 fprintf(fileID,'----------------------------------------\n');
 fprintf(fileID,'N_sim:  %2i\n',N_sim);
-fprintf(fileID,'N:  %2i\n',cont.mit.N);
+if strcmp(algo,'MitISEM')
+    fprintf(fileID,'N:  %2i\n',cont.mit.N);
+else
+    fprintf(fileID,'Ns:  %2i\n',cont.Ns);
+    fprintf(fileID,'Np:  %2i\n',cont.Np);
+end
 fprintf(fileID,'M:  %2i\n',M);
-fprintf(fileID,'df1:  %2i\n',cont.mit.dfnc);
-fprintf(fileID,'df2:  %2i\n',cont2.mit.dfnc);
+if strcmp(algo,'MitISEM')
+    fprintf(fileID,'df1:  %2i\n',cont.mit.dfnc);
+    fprintf(fileID,'df2:  %2i\n',cont2.mit.dfnc);
+else
+    fprintf(fileID,'df1:  %2i\n',cont.dfnc);
+    fprintf(fileID,'df2:  %2i\n',cont2.dfnc);
+end
 fprintf(fileID,'\n');
 fprintf(fileID,'Estimates: \n');
 fprintf(fileID,'----------------------------------------\n');
