@@ -1,7 +1,7 @@
-N_sim = 10;
-M = 2000;
-VaR_IS = zeros(N_sim,1);
-ES_IS = zeros(N_sim,1);
+% N_sim = 20;
+% M = 2000;
+% VaR_IS = zeros(N_sim,1);
+% ES_IS = zeros(N_sim,1);
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,6 +25,9 @@ for sim = 1:N_sim
     lnk_opt = zeros(2*M,1);
     x_end = zeros(2*M,1);
     for ii = 1:(2*M)
+        if (mod(ii,200)==0)
+            fprintf('ii = %i\n',ii);
+        end
         [par_NAIS, x_smooth]= NAIS_param(par_NAIS_init, y, theta_opt(ii,1:3), cont.nais);
         [x, lng_y, lnw] = NAIS_loglik(y, theta_opt(ii,1:3), par_NAIS, cont.nais);
         x_end(ii,1) = x(end);
@@ -65,7 +68,33 @@ for sim = 1:N_sim
     cum_w = cumsum(w_opt_h1);
     ind_var = sum(cum_w<=p_bar);
     VaR_IS(sim,1) = PL_opt_h1(ind_var);
+    sim=sim+1
 end
 
-boxplot([VaR_prelim_MC, VaR_IS],'labels',{'VaR_prelim MC','VaR_IS'})        
-   
+
+x_end = x_end(~isnan(x_end));
+lnk_opt = lnk_opt(~isnan(lnk_opt));
+
+
+
+
+
+
+
+
+    figure(590+100*p_bar)
+%         set(gcf, 'visible', 'off');
+%         set(gcf,'defaulttextinterpreter','latex');
+    boxplot([VaR_prelim_MC, VaR_IS],'labels',{'VaR_prelim MC','VaR_IS'})        
+    title(['100*', num2str(p_bar),'% VaR estimates: prelim and IS (',model, ', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])
+    if v_new
+        set(gca,'TickLabelInterpreter','latex')
+    else
+        plotTickLatex2D;
+    end
+    if print_on
+        name = ['figures/(',model,')', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
+        fig = gcf;
+        fig.PaperPositionMode = 'auto';
+        print(name,'-dpng','-r0')
+    end

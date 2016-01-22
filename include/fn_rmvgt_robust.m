@@ -1,4 +1,4 @@
-function [theta, lnk, ind_red, x, lng_y, lnw_x, x_smooth] = fn_rmvgt_robust(N, mit, kernel, resampl_on, theta_in)
+function [theta, lnk, ind_red, x, lng_y, lnw_x,  eps_bar, eps_sim, C_T, lnp_T, RND] = fn_rmvgt_robust(N, mit, kernel, resampl_on, DUPA)
 % robust sampling from mixture of multivariate t densities
 % when resampl_on == 1 samples are redrawn from mit if they correspond to a bad region with zero
 % kernel density  (i.e. these with -Inf weights)     
@@ -10,27 +10,18 @@ function [theta, lnk, ind_red, x, lng_y, lnw_x, x_smooth] = fn_rmvgt_robust(N, m
         Sigma = mit.Sigma;
         df = mit.df;
         p = mit.p;
-%         display('rmvgt2')
-
-        x_smooth = []; % smoothed signal from NAIS
         
-        if ((nargin == 5) && isa(theta_in,'double'))
-            % If theta is given
-            theta = theta_in; % [for debugging: theta=theta_init; cont=cont.nais; par_NAIS=par_NAIS_init;]
-        else
-            theta = rmvgt2(N, mu, Sigma, df, p); % Sampling from the mixture of t
-        end
+        theta = rmvgt2(N, mu, Sigma, df, p); % Sampling from the mixture of t
         
         % lnk - N vector of log-kernel evaluations at draws
         fprintf('\n'); 
         fprintf('kernel computation')
         fprintf('\n'); 
         
-        if (nargin == 4) % not Extedned version (an observation driven model)
+        if (nargin == 4) % not Extended version (an observation driven model)
             lnk = kernel(theta);
         else % Extedned version (a parametric model)
-%             [lnk, x, lng_y, lnw_x, x_smooth] =  kernel(theta);           
-            [lnk, x, lng_y, lnw_x] =  kernel(theta);
+            [lnk, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] =  kernel(theta);
         end
         
         ind_red = 0;

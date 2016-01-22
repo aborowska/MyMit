@@ -1,9 +1,6 @@
-function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv_hl(y, theta, VaR, par_NAIS_init, prior_const, cont) 
+function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_sv_hl(y, theta, VaR, par_NAIS_init, prior_const, cont) 
     N = size(theta,1);
     T = size(y,1);
-    
-    x_smooth = [];
-%     prior = prior_sv(theta(:,1:3), prior_const);
      
     c = theta(:,1);
     phi = theta(:,2);
@@ -16,26 +13,20 @@ function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv_hl(y, theta, VaR, par_NAI
     C = -Inf*ones(T,N);
   
     d = -Inf*ones(N,1);
-%     x_smooth = zeros(T,N);
+
     for ii = 1:N      
         if (mod(ii,100) == 0)
             fprintf('nais_loglik ii = %i\n',ii); 
         end
-%         if (prior(ii,1) ~= -Inf)
-            par_SV = theta(ii,1:3); 
-    %         [par_NAIS_iter, x_smooth(:,ii)] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
-            [par_NAIS_iter] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
-            b(:,ii) = par_NAIS_iter.b;
-            C(:,ii) = par_NAIS_iter.C;
-%         else
-%             par_NAIS.b(:,ii) = par_NAIS_init.b;
-%             par_NAIS.C(:,ii) = par_NAIS_init.C;
-%         end
+        par_SV = theta(ii,1:3); 
+        [par_NAIS_iter] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
+        b(:,ii) = par_NAIS_iter.b;
+        C(:,ii) = par_NAIS_iter.C;
     end
     par_NAIS.b = b;
     par_NAIS.C = C;
     par_SV = theta(:,1:3);
-    [x, lng_y, lnw_x] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
+    [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
 
     x_h1 = c + phi.*(x(:,end) - c) + sqrt(sigma2).*eta;
     y_h1 = exp(0.5*x_h1).*eps;    
@@ -45,12 +36,6 @@ function [d, x, lng_y, lnw_x, x_smooth] = posterior_sv_hl(y, theta, VaR, par_NAI
 
     ind = find(prior_hl ~= -Inf);
     d(ind) = lng_y(ind) + lnw_x(ind) + prior_hl(ind);
-
-    par_NAIS.b = -Inf*ones(T,N);
-    par_NAIS.C = -Inf*ones(T,N);
-    par_NAIS.b(:,ind) = b(:,ind);
-    par_NAIS.C(:,ind) = C(:,ind);
-
 end
 
 function r2 = prior_sv_hl_in(theta, prior_const, PL, VaR)

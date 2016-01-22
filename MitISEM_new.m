@@ -138,6 +138,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
         mit_old = mit_new;
         mit_new = fn_updateMit(mit_new, mit_nc); 
 
+%%% ??? %%%        
         % DRAW FROM COMBINED
         % get draws and log kernel evaluation from the new mixture mit_new 
         [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
@@ -145,7 +146,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 
         lnd = dmvgt(theta, mit_new, true, GamMat);
         w = fn_ISwgts(lnk, lnd, norm);
-
+%%%%%%%%%%%
         % UPDATE COMBINED
         % update mode, scale and df  of all mixture components
         [mit_new, summary_new] = fn_optimt(theta, mit_new, w, cont, GamMat);

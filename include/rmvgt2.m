@@ -2,7 +2,8 @@ function theta = rmvgt2(N,mu,Sigma,df,p)
 % Random sampling from mixture of t densitites
 % N - number of draws
 % mit - list with parameters of mixture of t density
-    [H,d] = size(mu); % number of components, dimension of t distribution
+    [H, d] = size(mu); % number of components, dimension of t distribution
+    
     % sample membership
     memb = randsample(1:H,N,true,p);
     % randsample(1:3,10,true,[0.1 0.3 0.6])

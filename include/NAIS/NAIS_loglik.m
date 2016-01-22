@@ -1,4 +1,4 @@
-function [theta_sim, lng_y, lnw] = NAIS_loglik(y, par_SV, par_NAIS, cont, x_in)
+function [theta_sim, lng_y, lnw, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik(y, par_SV, par_NAIS, cont, x_in)
 %     n = size(y,1);
     b = par_NAIS.b;
     C = par_NAIS.C;
@@ -13,7 +13,7 @@ function [theta_sim, lng_y, lnw] = NAIS_loglik(y, par_SV, par_NAIS, cont, x_in)
     % Given the optimal IS parameters obtain the smoothed mean of signal for the importance model    
     par_KFS = IS_Model(par_NAIS, par_SV);
 %     [~, ~, v1, F_inv1, eps_smooth1, K1, L1] = KFS(y_star,par_KFS); 
-    [~, ~, v, F_inv, eps_smooth, K, L] = KFS_mex(y_star, par_KFS.P1, par_KFS.c, ...
+    [~, ~, v, F_inv, ~, K, L] = KFS_mex(y_star, par_KFS.P1, par_KFS.c, ...
                                          par_KFS.H, par_KFS.Q, par_KFS.d, par_KFS.T, par_KFS.R, par_KFS.Z);
      
     % LogLikelihood evaluation
@@ -22,11 +22,25 @@ function [theta_sim, lng_y, lnw] = NAIS_loglik(y, par_SV, par_NAIS, cont, x_in)
 %     lng_y = -0.5*(sum((v.^2).*F_inv) + sum(log(abs(F_inv))));
     
     % simulation smoothing for linear state space model to sample a signal trajectory via JSDK
-	if (nargin == 4)
-        theta_sim = IS_sim(y_star, eps_smooth, v, F_inv, K, L, par_KFS);
+    if (nargin == 4)
+        RND = randn(n,S);
+        [theta_sim, eps_bar, eps_sim, C_T] = SimSmooth(y_star, v, F_inv, K, L, par_KFS, RND);
+    %         theta_sim = IS_sim(y_star, v, F_inv, K, L, par_KFS);
+        eps_bar = eps_bar';
+        eps_sim =  eps_sim';
+        C_T = C_T';
     else
         theta_sim = x_in';
+        eps_bar = [];
+        eps_sim = [];
+        C_T = [];
     end
+    
+% transition probability    
+mu_T = theta_sim(n,:) - par_SV(:,1)'-(par_SV(:,2)').*(theta_sim(n-1,:)- par_SV(:,1)');
+lnp_T = -0.5*(log(2*pi) + log(par_SV(:,3)') + (mu_T.^2)./(par_SV(:,3)')); 
+lnp_T = lnp_T';    
+    
     % compute the logweights
     if (cont.err == 'n')
     	lnp =  -0.5*(log(2*pi) +  theta_sim  + (y.^2)./exp(theta_sim));
@@ -42,10 +56,8 @@ function [theta_sim, lng_y, lnw] = NAIS_loglik(y, par_SV, par_NAIS, cont, x_in)
     lng = a + b.*theta_sim - 0.5*C.*theta_sim.^2;
     lnp = sum(lnp,1);
     lng = sum(lng,1);
-%     lnw = (lnp - lng)/(10*n);
     lnw = (lnp - lng);
     
-%     lng_y = lng_y'/(10*n);
     lng_y = lng_y';
     lnw = lnw';
     if (nargin == 4)
@@ -53,4 +65,6 @@ function [theta_sim, lng_y, lnw] = NAIS_loglik(y, par_SV, par_NAIS, cont, x_in)
     else
         theta_sim = x_in;
     end
+    RND = RND(end,:)';
+    theta_sim = theta_sim(:,end); % pass only the last values for memory saving
 end

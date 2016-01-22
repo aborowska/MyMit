@@ -1,5 +1,6 @@
 function d = posterior_debug(sigma2, y, a, b, L)
 % log posterior for sigma2 for normal likelihood with known mu = 0
+    sigma2 = sigma2(:,1);
     N = size(sigma2,1);
     T = size(y,1);
     prior =  prior_debug(sigma2, a, b); 

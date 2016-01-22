@@ -15,7 +15,7 @@ logpdf_invgamma = @(x) prior_const(1,3) + prior_const(1,4) - (2.5+1)*log(x) - 0.
 % logpdf_chi2 = @(x) prior_const(1,3) + prior_const(1,4) - 0.5*log(x) - 0.5*x;    
     
     c1 = ((phi > 0) & (phi < 1));
-    c2 = (s2 > 0);
+    c2 = (s2 > 5e-3);
     c3 = (nu > 2);
     r1 = (c1 & c2 & c3);
     r2 = -Inf*ones(length(c),1);

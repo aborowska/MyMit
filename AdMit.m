@@ -31,7 +31,8 @@ function [mit, summary] = AdMit(kernel_init, kernel, mu_init, cont, GamMat)
         % the first component
         mit.mu = mu;
         mit.Sigma = Sigma;
-        mit.df = cont.dfnc;
+%         mit.df = cont.dfnc;
+        mit.df = 1;
         mit.p = 1;
     elseif isa(kernel_init, 'struct')
         mit = kernel_init;
@@ -42,66 +43,67 @@ function [mit, summary] = AdMit(kernel_init, kernel, mu_init, cont, GamMat)
     display(ind_red);
     lnd = dmvgt(theta, mit, true, GamMat);      
     w = fn_ISwgts(lnk, lnd, false); % false: not normalized
-%     CV = fn_CVstop(w);
+%     w_n = fn_ISwgts(lnk, lnd, true); % true:  normalized
+    CV = fn_CVstop(w);
 %     lnd = lnd(1:Np,:);
     
 %% Step 1b: Adaptation (added; not in the code nor in the paper)
     % update scale and location using IS with draws from the naive
-% [mu, ~] = fn_muSigma(theta, w);
-[mu, Sigma] = fn_optIS(theta, w, cont, [], true);
+% % [mu, ~] = fn_muSigma(theta, w);
+% [mu, Sigma] = fn_optIS(theta, w, cont, [], true);
+% 
+% % mit_h.mu = mu;
+% mit_h.df = cont.dfnc;
+% mit_h.p = 1;
+% CV = Inf;
+% 
+% for m = 1:size(Sigma,1)
+% %     fprintf('m = %i\n', m);
+%     mu_h = mu(m,:);
+%     mit_h.mu = mu_h; % single new current component
+%  
+%     Sigma_h = Sigma(m,:);
+%     mit_h.Sigma = Sigma_h; % single new current component
+%  
+%     % get draws and IS weights from adapted  
+%     [theta_h, lnk_h, ind_red] = fn_rmvgt_robust(Ns, mit_h, kernel, resampl_on);
+%     display(ind_red);
+%     draws_h = theta_h; % draws from the current mixture
+%     lnd_h = dmvgt(theta_h, mit_h, true, GamMat);
+%     w_h = fn_ISwgts(lnk_h, lnd_h, false);
+%     CV_h = fn_CVstop(w_h);
+%     lnd_h = lnd_h(1:Np,:);   
+%     if (CV_h < CV)
+%         CV = CV_h;
+%         theta = theta_h;
+%         draws = draws_h;
+%         lnk = lnk_h;
+%         lnd = lnd_h;
+%         w = w_h;
+%         mu_adapt = mu_h;
+%         Sigma_adapt = Sigma_h;
+%         m_adapt = m;
+%     end
+% end            
+% m_all = m_adapt;
+% mit_h.mu = mu_adapt;
+% mit_h.Sigma = Sigma_adapt;
+% mit = mit_h;
 
-% mit_h.mu = mu;
-mit_h.df = cont.dfnc;
-mit_h.p = 1;
-CV = Inf;
-
-for m = 1:size(Sigma,1)
-%     fprintf('m = %i\n', m);
-    mu_h = mu(m,:);
-    mit_h.mu = mu_h; % single new current component
- 
-    Sigma_h = Sigma(m,:);
-    mit_h.Sigma = Sigma_h; % single new current component
- 
-    % get draws and IS weights from adapted  
-    [theta_h, lnk_h, ind_red] = fn_rmvgt_robust(Ns, mit_h, kernel, resampl_on);
+    [mu_adapt, Sigma_adapt] = fn_muSigma(theta, w);
+    mit.mu = mu_adapt;
+    mit.Sigma = Sigma_adapt;
+    mit.df = cont.dfnc;
+    mit.p = 1;
+    
+     % get draws and IS weights from adapted  
+    [theta, lnk, ind_red] = fn_rmvgt_robust(Ns, mit, kernel, resampl_on);
     display(ind_red);
-    draws_h = theta_h; % draws from the current mixture
-    lnd_h = dmvgt(theta_h, mit_h, true, GamMat);
-    w_h = fn_ISwgts(lnk_h, lnd_h, false);
-    CV_h = fn_CVstop(w_h);
-    lnd_h = lnd_h(1:Np,:);   
-    if (CV_h < CV)
-        CV = CV_h;
-        theta = theta_h;
-        draws = draws_h;
-        lnk = lnk_h;
-        lnd = lnd_h;
-        w = w_h;
-        mu_adapt = mu_h;
-        Sigma_adapt = Sigma_h;
-        m_adapt = m;
-    end
-end            
-m_all = m_adapt;
-mit_h.mu = mu_adapt;
-mit_h.Sigma = Sigma_adapt;
-mit = mit_h;
-
-% % %     [mu_adapt, Sigma_adapt] = fn_muSigma(theta, w);
-% % %     mit.mu = mu_adapt;
-% % %     mit.Sigma = Sigma_adapt;
-% % %     mit.df = cont.dfnc;
-% % %     mit.p = 1;
-% % %     
-% % %      % get draws and IS weights from adapted  
-% % %     [theta, lnk, ind_red] = fn_rmvgt_robust(Ns, mit, kernel, resampl_on);
-% % %     display(ind_red);
-% % %     draws = theta; % draws from the current mixture
-% % %     lnd = dmvgt(theta, mit, true, GamMat);
-% % %     w = fn_ISwgts(lnk, lnd, false);
-% % %     CV = fn_CVstop(w);
-% % %     lnd = lnd(1:Np,:);   
+    draws = theta; % draws from the current mixture
+    lnd = dmvgt(theta, mit, true, GamMat);
+    w = fn_ISwgts(lnk, lnd, false);
+    CV = fn_CVstop(w);
+    lnd = lnd(1:Np,:);   
     
 %% Step 2a: Iterate on the number of mixture components
     % add more mixture components until convergence

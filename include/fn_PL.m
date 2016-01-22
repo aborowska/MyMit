@@ -57,7 +57,8 @@ function [val_return] = fn_PL(vars, L)
         end
     elseif (nargin == 1)
         c = vars;
-        val_return = f_pl(sum(c,2));
+        val_return = f_pl(sum(c,2));        
+        val_return(imag(val_return)~=0) = -Inf;
     end
     
     

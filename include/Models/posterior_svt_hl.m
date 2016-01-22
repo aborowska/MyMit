@@ -1,4 +1,4 @@
-function [d, x, lng_y, lnw_x, par_NAIS] = posterior_svt_hl(y, theta, VaR, par_NAIS_init, prior_const, cont) 
+function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_svt_hl(y, theta, VaR, par_NAIS_init, prior_const, cont) 
     N = size(theta,1);
     T = size(y,1);
     
@@ -21,14 +21,14 @@ function [d, x, lng_y, lnw_x, par_NAIS] = posterior_svt_hl(y, theta, VaR, par_NA
             fprintf('nais_loglik ii = %i\n',ii); 
         end
         par_SV = theta(ii,1:4); 
-        par_NAIS_iter = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
+        par_NAIS_iter = NAIS_param(par_NAIS_init, y, par_SV, cont);
         b(:,ii) = par_NAIS_iter.b;
         C(:,ii) = par_NAIS_iter.C;
     end
     par_NAIS.b = b;
     par_NAIS.C = C;
     par_SV = theta(:,1:4);
-    [x, lng_y, lnw_x] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
+    [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
 
     x_h1 = c + phi.*(x(:,end) - c) + sqrt(sigma2).*eta;
     y_h1 = sqrt(rho).*exp(0.5*x_h1).*eps;
@@ -38,12 +38,6 @@ function [d, x, lng_y, lnw_x, par_NAIS] = posterior_svt_hl(y, theta, VaR, par_NA
 
     ind = find(prior_hl ~= -Inf);
     d(ind) = lng_y(ind) + lnw_x(ind) + prior_hl(ind);
-
-    par_NAIS.b = -Inf*ones(T,N);
-    par_NAIS.C = -Inf*ones(T,N);
-    par_NAIS.b(:,ind) = b(:,ind);
-    par_NAIS.C(:,ind) = C(:,ind);
-
 end
 
 function r2 = prior_svt_hl_in(theta, prior_const, PL, VaR)

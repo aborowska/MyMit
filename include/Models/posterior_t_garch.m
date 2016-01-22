@@ -25,9 +25,11 @@ function d = posterior_t_garch(theta, data, S, L, hyper, GamMat)
             h(2:T) = omega(ii,1) + alpha(ii,1)*(data(ind,1)-mu(ii,1)).^2;
             for jj = 2:T
                 h(jj,1) = h(jj,1) + beta(ii,1)*h(jj-1,1);
+%                 eps = (data(jj,1) - mu(ii,1))/sqrt(rho(ii,1)*h(jj,1));
+%                 tmp = tpdf(eps, nu(ii,1));
                 pdf(jj,1) = dmvt(data(jj,1), mu(ii,1), rho(ii,1)*h(jj,1), nu(ii,1), GamMat);
-%                 pdf(jj,1) = duvt_garch(data(jj,1), mu(ii,1), rho(ii,1)*h(jj,1), nu(ii,1), GamMat);
                 pdf(jj,1)= log(pdf(jj,1));
+%                 pdf(jj,1) = log(tmp);
             end
             d(ii,1) = sum(pdf) + prior(ii,2); 
         end

@@ -37,14 +37,16 @@ mu_init = 0.03;
 M = 10000;
 N_sim = 100;
 
+H = 1; % forecast horizon
+
 plot_on = false;
 print_on  = false;
 plot_on2 = true;
-save_on = false;
+save_on = true;
 
 MitISEM_Control
 cont.mit.dfnc = 5;
-cont.mit.N = 1000;
+cont.mit.N = 10000;
 cont.resmpl_on = false;
 
 cont2 = cont;
@@ -74,8 +76,12 @@ for p_bar = P_bars
     kernel_init = @(a) - posterior_arch(a, data, S, true);
     kernel = @(a) posterior_arch(a, data, S, true);
     [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
-
+    if save_on
+        save(['results/arch_mit1_',algo,'.mat'],'mit1','summary1','cont','mu_init','p_bar');
+    end
+    
     for sim = 1:N_sim
+        fprintf('\nPrelim sim = %i.\n', sim);
 %         [mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
 
         %% QERMit 1b.:
@@ -86,10 +92,25 @@ for p_bar = P_bars
         fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept(sim,P_bars==p_bar), model, algo);
         alpha1 = alpha1(1001:M+1000);
 
-        stdev = f_stdev(alpha1);
-        eps1 = randn(M,1);
-        y_T1 = stdev.*eps1;
-
+        eps1 = randn(M,H);
+%         y_T1 = zeros(M,H);
+%         omega = S*(1-alpha1);
+%         for ii = 1:H
+%             if (ii == 1)
+%                 h =  f_stdev(alpha1);
+%                 y_T1(:,ii) = h.*eps1(:,ii);
+%             else
+%                 h = omega(:,1) + alpha1(:,1).*(y_T1(:,ii-1)).^2;  
+%                 y_T1(:,ii) = sqrt(h).*eps1(:,ii-1);
+%             end  
+%         end
+        
+        if (H == 1)
+            y_T1 = f_stdev(alpha1).*eps1;
+        else
+            y_T1 = predict_arch(alpha1, y_T, S, H, eps1);
+        end
+        
         % get the preliminary VaR estimate as the 100th of the ascendingly sorted percentage loss values
         [PL_T1, ind] = sort(fn_PL(y_T1));
         VaR_prelim(sim,1) = PL_T1(p_bar*M); % VaR_prelim = 0; VaR_prelim = Inf;
@@ -101,32 +122,56 @@ for p_bar = P_bars
     VaR_prelim_MC(:,P_bars==p_bar) = VaR_prelim;
 %     VaR_prelim = VaR_prelim_MC(N_sim,1);       % the last one
     VaR_prelim = mean(VaR_prelim);              % the mean
-    
+ 
+    if save_on
+        save(['results/arch_prelim_',algo,'.mat'],'mit1','accept','alpha1', 'eps1', 'y_T1', 'summary1',...
+            'cont','p_bar','M','N_sim','VaR_prelim_MC','VaR_prelim','ES_prelim','ind');
+    end
     
     arch_plot0; % The posterior density and the approximation to the posterior density
-
-    %% high loss
+    
+    %% QERMit 1c.: approximation to the joint high loss distribution
     % get mit approximation of the conditional joint density of
     % parameters and future returns given the returns are below VaR_prelim
-    % approximation of the joint high loss distribution
-    % here: not future returns but future disturbances  (varepsilons)
+    % here: not future returns but future disturbances  (varepsilons)    
     
     arch_plot1; % Fig. 6.1: the high loss subspace
     
-    %% QERMit 1c.: 
+    % Choose the starting point (mu_hl) for the constuction of the approximaton
+    alpha1_hl = alpha1(ind); % ind sorts the draws ascendingly in the corresponding profit/losses
+    eps_hl = eps1(ind,:); 
+    draw_hl = [alpha1(ind), eps1(ind,:)]; 
+    draw_hl =  draw_hl((find(PL_T1 < VaR_prelim)),:);   
+    if (H == 1)
+         mu_hl = draw_hl(end,:);
+    else % IS estimation of the initial mixture component 
+        lnk = kernel(draw_hl(:,1)); % evaluation of the parameter draw from the posterior
+        ind = find(lnk~=-Inf);
+        lnk = lnk(ind,:);
+        draw_hl = draw_hl(ind,:);
+        lnd = dmvgt(draw_hl(:,1), mit1, true, GamMat);
+        w_hl =  fn_ISwgts(lnk, lnd, false);
+
+        [mu_hl, Sigma_hl] = fn_muSigma(draw_hl, w_hl);
+
+        mit_hl.mu = mu_hl;
+        mit_hl.Sigma = Sigma_hl;
+        mit_hl.df = 5;
+        mit_hl.p = 1;
+    end    
+    
     kernel_init = @(a) - posterior_arch_hl(a, data, S, VaR_prelim, true);
     kernel = @(a) posterior_arch_hl(a, data, S, VaR_prelim, true);
-
-    % Choose the starting point (mu_hl) for the constuction of the approximaton 
-    % to the high loss (hl) region density
-    alpha1_hl = alpha1(ind); 
-    eps_hl = eps1(ind); 
-    draw_hl = [alpha1(ind), eps1(ind)];
-    mu_hl = draw_hl(max(find(PL_T1 < VaR_prelim)),:);    
-   
-    % [mit2, summary2] = MitISEM(kernel_init, kernel, mu_hl, cont2, GamMat);
-    [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
-
+    if (H == 1)
+        [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
+    else
+        [mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_hl, cont2, GamMat);
+    end
+    
+    if save_on
+        save(['results/arch_mit2_',algo,'.mat'],'mit2','summary2','cont2','mu_hl','p_bar','VaR_prelim');
+    end
+    
     arch_plot2; %  The high loss density and the approximation to the high loss density
     
     %% QERMit 2: 
@@ -139,33 +184,38 @@ for p_bar = P_bars
     for sim = 1:N_sim
         resampl_on = false;
         fprintf('NSE sim = %i.\n', sim); 
-        kernel = @(a) posterior_arch(a, data, S, true);
-        [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, resampl_on);
-        eps1 = randn(M,1);
-        draw1 = [draw1, eps1];
-        lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
- 
-        kernel = @(a) posterior_arch_hl(a, data, S, Inf, true);
-        [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel, resampl_on);
+%         kernel = @(a) posterior_arch(a, data, S, true);
+%         [draw1, lnk1, ~] = fn_rmvgt_robust(M, mit1, kernel, resampl_on);
+%         eps1 = randn(M,1);
+%         draw1 = [draw1, eps1];
+%         lnk1 = lnk1 - 0.5*(log(2*pi) + eps1.^2);
+%  
+%         kernel = @(a) posterior_arch_hl(a, data, S, Inf, true);
+%         [draw2, lnk2, ~] = fn_rmvgt_robust(M, mit2, kernel, resampl_on);
+%         
+%         draw_opt = [draw1; draw2];
         
-        draw_opt = [draw1; draw2];
+        draw1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
+        eps1 =  randn(M/2,1);
+        draw1_eps1 = [draw1, eps1];
+        
+        draw2 = rmvgt2(M/2, mit2.mu, mit2.Sigma, mit2.df, mit2.p); 
+        draw_opt = [draw1_eps1; draw2];
         
         arch_plot3; %  Draws from the optimal importance density, the joint density and the approximation to the optimal posterior
 
         %% IS weights
-    %     kernel = @(a) posterior_arch_whole(a, data, S, true);
-    %     lnk = kernel(draw_opt);
-        lnk = [lnk1; lnk2];
+%         lnk = [lnk1; lnk2];
+        kernel = @(a) posterior_arch(a, data, S, true);
+        lnk = kernel(draw_opt(:,1));
+        eps_pdf = normpdf(draw_opt(:,2));
+        lnk = lnk + log(eps_pdf);
+        
         exp_lnd1 = 0.5*normpdf(draw_opt(:,2)).*dmvgt(draw_opt(:,1), mit1, false, GamMat);
         exp_lnd2 = 0.5*dmvgt(draw_opt, mit2, false, GamMat);
         exp_lnd = exp_lnd1 + exp_lnd2;
         lnd = log(exp_lnd);
         w_opt = fn_ISwgts(lnk, lnd, false);
-
-%         hl_w(sim,P_bars==p_bar) = sum( w_opt(f_stdev(draw_opt(:,1)).*draw_opt(:,2)<VaR_prelim,:)/sum(w_opt) );    
-%         hp_w(sim,P_bars==p_bar) = sum( w_opt(f_stdev(draw_opt(:,1)).*draw_opt(:,2)>VaR_prelim,:)/sum(w_opt) );   
-%         
-%         fprintf('Sum of weights for high losses: %6.4f and for high profits: %6.4f.\n', hl_w(sim,P_bars==p_bar), hp_w(sim,P_bars==p_bar));
 
         %% VaR and ES IS estimates
         y_opt = f_stdev(draw_opt(:,1)).*draw_opt(:,2);
@@ -180,7 +230,12 @@ for p_bar = P_bars
         fprintf('IS 100*%4.2f%% VAR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,P_bars==p_bar), model, algo);
         fprintf('IS 100*%4.2f%% ES estimate: %6.4f (%s, %s). \n', p_bar, ES_IS(sim,P_bars==p_bar), model, algo);  
     end
-
+    
+    if save_on
+        save(['results/arch_IS_',algo,'.mat'],'mit1','mit2','accept','draw_opt', 'y_opt', 'lnk','lnd','summary1','summary2',...
+            'cont','cont2','p_bar','M','N_sim','VaR_prelim','VaR_IS','ES_IS');
+    end
+    
     mean_VaR_prelim = mean(VaR_prelim_MC(:,P_bars==p_bar));
     mean_ES_prelim = mean(ES_prelim(:,P_bars==p_bar));
 
@@ -212,9 +267,10 @@ for p_bar = P_bars
     if plot_on2
         figure(390+100*p_bar)
         set(gcf, 'visible', 'off');
-%         set(gcf,'defaulttextinterpreter','latex');
+        set(gcf,'units','normalized','outerposition',[0 0 1 1]);   
+        set(gcf,'defaulttextinterpreter','latex');
         boxplot([VaR_prelim_MC(:,P_bars==p_bar), VaR_IS(:,P_bars==p_bar)],'labels',{'VaR_prelim MC','VaR_IS'})        
-        title(['100*', num2str(p_bar),'% VaR estimates: prelim and IS (',model,', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])
+        title(['100*', num2str(p_bar),'\% VaR estimates: prelim and IS (',strrep(model,'_','\_'),', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])  
         if v_new
             set(gca,'TickLabelInterpreter','latex')
         else
@@ -231,14 +287,15 @@ for p_bar = P_bars
         
         figure(3900+100*p_bar)
         set(gcf, 'visible', 'off');
-%         set(gcf,'defaulttextinterpreter','latex');
+        set(gcf,'units','normalized','outerposition',[0 0 1 1]);   
+        set(gcf,'defaulttextinterpreter','latex');
         hold on; 
         bar(VaR_IS(:,P_bars==p_bar),'FaceColor',[0 0.4470 0.7410], 'EdgeColor','w'); 
         plot(0:(N_sim+1), (mean_VaR_prelim - NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
         plot(0:(N_sim+1), (mean_VaR_prelim + NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
         plot(0:(N_sim+1), mean_VaR_prelim*ones(N_sim+2,1),'r'); 
         hold off;
-        title(['100*', num2str(p_bar),'% VaR IS estimates and the mean VaR prelim (+/- NSE VaR prelim) (',model,', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])    
+        title(['100*', num2str(p_bar),'\% VaR IS estimates and the mean VaR prelim (+/- NSE VaR prelim) (',strrep(model,'_','\_'),', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])    
     
         if v_new
             set(gca,'TickLabelInterpreter','latex')
@@ -260,14 +317,3 @@ end
 % set(1:n, 'visible', 'on');
 set(390+100*P_bars, 'visible', 'on');
 set(3900+100*P_bars, 'visible', 'on');
-
-% model = 'arch';
-% s = 'mitisem';
-% hp = 1;
-% gen_out;
-% 
-% clear GamMat x fig
-% save(['results/arch_mitisem_',num2str(hp),'.mat']);
-% 
-% x = (0:0.00001:50)'+0.00001;
-% GamMat = gamma(x);

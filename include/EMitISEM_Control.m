@@ -1,9 +1,9 @@
 %% MitISEM Control
-cont.mit.N = 2000; %1e5;
+cont.mit.N = 10000; %1e5;
 cont.mit.Hmax = 10;
-cont.mit.weight_err = 1e-05;
-cont.mit.weight_frac = 0.25;
-cont.mit.CV_tol = 0.1; %0.1
+% cont.mit.weight_err = 1e-05;
+% cont.mit.weight_frac = 0.25;
+cont.mit.CV_tol = 0.01; %0.1
 cont.mit.CV_old = 100;
 
 cont.mit.ISpc = 0.1;
@@ -24,7 +24,7 @@ cont.df.tol = eps^(0.25);
 cont.resmpl_on = true;
 
 %% NAIS control parameters
-if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt')))
+if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt') || strcmp(model,'sv_x')))
     cont.nais.M = 20; % number of the Gauss-Hermite nodes
     cont.nais.tol = 0.0001; % convergence tolerance
     cont.nais.tol_C = 1e-5; % tolerance for the variance 
@@ -32,7 +32,7 @@ if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt')))
     cont.nais.GH.z = -cont.nais.GH.z;
     cont.nais.GH.h = cont.nais.GH.h.*exp(0.5*(cont.nais.GH.z).^2);
     cont.nais.iter_max = 20;
-    if strcmp(model,'sv') 
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         cont.nais.err = 'n';
     else
         cont.nais.err = 't';

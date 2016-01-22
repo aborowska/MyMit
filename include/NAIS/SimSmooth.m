@@ -1,6 +1,6 @@
-function theta_sim = SimSmooth(y_star, v, F_inv, eps_smooth, K, L, par_KFS)
+function [theta_sim, eps_bar, eps_sim, C_T] = SimSmooth(y_star, v, F_inv, K, L, par_KFS, RND)
 % conditional simulation of disturbances    
-    [n, S] = size(eps_smooth);
+    [n, S] = size(y_star);
     H = par_KFS.H;      % <-- MATRIX
     Z = par_KFS.Z;      % <-- SCALAR
     
@@ -10,7 +10,7 @@ function theta_sim = SimSmooth(y_star, v, F_inv, eps_smooth, K, L, par_KFS)
     theta_sim = zeros(n,S);
     N = zeros(1,S);
     
-    RND = randn(n,S);
+%     RND = randn(n,S);
     for ii = n:-1:1
         C = H(ii,:) - H(ii,:).*(F_inv(ii,:) + N.*K(ii,:).^2).*H(ii,:);
         eps_bar(ii,:) = H(ii,:).*(F_inv(ii,:).*v(ii,:) - K(ii,:).*r);
@@ -22,4 +22,8 @@ function theta_sim = SimSmooth(y_star, v, F_inv, eps_smooth, K, L, par_KFS)
         r = Z.*F_inv(ii,:).*v(ii,:) - W.*w./C + L(ii,:).*r;
         N = Z.*F_inv(ii,:).*Z + W.*W./C + N.*(L(ii,:).^2);
     end
+        
+    C_T = H(n,:) - H(n,:).*F_inv(n,:).*H(n,:);  % Variance for the last state
+    eps_bar = y_star(n,:) - eps_bar(n,:);       % Mean for the last state
+    eps_sim = eps_sim(n,:);
 end

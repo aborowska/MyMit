@@ -5,7 +5,7 @@ addpath(genpath('include/'));
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 
-x = (0:0.00001:100)'+0.00001;
+x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x);
 
 data = csvread('GSPC_ret_tgarch.csv');
@@ -39,7 +39,7 @@ kernel_init = @(a) - posterior_t_garch(a, data, S, L, hyper, GamMat);
 kernel = @(a) posterior_t_garch(a, data, S, L, hyper, GamMat);
 
 [mit1, summary1] = AdMit(kernel_init, kernel, mu_init, cont, GamMat);
-save('results/t_garch_admit.mat','mit1','summary1');
+% save('results/t_garch_admit.mat','mit1','summary1');
 
 %% >>>> not necessary when NSE estimation
 % % for QERMit 2.
@@ -94,7 +94,7 @@ end
 % candiate from AdMit; then simulate returns based on the draw of theta 
 [theta, accept] = Mit_MH(M+1000, kernel, mit1, GamMat);
 fprintf('(AdMit) MH acceptance rate: %4.2f. \n',accept);
-save('results/t_garch_admit_theta.mat','theta', 'accept');
+% save('results/t_garch_admit_theta.mat','theta', 'accept');
 theta = theta(1001:M+1000,:);
 % acf = [autocorr(theta(:,1),1), autocorr(theta(:,2),1), autocorr(theta(:,3),1), autocorr(theta(:,4),1)];
 % acf = acf(2,:);
