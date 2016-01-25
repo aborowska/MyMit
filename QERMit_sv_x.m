@@ -584,7 +584,6 @@ fprintf('(%s) 100*%4.2f%% ES IS (mean) estimate: %6.4f. \n', model, p_bar, mean_
 fprintf('(%s) NSE ES IS estimate: %6.4f. \n', model, NSE_ES_IS);
 fprintf('(%s) ES: [%6.4f, %6.4f]. \n', model, mean_ES_IS - NSE_ES_IS, mean_ES_IS + NSE_ES_IS);
 
-
 if plot_on2
     figure(590+100*p_bar)
 %         set(gcf, 'visible', 'off');
