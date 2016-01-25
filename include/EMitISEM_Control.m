@@ -38,6 +38,8 @@ if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt') || strcmp
         cont.nais.err = 't';
     end
     cont.nais.data_on = 'est'; %'simt'
+    
+    cont.nais.HP = 4; % number of the last states returned by the simulation smoother (+1)
 end
 
 %% Extra parameters

@@ -17,13 +17,19 @@ y_hl = y(x<=VaR);
 y_out = y(x>VaR);
 
 % C = sum(y);
-y_hl = 0.5*y_hl/sum(y_hl);
-y_out = 0.5*y_out/sum(y_out);
+% y_hl = 0.5*y_hl/sum(y_hl);
+% y_out = 0.5*y_out/sum(y_out);
+y_hl = 0.5*y_hl/C;
+y_out = 0.5*y_out/(1-C);
 
 y_opt = [y_hl,y_out];
 
 figure(1)
-set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
+if v_new
+    set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
+else
+   set(gcf,'units','normalized','outerposition',[0 0 0.33 0.5]);
+end
 set(gcf,'defaulttextinterpreter','latex');
 subplot(2,1,1)
 hold on
@@ -50,7 +56,7 @@ if v_new
 else
     plotTickLatex2D;
 end
-name = 'figures/optimal_IS_cand.png';
+name = 'figures/other/optimal_IS_cand.png';
 fig = gcf;
 fig.PaperPositionMode = 'auto';
 print(name,'-dpng','-r0')

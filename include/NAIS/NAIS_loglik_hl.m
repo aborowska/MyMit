@@ -63,5 +63,5 @@ lnp_T = lnp_T';
     eps_sim =  eps_sim';
     C_T = C_T';
     RND = RND(end,:)';
-    theta_sim = theta_sim(end,:)';  % pass only the last values for memory saving
+    theta_sim = theta_sim((end-cont.HP):end,:)';  % pass only the last values for memory saving
 end

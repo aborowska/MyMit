@@ -93,13 +93,12 @@ else
     N = cont.mit.N;
 end
 
-% M = 10*N;
 M = 10000;
 
 par_NAIS_init.b = zeros(T,1);
 par_NAIS_init.C = ones(T,1); 
 
-N_sim = 20;
+N_sim = 10;
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
 accept = zeros(N_sim,1);
@@ -387,19 +386,18 @@ SV_plot2;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % CHECKPOINTS:  http://www.walkingrandomly.com/?p=5343
+f_pl = @(aa) 100*(exp(aa/100) - 1); 
 
-figure(10000)
-set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);   
-set(gcf,'defaulttextinterpreter','latex');
-hold on
-for sim = 6:10
+
+
+for sim = 1:N_sim
     fprintf('\n')
     fprintf('NSE sim = %i.\n', sim);
     fprintf('\n')
 
     theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
     eta_h1_1 = randn(M/2,1);
-    if strcmp(model,'sv_x')
+    if ~strcmp(model,'svt')
         eps_h1_1 = randn(M/2,1);
     else
         nu1 = theta1(:,4);
@@ -409,13 +407,13 @@ for sim = 6:10
     theta1 = [theta1, eta_h1_1, eps_h1_1];
     theta2 = rmvgt2(M/2, mit2.mu, mit2.Sigma, mit2.df, mit2.p); 
   
-    if strcmp(model,'sv_x')
+    if ~strcmp(model,'svt')
         kernel = @(a) posterior_sv_x(y, a, par_NAIS_init, prior_const, cont.nais);
     else
         kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
     end
     lnk = zeros(M,1);
-    x = zeros(M,1);
+    x = zeros(M,cont.nais.HP+1);
     lng_y = zeros(M,1);
     lnw_x = zeros(M,1);
     eps_bar = zeros(M,1);
@@ -435,18 +433,23 @@ for sim = 6:10
         [lnk(ind,:), x(ind,:), lng_y(ind,:), lnw_x(ind,:), eps_bar(ind,:), eps_sim(ind,:), C_sim(ind,:), lnp_T(ind,:)] = kernel(theta2(ind-M/2,:));      
     end    
     
-    theta1 = [theta1, x(1:M/2,:)]; % extended draw - includes the last state
+    theta1 = [theta1, x(1:M/2,end)]; % extended draw - includes the last state
+    
+    if ~strcmp(model,'sv_x') % when mit2 not augmented
+        theta2 = [theta2, x(1+M/2:M,end)]; % extend draw and include the last state    
+    end
+    
     theta_opt = [theta1; theta2];
 %     lnk = lnk - lng_T; % subtact the evaluation of the last draw of state on the Gaussian candidate
      
-    if strcmp(model,'sv_x')
+    if ~strcmp(model,'svt')
         lnk = lnk + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2 - 0.5*(theta_opt(:,5)).^2;
     else
         lnk = lnk + prior_const(1,1) - 0.5*(theta_opt(:,5)).^2 + duvt(theta_opt(:,6), theta_opt(:,4), 1, true); 
     end
   
     %% IS weights
-    if strcmp(model,'sv_x')
+    if ~strcmp(model,'svt')
 %         exp_lnd1 = 0.5*normpdf(theta_opt(:,4)).*normpdf(theta_opt(:,5)).*dmvgt(theta_opt(:,1:3), mit1, false, GamMat);
         exp_lnd1 = 0.5*exp(2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2  - 0.5*(theta_opt(:,5)).^2 + dmvgt(theta_opt(:,1:3), mit1, true, GamMat));
 %         exp_lnd1 = 0.5*exp(lng_T + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2  - 0.5*(theta_opt(:,5)).^2 + dmvgt(theta_opt(:,1:3), mit1, true, GamMat));
@@ -454,7 +457,12 @@ for sim = 6:10
     else
         exp_lnd1 = 0.5*normpdf(theta_opt(:,5)).*duvt(theta_opt(:,6), theta_opt(:,4), 1, false).*dmvgt(theta_opt(:,1:4), mit1, false, GamMat);
     end
-    exp_lnd2 = 0.5*exp(-lnp_T + dmvgt(theta_opt, mit2, true, GamMat));
+
+    if ~strcmp(model,'sv_x') % when mit2 not augmented
+        exp_lnd2 = 0.5*exp(dmvgt(theta_opt, mit2, true, GamMat));
+    else 
+        exp_lnd2 = 0.5*exp(-lnp_T + dmvgt(theta_opt, mit2, true, GamMat)); % if explicit x_T - correct for it
+    end
     exp_lnd = exp_lnd1 + exp_lnd2;
     lnd_opt = log(exp_lnd);
         
@@ -464,11 +472,11 @@ for sim = 6:10
     phi_opt = theta_opt(:,2);
     sigma2_opt = theta_opt(:,3);
  
-    if strcmp(model,'sv_x')
+    if ~strcmp(model,'svt')
         eta_opt = theta_opt(:,4);
         eps_opt = theta_opt(:,5);  
 %         x_opt_h1 = c_opt + phi_opt.*(x_opt_end - c_opt) + sqrt(sigma2_opt).*eta_opt;
-        x_opt_h1 = c_opt + phi_opt.*(x - c_opt) + sqrt(sigma2_opt).*eta_opt;
+        x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
         y_opt_h1 = exp(0.5*x_opt_h1).*eps_opt;
     else
         nu_opt = theta_opt(:,4);
@@ -476,7 +484,7 @@ for sim = 6:10
         eta_opt = theta_opt(:,5);
         eps_opt =  theta_opt(:,6);
 %         x_opt_h1 = c_opt + phi_opt.*(x_opt_end - c_opt) + sqrt(sigma2_opt).*eta_opt;
-        x_opt_h1 = c_opt + phi_opt.*(x - c_opt) + sqrt(sigma2_opt).*eta_opt;
+        x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
         y_opt_h1 = sqrt(rho_opt).*exp(0.5*x_opt_h1).*eps_opt;
     end
 
@@ -491,22 +499,61 @@ for sim = 6:10
 %     dens2 = struct('y',y_opt_h1,'w',w_opt2,'p_bar',p_bar);
 %     IS_estim2 = fn_PL(dens2, 1);
 %  save(['results/sv_x_VaR_IS_',int2str(N),'.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim', 'VaR_IS', 'ES_IS');
- save(['results/sv_x_VaR_IS.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_prelim_MC','ES_prelim', 'VaR_IS', 'ES_IS');
-%  save(['results/sv_x_VaR_IS_2000.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_prelim_MC','ES_prelim', 'VaR_IS', 'ES_IS','-v7.3');
+
+% save(['results/sv_x_VaR_IS.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_prelim_MC','ES_prelim', 'VaR_IS', 'ES_IS');
+ save(['results/',model,'_VaR_IS_mit2.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_IS', 'ES_IS');
+
+ %  save(['results/sv_x_VaR_IS_2000.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_prelim_MC','ES_prelim', 'VaR_IS', 'ES_IS','-v7.3');
 
 
 ind_y = (imag(y_opt_h1)==0); 
 y_opt_h1 = y_opt_h1(ind_y);
+w_opt = w_opt(ind_y);
+lnp_T = lnp_T(ind_y);
 PL_opt_h1 = f_pl(sum(y_opt_h1,2));
-[PL_opt_h1, ind] = sort(PL_opt_h1); 
+[PL_opt_h1, ind] = sort(PL_opt_h1);
+lnp_T = lnp_T(ind);
+
+figure(10)
+set(gcf,'units','normalized','outerposition',[0 0 0.5 1]);   
+subplot(2,1,1)
+set(gcf,'defaulttextinterpreter','latex');
+hold all
 plot(PL_opt_h1)
-pos =  max(find(PL_opt_h1<= VaR_IS(sim,1)));
-scatter(pos, VaR_IS(sim,1),'MarkerEdgeColor','red','MarkerFaceColor','red')
 pos =  max(find(PL_opt_h1<=VaR_prelim));
 scatter(pos, VaR_prelim,'MarkerEdgeColor','green','MarkerFaceColor','green')
+pos =  max(find(PL_opt_h1<= VaR_IS(sim,1)));
+scatter(pos, VaR_IS(sim,1),'MarkerEdgeColor','red','MarkerFaceColor','red')
 
+subplot(2,1,2)
+set(gcf,'defaulttextinterpreter','latex');
+hold all
+% plot(w_opt(ind))   
+plot(lnp_T(lnp_T>-100))
+ xlabel('lnp\_T')
+ 
+name = ['figures/',model,'_',num2str(p_bar),'lnpT.png'];
+fig = gcf;
+fig.PaperPositionMode = 'auto';
+print(name,'-dpng','-r0')
 
-   
+if (sim == 1)
+    figure(20)
+    set(gcf,'units','normalized','outerposition',[0 0 0.5 1]);   
+
+    set(gcf,'defaulttextinterpreter','latex');
+    hold on
+    scatter(x(1:M/2,end-1),x(1:M/2,end))
+    scatter(x((1+M/2):M,end-1),x((1+M/2):M,end),'MarkerEdgeColor','r')
+    hold off
+    xlabel('x\_T-1')
+    ylabel('x\_T')
+    name = ['figures/',model,'_',num2str(p_bar),'scatter_.png'];
+    fig = gcf;
+    fig.PaperPositionMode = 'auto';
+    print(name,'-dpng','-r0')
+end     
+        
     fprintf('(%s) IS 100*%4.2f%% VaR estimate: %6.4f. \n', model, p_bar, VaR_IS(sim,1));
     fprintf('(%s) IS 100*%4.2f%% Mean VaR : %6.4f. \n', model, p_bar, mean(VaR_IS(VaR_IS<0,1)));
     fprintf('(%s) IS 100*%4.2f%% VaR NSE: %6.4f. \n', model, p_bar, std(VaR_IS(VaR_IS<0,1)));
@@ -563,7 +610,7 @@ if plot_on2
         plotTickLatex2D;
     end
     if print_on
-        name = ['figures/(',model,')', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
+        name = ['figures/',model,'_', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')
@@ -589,7 +636,7 @@ if plot_on2
         plotTickLatex2D;
     end
     if print_on
-        name = ['figures/(',model,')', num2str(p_bar),'_VaR_bar_',num2str(M),'.png'];
+        name = ['figures/',model,'_', num2str(p_bar),'_VaR_bar_',num2str(M),'.png'];
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')

@@ -57,6 +57,8 @@ M = 1000000;
 [sigma1, accept ] = Mit_MH(M+1000, kernel, mit1, GamMat);
 fprintf('(%s) MH acceptance rate: %4.2f. \n', model, accept);
 sigma1 = sigma1(1001:M+1000);
+lnk = kernel(sigma1);
+
 
 H = 10;
   
@@ -70,9 +72,9 @@ mu_init = 1;
 [mit2, summary1] = MitISEM_new(mit_init, kernel, mu_init, cont, GamMat);
 % y_H = randn(M,H);
 % draw from mit2 H times
-[y_H, lnk ] = fn_rmvgt_robust(M*H, mit2 kernel, false)
+[y_H, ~ ] = fn_rmvgt_robust(M*H, mit2, kernel, false);
 y_H = reshape(y_H,M,H);
-lnk = reshape(lnk,M,H);
+% lnk = reshape(lnk,M,H);
 y_H = bsxfun(@times,y_H,sigma1);
 
 [PL, ind] = sort(fn_PL(y_H));
@@ -82,7 +84,7 @@ fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_p
 
 draw_hl = [sigma1, y_H];
 draw_hl = draw_hl(ind,:);
-draw_hl = draw_hl(PL<VaR_prelim,:);  
+draw_hl = draw_hl(PL<=VaR_prelim,:);  
 % sigma1_hl = sigma1(ind);
 % sigma1_hl = sigma1_hl(PL<VaR_prelim,:);  
 lnk = kernel(draw_hl(:,1)); % evaluation of the parameter draw from the posterior
@@ -92,6 +94,9 @@ lnk = lnk(ind,:);
 draw_hl = draw_hl(ind,:);
 mu_init = draw_hl(end,:);
 lnd = dmvgt(draw_hl(:,1), mit1, true, GamMat);
+for h = 1:H
+    lnd = lnd + dmvgt(draw_hl(:,h+1), mit2, true, GamMat);
+end
 w_hl =  fn_ISwgts(lnk, lnd, false);
 
 
