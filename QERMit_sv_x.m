@@ -390,7 +390,7 @@ f_pl = @(aa) 100*(exp(aa/100) - 1);
 
 
 
-for sim = 1:N_sim
+for sim = 21:100
     fprintf('\n')
     fprintf('NSE sim = %i.\n', sim);
     fprintf('\n')
@@ -475,7 +475,6 @@ for sim = 1:N_sim
     if ~strcmp(model,'svt')
         eta_opt = theta_opt(:,4);
         eps_opt = theta_opt(:,5);  
-%         x_opt_h1 = c_opt + phi_opt.*(x_opt_end - c_opt) + sqrt(sigma2_opt).*eta_opt;
         x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
         y_opt_h1 = exp(0.5*x_opt_h1).*eps_opt;
     else
@@ -483,90 +482,79 @@ for sim = 1:N_sim
         rho_opt = (nu_opt-2)./nu_opt;
         eta_opt = theta_opt(:,5);
         eps_opt =  theta_opt(:,6);
-%         x_opt_h1 = c_opt + phi_opt.*(x_opt_end - c_opt) + sqrt(sigma2_opt).*eta_opt;
         x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
         y_opt_h1 = sqrt(rho_opt).*exp(0.5*x_opt_h1).*eps_opt;
     end
-
-%     ind_real = (imag(y_opt_h1)==0);
-%     M_real(sim,1) = sum(ind_real); 
 
     dens = struct('y',y_opt_h1,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_IS(sim,1) = IS_estim(1,1);
     ES_IS(sim,1) = IS_estim(1,2);
     
-%     dens2 = struct('y',y_opt_h1,'w',w_opt2,'p_bar',p_bar);
-%     IS_estim2 = fn_PL(dens2, 1);
-%  save(['results/sv_x_VaR_IS_',int2str(N),'.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim', 'VaR_IS', 'ES_IS');
+ save(['results/',model,'_VaR_IS_mit2.mat'], 'mit1', 'mit2', 'theta_opt', 'x',...
+     'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', ...
+     'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_IS', 'ES_IS');
+% 'ES_IS','-v7.3');
 
-% save(['results/sv_x_VaR_IS.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_prelim_MC','ES_prelim', 'VaR_IS', 'ES_IS');
- save(['results/',model,'_VaR_IS_mit2.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_IS', 'ES_IS');
+if plot_on2
+    ind_y = (imag(y_opt_h1)==0); 
+    y_opt_h1 = y_opt_h1(ind_y);
+    w_opt = w_opt(ind_y);
+    lnp_T = lnp_T(ind_y);
+    PL_opt_h1 = f_pl(sum(y_opt_h1,2));
+    [PL_opt_h1, ind] = sort(PL_opt_h1);
+    lnp_T = lnp_T(ind);
 
- %  save(['results/sv_x_VaR_IS_2000.mat'], 'mit1', 'mit2', 'theta_opt', 'x', 'lnk', 'lnp_T', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim','VaR_prelim_MC','ES_prelim', 'VaR_IS', 'ES_IS','-v7.3');
-
-
-ind_y = (imag(y_opt_h1)==0); 
-y_opt_h1 = y_opt_h1(ind_y);
-w_opt = w_opt(ind_y);
-lnp_T = lnp_T(ind_y);
-PL_opt_h1 = f_pl(sum(y_opt_h1,2));
-[PL_opt_h1, ind] = sort(PL_opt_h1);
-lnp_T = lnp_T(ind);
-
-figure(10)
-set(gcf,'units','normalized','outerposition',[0 0 0.5 1]);   
-subplot(2,1,1)
-set(gcf,'defaulttextinterpreter','latex');
-hold all
-plot(PL_opt_h1)
-pos =  max(find(PL_opt_h1<=VaR_prelim));
-scatter(pos, VaR_prelim,'MarkerEdgeColor','green','MarkerFaceColor','green')
-pos =  max(find(PL_opt_h1<= VaR_IS(sim,1)));
-scatter(pos, VaR_IS(sim,1),'MarkerEdgeColor','red','MarkerFaceColor','red')
-
-subplot(2,1,2)
-set(gcf,'defaulttextinterpreter','latex');
-hold all
-% plot(w_opt(ind))   
-plot(lnp_T(lnp_T>-100))
- xlabel('lnp\_T')
- 
-name = ['figures/',model,'_',num2str(p_bar),'lnpT.png'];
-fig = gcf;
-fig.PaperPositionMode = 'auto';
-print(name,'-dpng','-r0')
-
-if (sim == 1)
-    figure(20)
+    figure(10)
     set(gcf,'units','normalized','outerposition',[0 0 0.5 1]);   
-
+    subplot(2,1,1)
     set(gcf,'defaulttextinterpreter','latex');
-    hold on
-    scatter(x(1:M/2,end-1),x(1:M/2,end))
-    scatter(x((1+M/2):M,end-1),x((1+M/2):M,end),'MarkerEdgeColor','r')
-    hold off
-    xlabel('x\_T-1')
-    ylabel('x\_T')
-    name = ['figures/',model,'_',num2str(p_bar),'scatter_.png'];
+    hold all
+    plot(PL_opt_h1)
+    pos =  max(find(PL_opt_h1<=VaR_prelim));
+    scatter(pos, VaR_prelim,'MarkerEdgeColor','green','MarkerFaceColor','green')
+    pos =  max(find(PL_opt_h1<= VaR_IS(sim,1)));
+    scatter(pos, VaR_IS(sim,1),'MarkerEdgeColor','red','MarkerFaceColor','red')
+
+    subplot(2,1,2)
+    set(gcf,'defaulttextinterpreter','latex');
+    hold all
+    % plot(w_opt(ind))   
+    plot(lnp_T(lnp_T>-100))
+     xlabel('lnp\_T')
+
+    name = ['figures/',model,'_',num2str(p_bar),'lnpT.png'];
     fig = gcf;
     fig.PaperPositionMode = 'auto';
     print(name,'-dpng','-r0')
-end     
-        
+
+    if (sim == 1)
+        figure(20)
+        set(gcf,'units','normalized','outerposition',[0 0 0.5 1]);   
+
+        set(gcf,'defaulttextinterpreter','latex');
+        hold on
+        scatter(x(1:M/2,end-1),x(1:M/2,end))
+        scatter(x((1+M/2):M,end-1),x((1+M/2):M,end),'MarkerEdgeColor','r')
+        hold off
+        xlabel('x\_T-1')
+        ylabel('x\_T')
+        name = ['figures/',model,'_',num2str(p_bar),'scatter_.png'];
+        fig = gcf;
+        fig.PaperPositionMode = 'auto';
+        print(name,'-dpng','-r0')
+    end     
+end    
+
     fprintf('(%s) IS 100*%4.2f%% VaR estimate: %6.4f. \n', model, p_bar, VaR_IS(sim,1));
     fprintf('(%s) IS 100*%4.2f%% Mean VaR : %6.4f. \n', model, p_bar, mean(VaR_IS(VaR_IS<0,1)));
     fprintf('(%s) IS 100*%4.2f%% VaR NSE: %6.4f. \n', model, p_bar, std(VaR_IS(VaR_IS<0,1)));
     fprintf('(%s) IS 100*%4.2f%% ES estimate: %6.4f. \n', model, p_bar, ES_IS(sim,1));  
-
 end
 
 hold off
-% save(['results/sv_VaR_IS_',int2str(N),'_CVtol_0.01.mat'], 'mit1', 'mit2', 'theta_opt', 'x_opt_end', 'lnk_opt2', 'lnd_opt', 'w_opt', 'y_opt_h1', 'CV1', 'CV2', 'cont', 'cont2', 'p_bar', 'N', 'M', 'N_sim', 'VaR_prelim', 'VaR_IS', 'ES_IS');
-
 
 SV_plot3;
-
 
 mean_VaR_prelim = mean(VaR_prelim_MC);
 mean_ES_prelim = mean(ES_prelim);

@@ -29,13 +29,14 @@ p_bar = 0.01;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
-% Artificial, white noise data 
+%% Artificial, white noise data 
 T = 10000;
 y = randn(T,1); 
 y = y - mean(y);
 
+%% Parameter draws 
 % sigma is the VARIANCE of the error term, i.e. y_t ~ NID(0, sigma)
-% should be sigma2, but I skip the power for readibility
+% (should be sigma2)
 sigma_init = 0.9;
 
 % Control parameters for  MitISEM 
@@ -49,19 +50,24 @@ b = 1;
 
 kernel_init = @(x) - posterior_debug(x, y, a, b, true);
 kernel = @(x) posterior_debug(x, y, a, b, true);
-
 [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont, GamMat);
 
-% Metropolis-Hastings 
+% Metropolis-Hastings for the parameters
 M = 1000000;
 [sigma1, accept ] = Mit_MH(M+1000, kernel, mit1, GamMat);
 fprintf('(%s) MH acceptance rate: %4.2f. \n', model, accept);
 sigma1 = sigma1(1001:M+1000);
-lnk = kernel(sigma1);
+% lnk = kernel(sigma1);
 
 
-H = 10;
+%% Future disturbances
+H = 10; % forecast horizon
+% y_H = randn(M,H); % --> if future disturbances drawn from the prior then
+% their weights are 1
   
+% to have some stating mixture of t's --> construct a mit for errors and
+% draw from that
+
 % mit approximation to the normal distribution
 mit_init.mu = 0;
 mit_init.Sigma = 1;
@@ -70,29 +76,33 @@ mit_init.p = 1;
 kernel = @(aa) - 0.5*(log(2*pi) + aa.^2);
 mu_init = 1;
 [mit2, summary1] = MitISEM_new(mit_init, kernel, mu_init, cont, GamMat);
-% y_H = randn(M,H);
+
 % draw from mit2 H times
-[y_H, ~ ] = fn_rmvgt_robust(M*H, mit2, kernel, false);
-y_H = reshape(y_H,M,H);
+[eps_H, ~ ] = fn_rmvgt_robust(M*H, mit2, kernel, false);
+eps_H = reshape(eps_H,M,H);
 % lnk = reshape(lnk,M,H);
-y_H = bsxfun(@times,y_H,sigma1);
+y_H = bsxfun(@times,eps_H,sqrt(sigma1)); % the coresponding returns 
 
 [PL, ind] = sort(fn_PL(y_H));
 VaR_prelim = PL(p_bar*M);  
 ES_prelim = mean(PL(1:p_bar*M));    
 fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim, model, algo);
+clear PL y_H 
 
-draw_hl = [sigma1, y_H];
+
+draw_hl = [sigma1, eps_H];
+clear eps_H
 draw_hl = draw_hl(ind,:);
 draw_hl = draw_hl(PL<=VaR_prelim,:);  
-% sigma1_hl = sigma1(ind);
-% sigma1_hl = sigma1_hl(PL<VaR_prelim,:);  
-lnk = kernel(draw_hl(:,1)); % evaluation of the parameter draw from the posterior
+
+% log kernel evaluation
+kernel = @(x) posterior_debug_hl(x, y, a, b, Inf, true); % to skip the condition that the losses are below VaR_prelim
+lnk = kernel(draw_hl); 
 ind = find(lnk~=-Inf);
-lnk = lnk(ind,:);
-     
+lnk = lnk(ind,:);     
 draw_hl = draw_hl(ind,:);
-mu_init = draw_hl(end,:);
+
+% log candidate evaluation
 lnd = dmvgt(draw_hl(:,1), mit1, true, GamMat);
 for h = 1:H
     lnd = lnd + dmvgt(draw_hl(:,h+1), mit2, true, GamMat);
