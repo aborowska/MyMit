@@ -16,7 +16,7 @@ function  [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_sv
         par_NAIS.b(:,ii) = par_NAIS_iter.b;
         par_NAIS.C(:,ii) = par_NAIS_iter.C;
     end
-    par_SV = theta(:,1:4);
+    par_SV = theta;
     fprintf('nais_loglik\n');
     [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik_hl(y, par_SV, par_NAIS, cont); 
 
