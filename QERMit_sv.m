@@ -508,7 +508,7 @@ if plot_on2
         plotTickLatex2D;
     end
     if print_on
-        name = ['figures/(',model,')', num2str(p_bar),'_VaR_3box_',num2str(M),'.png'];
+        name = ['figures/',model,'_', num2str(p_bar),'_VaR_3box_',num2str(M),'.png'];
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')
@@ -527,7 +527,7 @@ if plot_on2
         plotTickLatex2D;
     end
     if print_on
-        name = ['figures/(',model,')', num2str(p_bar),'_ES_3box_',num2str(M),'.png'];
+        name = ['figures/',model,'_', num2str(p_bar),'_ES_3box_',num2str(M),'.png'];
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')

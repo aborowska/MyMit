@@ -140,16 +140,13 @@ for s = 2:S
 	pmit(s) = mit2;
 end
 
-kernel = @(x) posterior_debug_hl(x, y, a, b, Inf, true); % to skip the condition that the losses are below VaR_prelim
-
-lnk = kernel(draw_hl);
 % lnd = 0;
 % for s = 1:S
 %     [s1, s2] = fn_partition_ends(partition, d, s);
 %     lnd = lnd + dmvgt(draw_hl(:,s1:s2), pmit(s), true, GamMat);
 % end
 % w =  fn_ISwgts(lnk, lnd, false);
-pmit(1) = mit1;
+
 fn_const_X = @(a) WN_const_X(a);
 theta = draw_hl;
 norm = cont.mit.norm;

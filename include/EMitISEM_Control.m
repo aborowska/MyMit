@@ -24,7 +24,7 @@ cont.df.tol = eps^(0.25);
 cont.resmpl_on = true;
 
 %% NAIS control parameters
-if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt') || strcmp(model,'sv_x')))
+if (exist('model','var') && (strcmp(model,'sv') || strcmp(model,'svt') || strcmp(model,'sv_x') || strcmp(model,'svt_x')))
     cont.nais.M = 20; % number of the Gauss-Hermite nodes
     cont.nais.tol = 0.0001; % convergence tolerance
     cont.nais.tol_C = 1e-5; % tolerance for the variance 

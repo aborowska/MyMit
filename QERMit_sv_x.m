@@ -35,7 +35,7 @@ if usr_prompt
     p_bar = 'Select the quantile for VaR estimation: [0.01/0.02/0.05] ';
     p_bar = input(p_bar);
 else
-    model = 'sv_x';
+    model = 'svt_x';
     N_sim = 20;
     hp = 1;
     p_bar = 0.01;
@@ -98,7 +98,7 @@ M = 10000;
 par_NAIS_init.b = zeros(T,1);
 par_NAIS_init.C = ones(T,1); 
 
-N_sim = 10;
+N_sim = 1;
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
 accept = zeros(N_sim,1);
@@ -109,7 +109,7 @@ ES_IS = zeros(N_sim,1);
 % SML 
 % load('SML_ibm.mat', 'par_SV_opt', 'heN_sim_SV_opt') 
 % theta = [c, phi, sigma2, nu]
-if strcmp(model,'sv_x')
+if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     mu_init = [0.5, 0.98, 0.15^2];
     load('SML_ibm.mat', 'par_SV_opt', 'V_SV_corr_opt') 
 %     load('SML_arch.mat', 'par_SV_opt', 'V_SV_corr_opt') 
@@ -128,7 +128,7 @@ mit_init.Sigma = Sigma;
 mit_init.p = cont.mit.pnc;
 mit_init.df = cont.mit.dfnc;
     
-if strcmp(model,'sv_x')
+if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     kernel = @(a) posterior_sv(y, a, par_NAIS_init, prior_const, cont.nais);
 else
     kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
@@ -136,11 +136,7 @@ end
 [mit1, theta1, x1, w1, lnk1, lng_y1, lnw_x1, CV1] = EMitISEM(mit_init, kernel, cont, GamMat);
 
 if save_on
-    if strcmp(model,'sv_x')
-        save(['results/sv_mit1_',int2str(N),'.mat'],'mit1','theta1', 'x1', 'w1', 'lnk1','CV1','cont','p_bar','N');
-    else
-        save(['results/svt_mit1_',int2str(N),'.mat'],'mit1','theta1', 'x1', 'w1', 'lnk1','CV1','cont','p_bar','N');
-    end
+    save(['results/',model,'_mit1_',int2str(N),'.mat'],'mit1','theta1', 'x1', 'w1', 'lnk1','CV1','cont','p_bar','N');
 end
  
 %%
@@ -150,7 +146,7 @@ sigma21 = theta1(:,3);
 
 eta_h1_1 = randn(N,1);
 
-if strcmp(model,'sv_x')
+if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     eps_h1_1 = randn(N,1);
     x_h1_1 = c1 + phi1.*(x1(:,end) - c1) + sqrt(sigma21).*eta_h1_1;
     y_h1_1 = exp(0.5*x_h1_1).*eps_h1_1;
@@ -218,7 +214,7 @@ RND = RND(1001:M+1000,:);
     
     eta_h1 = randn(M,1);
     
-    if strcmp(model,'sv_x')
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         eps_h1 = randn(M,1);
         x_h1 = c + phi.*(x(:,end) - c) + sqrt(sigma2).*eta_h1;
         y_h1 = exp(0.5*x_h1).*eps_h1;
@@ -248,6 +244,13 @@ VaR_prelim = mean(VaR_prelim_MC);
 
  
 if strcmp(model,'sv_x')
+    save(['results/sv_x_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
+        'lnw', 'lnk','lng_y','lnw_x','eps_bar','eps_sim','C_T','lnp_T','RND',...
+        'CV1','cont','p_bar','N','M','N_sim', ...
+        'VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real' );
+end
+
+if strcmp(model,'svt_x')
     save(['results/sv_x_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
         'lnw', 'lnk','lng_y','lnw_x','eps_bar','eps_sim','C_T','lnp_T','RND',...
         'CV1','cont','p_bar','N','M','N_sim', ...
@@ -315,7 +318,7 @@ RND_hl_init = RND_hl_init(1:M_real,:);
 % draw_hl_init = [theta_hl_init, eta_hl_init, eps_hl_init, RND_hl_init]; % <<<<<<<<<<<<<<<<<<
 
 % >>>>>>>>>>> ?????
-if strcmp(model,'sv_x')
+if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     lnk_hl_init = lnk_hl_init + 2*prior_const(1,1) - 0.5*(eta_hl_init).^2 - 0.5*(eps_hl_init).^2;
 else
     lnk_hl_init = lnk_hl_init + prior_const(1,1) - 0.5*(eta_hl_init).^2 + duvt(eps_hl_init, theta_hl_init(:,4), hp, true);
@@ -337,7 +340,7 @@ mit = mit_init;
 cont1 = cont;
 cont = cont2;
 
-if strcmp(model,'sv_x')
+if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     kernel = @(a) posterior_sv_hl_x(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
 else
     kernel = @(a) posterior_svt_hl(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
@@ -345,11 +348,7 @@ end
 [mit2, theta2, x2, w2, lnk2, lng_y2, lnw_x2, CV2] = EMitISEM_x(y, mit_hl_init, kernel, cont2, GamMat);
 
 if save_on
-    if strcmp(model,'sv_x')
-        save(['results/sv_x_mit2_',int2str(N),'.mat'],'mit2','theta2','x2','w2','lnk2','lng_y2','lnw_x2','CV2','cont2','p_bar','N','VaR_prelim');
-    else
-        save(['results/svt_mit2_',int2str(N),'.mat'],'mit2','theta2','x2','w2','lnk2','lng_y2','lnw_x2','CV2','cont2','p_bar','N','VaR_prelim');
-    end
+    save(['results/',model,'_mit2_',int2str(N),'.mat'],'mit2','theta2','x2','w2','lnk2','lng_y2','lnw_x2','CV2','cont2','p_bar','N','VaR_prelim');
 end
 
 %%
@@ -357,7 +356,7 @@ c2 = theta2(:,1);
 phi2 = theta2(:,2);
 sigma22 = theta2(:,3);
 
-if strcmp(model,'sv_x')
+if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     eta_h1_2 = theta2(:,4);
     eps_h1_2 = theta2(:,5);
     x_h1_2 = c2 + phi2.*(x2(:,end) - c2) + sqrt(sigma22).*eta_h1_2;
@@ -388,16 +387,14 @@ SV_plot2;
 % CHECKPOINTS:  http://www.walkingrandomly.com/?p=5343
 f_pl = @(aa) 100*(exp(aa/100) - 1); 
 
-
-
-for sim = 21:100
+for sim = 1:N_sim
     fprintf('\n')
     fprintf('NSE sim = %i.\n', sim);
     fprintf('\n')
 
     theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
     eta_h1_1 = randn(M/2,1);
-    if ~strcmp(model,'svt')
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         eps_h1_1 = randn(M/2,1);
     else
         nu1 = theta1(:,4);
@@ -407,7 +404,7 @@ for sim = 21:100
     theta1 = [theta1, eta_h1_1, eps_h1_1];
     theta2 = rmvgt2(M/2, mit2.mu, mit2.Sigma, mit2.df, mit2.p); 
   
-    if ~strcmp(model,'svt')
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         kernel = @(a) posterior_sv_x(y, a, par_NAIS_init, prior_const, cont.nais);
     else
         kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
@@ -435,21 +432,21 @@ for sim = 21:100
     
     theta1 = [theta1, x(1:M/2,end)]; % extended draw - includes the last state
     
-    if ~strcmp(model,'sv_x') % when mit2 not augmented
+    if ~(strcmp(model,'sv_x') || strcmp(model,'svt_x'))% when mit2 not augmented
         theta2 = [theta2, x(1+M/2:M,end)]; % extend draw and include the last state    
     end
     
     theta_opt = [theta1; theta2];
 %     lnk = lnk - lng_T; % subtact the evaluation of the last draw of state on the Gaussian candidate
      
-    if ~strcmp(model,'svt')
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         lnk = lnk + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2 - 0.5*(theta_opt(:,5)).^2;
     else
         lnk = lnk + prior_const(1,1) - 0.5*(theta_opt(:,5)).^2 + duvt(theta_opt(:,6), theta_opt(:,4), 1, true); 
     end
   
     %% IS weights
-    if ~strcmp(model,'svt')
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
 %         exp_lnd1 = 0.5*normpdf(theta_opt(:,4)).*normpdf(theta_opt(:,5)).*dmvgt(theta_opt(:,1:3), mit1, false, GamMat);
         exp_lnd1 = 0.5*exp(2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2  - 0.5*(theta_opt(:,5)).^2 + dmvgt(theta_opt(:,1:3), mit1, true, GamMat));
 %         exp_lnd1 = 0.5*exp(lng_T + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2  - 0.5*(theta_opt(:,5)).^2 + dmvgt(theta_opt(:,1:3), mit1, true, GamMat));
@@ -458,7 +455,7 @@ for sim = 21:100
         exp_lnd1 = 0.5*normpdf(theta_opt(:,5)).*duvt(theta_opt(:,6), theta_opt(:,4), 1, false).*dmvgt(theta_opt(:,1:4), mit1, false, GamMat);
     end
 
-    if ~strcmp(model,'sv_x') % when mit2 not augmented
+    if ~(strcmp(model,'sv_x') || strcmp(model,'svt_x'))% when mit2 not augmented
         exp_lnd2 = 0.5*exp(dmvgt(theta_opt, mit2, true, GamMat));
     else 
         exp_lnd2 = 0.5*exp(-lnp_T + dmvgt(theta_opt, mit2, true, GamMat)); % if explicit x_T - correct for it
@@ -472,7 +469,7 @@ for sim = 21:100
     phi_opt = theta_opt(:,2);
     sigma2_opt = theta_opt(:,3);
  
-    if ~strcmp(model,'svt')
+    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         eta_opt = theta_opt(:,4);
         eps_opt = theta_opt(:,5);  
         x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
@@ -585,45 +582,85 @@ fprintf('(%s) NSE ES IS estimate: %6.4f. \n', model, NSE_ES_IS);
 fprintf('(%s) ES: [%6.4f, %6.4f]. \n', model, mean_ES_IS - NSE_ES_IS, mean_ES_IS + NSE_ES_IS);
 
 if plot_on2
+    VaR_IS_x = VaR_IS;
+    ES_IS_x = ES_IS;
+    
+    if ~strcmp(model,'svt')
+        load('results\sv\sv_VaR_direct_10000.mat', 'ES_direct', 'VaR_direct') 
+        load('results\sv\sv_VaR_IS_10000.mat', 'ES_IS', 'VaR_IS') 
+    else
+        load('results\svt\svt_VaR_direct_10000.mat', 'ES_direct', 'VaR_direct') 
+        load('results\svt\svt_VaR_IS_10000.mat', 'ES_IS', 'VaR_IS') 
+    end
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%
+    
     figure(590+100*p_bar)
 %         set(gcf, 'visible', 'off');
-    set(gcf,'units','normalized','outerposition',[0 0 1 1]);   
+    set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);   
     set(gcf,'defaulttextinterpreter','latex');
-    boxplot([VaR_prelim_MC, VaR_IS],'labels',{'VaR_prelim MC','VaR_IS'})        
-    title(['100*', num2str(p_bar),'\% VaR estimates: prelim and IS (',strrep(model,'_','\_'),', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])  
+    boxplot([VaR_direct, VaR_IS, VaR_IS_x],'labels',{'VaR direct','VaR IS','VaR IS x'})        
+%     title(['100*', num2str(p_bar),'\% VaR estimates: direct, IS and IS with x (',strrep(model,'_','\_'),', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])  
     if v_new
         set(gca,'TickLabelInterpreter','latex')
     else
         plotTickLatex2D;
     end
     if print_on
-        name = ['figures/',model,'_', num2str(p_bar),'_VaR_box_',num2str(M),'.png'];
+        name = ['figures/',model,'_', num2str(p_bar),'_VaR_3box_',num2str(M),'.png'];
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')
     end
 
     %%%%%%%%%%%%%%%%%%%%%%%%
-
-    figure(5900+100*p_bar)
+    figure(690+100*p_bar)
 %         set(gcf, 'visible', 'off');
-    set(gcf,'units','normalized','outerposition',[0 0 1 1]);   
+    set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);   
     set(gcf,'defaulttextinterpreter','latex');
-    hold on; 
-    bar(VaR_IS,'FaceColor',[0 0.4470 0.7410], 'EdgeColor','w'); 
-    plot(0:(N_sim+1), (mean_VaR_prelim - NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
-    plot(0:(N_sim+1), (mean_VaR_prelim + NSE_VaR_prelim)*ones(N_sim+2,1),'r--'); 
-    plot(0:(N_sim+1), mean_VaR_prelim*ones(N_sim+2,1),'r'); 
-    hold off;
-    title(['(',model,' M = ',num2str(M),') ','100*', num2str(p_bar),'% VaR IS estimates and the mean VaR prelim (+/- NSE VaR prelim).'])
-
+    boxplot([ES_direct, ES_IS, ES_IS_x],'labels',{'ES direct','ES IS','ES IS x'})        
+%     title(['100*', num2str(p_bar),'\% ES estimates: direct, IS and IS with x (',strrep(model,'_','\_'),', ',algo,', M = ',num2str(M),', N\_sim = ', num2str(N_sim),').'])  
     if v_new
         set(gca,'TickLabelInterpreter','latex')
     else
         plotTickLatex2D;
     end
     if print_on
-        name = ['figures/',model,'_', num2str(p_bar),'_VaR_bar_',num2str(M),'.png'];
+        name = ['figures/',model,'_', num2str(p_bar),'_ES_3box_',num2str(M),'.png'];
+        fig = gcf;
+        fig.PaperPositionMode = 'auto';
+        print(name,'-dpng','-r0')
+    end
+
+    %%%%%%%%%%%%%%%%%%%%%%%%
+    f_pl = @(aa) 100*(exp(aa/100) - 1); 
+
+    ind_y = (imag(y_opt_h1)==0); 
+    y_opt_h1 = y_opt_h1(ind_y); 
+    PL_opt_h1 = f_pl(sum(y_opt_h1,2));
+    [PL_opt_h1, ind] = sort(PL_opt_h1); 
+   
+    figure(777)
+    set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
+    set(gcf,'defaulttextinterpreter','latex');
+    hold on
+    plot(PL_opt_h1,'b')
+    pos =  max(find(PL_opt_h1<=VaR_prelim));
+    scatter(pos, VaR_prelim,'MarkerEdgeColor','green','MarkerFaceColor','green')    
+    pos =  max(find(PL_opt_h1<= mean(VaR_IS(VaR_IS<0))));
+    scatter(pos,  mean(VaR_IS(VaR_IS<0)),'MarkerEdgeColor','red','MarkerFaceColor','red')
+    hold off
+    plotTickLatex2D;
+
+    title(['Sorted future profit/losses values $$PL(y_{T+1}^{(i)})$$. Model: $$',strrep(model,'_','\_'),'$$.'])
+    if print_on
+        if strcmp(model,'sv_x')
+            name = 'figures/sv_x_predict.png';
+        elseif strcmp(model,'sv')
+            name = 'figures/sv_predict.png';
+        else
+            name = 'figures/svt_predict.png';
+        end
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')
@@ -632,22 +669,3 @@ end
 if save_on
     gen_out2;
 end
-
-
-%% Finish
-% clear c1 c2 c_opt phi1 phi2 phi_opt sigma21 sigma22 sigma2_opt
-% clear eta_opt eps_opt eta_hl eps_hl
-% clear lnd1 lnd_hl lnd_opt
-% clear PL_h1 PL_h1_hl PL_opt PL_opt_h1
-% clear theta_smooth V_smooth
-clear GamMat x_gam fig h f xi xx
-% clear theta_opt x_opt
-% clear exp_lnd1 exp_lnd2 exp_lnd lnd_opt w_opt x_opt_h1 y_opt_h1
-
-% if save_on
-%     if strcmp(model,'sv_x')
-%         save(['results/sv_mitisem_',int2str(N),'.mat']);
-%     else
-%         save(['results/svt_mitisem_',int2str(N),'.mat']);
-%     end
-% end

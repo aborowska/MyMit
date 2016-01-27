@@ -31,6 +31,10 @@ function [theta, x, lnw, lnk, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND, i
             [theta(ind,:), lnk(ind,:), ~, x(ind,:), lng_y(ind,:), lnw_x(ind,:), eps_bar(ind,:), eps_sim(ind,:), C_T(ind,:), lnp_T(ind,:), RND(ind,:)] = fn_rmvgt_robust(1000, mit, kernel, resampl_on, theta(ind,:));      
         end
     end
+    
+    ind_real = ((imag(lnk)==0) & ~isnan(lnk));
+    lnk(~ind_real) = -Inf;
+    
     lnd = dmvgt(theta, mit, true, GamMat);
     lnw = lnk - lnd;
     lnw = lnw - max(lnw);
