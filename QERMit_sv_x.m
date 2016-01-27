@@ -16,7 +16,7 @@ end
 
 plot_on = false;
 print_on = false;
-save_on = false;
+save_on = true;
 plot_on2 = true;
 
 % User prompts
@@ -242,20 +242,11 @@ end
 VaR_prelim_MC =  VaR_prelim;
 VaR_prelim = mean(VaR_prelim_MC);
 
- 
-if strcmp(model,'sv_x')
-    save(['results/sv_x_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
-        'lnw', 'lnk','lng_y','lnw_x','eps_bar','eps_sim','C_T','lnp_T','RND',...
-        'CV1','cont','p_bar','N','M','N_sim', ...
-        'VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real' );
-end
+save(['results/',model,'_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
+    'lnw', 'lnk','lng_y','lnw_x','eps_bar','eps_sim','C_T','lnp_T','RND',...
+    'CV1','cont','p_bar','N','M','N_sim', ...
+    'VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real' );
 
-if strcmp(model,'svt_x')
-    save(['results/sv_x_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
-        'lnw', 'lnk','lng_y','lnw_x','eps_bar','eps_sim','C_T','lnp_T','RND',...
-        'CV1','cont','p_bar','N','M','N_sim', ...
-        'VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real' );
-end
 
 % save(['results/sv_VaR_prelim_',int2str(N),'_CVtol_0.01.mat'],'mit1','theta', 'x', 'lnw', 'lnk','CV1','cont','p_bar','N','M','N_sim','VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real');
 M_real = find(PL_h1 < VaR_prelim, 1, 'last' ); 
@@ -339,6 +330,7 @@ mit_init = mit_hl_init;
 mit = mit_init;
 cont1 = cont;
 cont = cont2;
+cont2.mit.Hmax = 1;
 
 if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     kernel = @(a) posterior_sv_hl_x(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
