@@ -39,6 +39,7 @@ function [theta_sim, lng_y, lnw, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_logli
 mu_T = theta_sim(n,:) - par_SV(:,1)'-(par_SV(:,2)').*(theta_sim(n-1,:)- par_SV(:,1)');
 lnp_T = -0.5*(log(2*pi) + log(par_SV(:,3)') + (mu_T.^2)./(par_SV(:,3)')); 
 lnp_T = lnp_T';
+
     % compute the logweights
     if (cont.err == 'n')
     	lnp =  -0.5*(log(2*pi) +  theta_sim  + (y.^2)./exp(theta_sim));

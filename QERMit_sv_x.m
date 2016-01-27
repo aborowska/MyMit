@@ -399,7 +399,7 @@ for sim = 1:N_sim
     if (strcmp(model,'sv') || strcmp(model,'sv_x'))
         kernel = @(a) posterior_sv_x(y, a, par_NAIS_init, prior_const, cont.nais);
     else
-        kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
+        kernel = @(a) posterior_svt_x(y, a, par_NAIS_init, prior_const, cont.nais);
     end
     lnk = zeros(M,1);
     x = zeros(M,cont.nais.HP+1);
