@@ -48,14 +48,21 @@ x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x_gam);
 
 % prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  -2.5*log(0.025), -log(gamma(2.5))];
-prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5))];
 % prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  -0.5*log(2), -log(gamma(0.5))];
+if isempty(strfind(model, 't'))
+    prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5))];
+else
+    prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5)), 0.1]; % the last one is lambda for nu
+end
 
 logpdf_norm = @(x) prior_const(1,1) -0.5*(x.^2);
 logpdf_beta = @(x) prior_const(1,2)  + (20-1)*log(x) + (1.5-1)*log(1-x); 
 % % logpdf_gamma = @(x) prior_const(1,3) + prior_const(1,4) + (2.5-1)*log(x) - x/0.025;
 logpdf_invgamma = @(x) prior_const(1,3) + prior_const(1,4) - (2.5+1)*log(x) - 0.025./x;
 % % logpdf_chi2 = @(x) prior_const(1,3) + prior_const(1,4) -0.5*log(x) - 0.5*x;
+if ~isempty(strfind(model, 't'))
+    logpdf_exp = @(x) log(prior_const(1,5)) - prior_const(1,5)*(x - 2);  
+end
 
 %% Data
 y = csvread('IBM_ret.csv');
@@ -98,7 +105,7 @@ M = 10000;
 par_NAIS_init.b = zeros(T,1);
 par_NAIS_init.C = ones(T,1); 
 
-N_sim = 1;
+N_sim = 100;
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
 accept = zeros(N_sim,1);
@@ -107,7 +114,6 @@ ES_IS = zeros(N_sim,1);
 
 %% QERMit 1a.:
 % SML 
-% load('SML_ibm.mat', 'par_SV_opt', 'heN_sim_SV_opt') 
 % theta = [c, phi, sigma2, nu]
 if (strcmp(model,'sv') || strcmp(model,'sv_x'))
     mu_init = [0.5, 0.98, 0.15^2];
@@ -128,7 +134,7 @@ mit_init.Sigma = Sigma;
 mit_init.p = cont.mit.pnc;
 mit_init.df = cont.mit.dfnc;
     
-if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+if isempty(strfind(model, 't'))
     kernel = @(a) posterior_sv(y, a, par_NAIS_init, prior_const, cont.nais);
 else
     kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
@@ -214,7 +220,7 @@ RND = RND(1001:M+1000,:);
     
     eta_h1 = randn(M,1);
     
-    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+    if isempty(strfind(model, 't'))
         eps_h1 = randn(M,1);
         x_h1 = c + phi.*(x(:,end) - c) + sqrt(sigma2).*eta_h1;
         y_h1 = exp(0.5*x_h1).*eps_h1;
@@ -309,7 +315,7 @@ RND_hl_init = RND_hl_init(1:M_real,:);
 % draw_hl_init = [theta_hl_init, eta_hl_init, eps_hl_init, RND_hl_init]; % <<<<<<<<<<<<<<<<<<
 
 % >>>>>>>>>>> ?????
-if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+if isempty(strfind(model, 't'))
     lnk_hl_init = lnk_hl_init + 2*prior_const(1,1) - 0.5*(eta_hl_init).^2 - 0.5*(eps_hl_init).^2;
 else
     lnk_hl_init = lnk_hl_init + prior_const(1,1) - 0.5*(eta_hl_init).^2 + duvt(eps_hl_init, theta_hl_init(:,4), hp, true);
@@ -326,21 +332,21 @@ mit_hl_init.Sigma = Sigma_hl_init;
 mit_hl_init.p = 1;
 mit_hl_init.df = 5;
 
-mit_init = mit_hl_init;
-mit = mit_init;
-cont1 = cont;
-cont = cont2;
+% mit_init = mit_hl_init;
+% mit = mit_init;
+% cont1 = cont;
+% cont = cont2;
 cont2.mit.Hmax = 1;
 
-if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+if isempty(strfind(model, 't'))
     kernel = @(a) posterior_sv_hl_x(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
 else
-    kernel = @(a) posterior_svt_hl(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
+    kernel = @(a) posterior_svt_hl_x(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
 end
 [mit2, theta2, x2, w2, lnk2, lng_y2, lnw_x2, CV2] = EMitISEM_x(y, mit_hl_init, kernel, cont2, GamMat);
 
 if save_on
-    save(['results/',model,'_mit2_',int2str(N),'.mat'],'mit2','theta2','x2','w2','lnk2','lng_y2','lnw_x2','CV2','cont2','p_bar','N','VaR_prelim');
+    save(['results/',model,'_mit2_',int2str(N),'.mat'],'mit_hl_init','mit2','theta2','x2','w2','lnk2','lng_y2','lnw_x2','CV2','cont2','p_bar','N','VaR_prelim');
 end
 
 %%
@@ -386,7 +392,7 @@ for sim = 1:N_sim
 
     theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
     eta_h1_1 = randn(M/2,1);
-    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+    if isempty(strfind(model, 't'))
         eps_h1_1 = randn(M/2,1);
     else
         nu1 = theta1(:,4);
@@ -396,7 +402,7 @@ for sim = 1:N_sim
     theta1 = [theta1, eta_h1_1, eps_h1_1];
     theta2 = rmvgt2(M/2, mit2.mu, mit2.Sigma, mit2.df, mit2.p); 
   
-    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+    if isempty(strfind(model, 't'))
         kernel = @(a) posterior_sv_x(y, a, par_NAIS_init, prior_const, cont.nais);
     else
         kernel = @(a) posterior_svt_x(y, a, par_NAIS_init, prior_const, cont.nais);
@@ -431,14 +437,14 @@ for sim = 1:N_sim
     theta_opt = [theta1; theta2];
 %     lnk = lnk - lng_T; % subtact the evaluation of the last draw of state on the Gaussian candidate
      
-    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+    if isempty(strfind(model, 't'))
         lnk = lnk + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2 - 0.5*(theta_opt(:,5)).^2;
     else
         lnk = lnk + prior_const(1,1) - 0.5*(theta_opt(:,5)).^2 + duvt(theta_opt(:,6), theta_opt(:,4), 1, true); 
     end
   
     %% IS weights
-    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+    if isempty(strfind(model, 't'))
 %         exp_lnd1 = 0.5*normpdf(theta_opt(:,4)).*normpdf(theta_opt(:,5)).*dmvgt(theta_opt(:,1:3), mit1, false, GamMat);
         exp_lnd1 = 0.5*exp(2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2  - 0.5*(theta_opt(:,5)).^2 + dmvgt(theta_opt(:,1:3), mit1, true, GamMat));
 %         exp_lnd1 = 0.5*exp(lng_T + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2  - 0.5*(theta_opt(:,5)).^2 + dmvgt(theta_opt(:,1:3), mit1, true, GamMat));
@@ -461,7 +467,7 @@ for sim = 1:N_sim
     phi_opt = theta_opt(:,2);
     sigma2_opt = theta_opt(:,3);
  
-    if (strcmp(model,'sv') || strcmp(model,'sv_x'))
+    if isempty(strfind(model, 't'))
         eta_opt = theta_opt(:,4);
         eps_opt = theta_opt(:,5);  
         x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
@@ -577,7 +583,7 @@ if plot_on2
     VaR_IS_x = VaR_IS;
     ES_IS_x = ES_IS;
     
-    if ~strcmp(model,'svt')
+    if isempty(strfind(model, 't'))
         load('results\sv\sv_VaR_direct_10000.mat', 'ES_direct', 'VaR_direct') 
         load('results\sv\sv_VaR_IS_10000.mat', 'ES_IS', 'VaR_IS') 
     else

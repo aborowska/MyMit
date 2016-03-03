@@ -13,7 +13,8 @@ logpdf_beta = @(x) prior_const(1,2)  + (20-1)*log(x) + (1.5-1)*log(1-x);
 % logpdf_gamma = @(x) prior_const(1,3) + prior_const(1,4) + (2.5-1)*log(x) - x/0.025;
 logpdf_invgamma = @(x) prior_const(1,3) + prior_const(1,4) - (2.5+1)*log(x) - 0.025./x;
 % logpdf_chi2 = @(x) prior_const(1,3) + prior_const(1,4) - 0.5*log(x) - 0.5*x;    
-    
+logpdf_exp = @(x) log(prior_const(1,5)) - prior_const(1,5)*(x - 2);  
+
     c1 = ((phi > 0) & (phi < 1));
     c2 = (s2 > 5e-3);
     c3 = (nu > 2);
@@ -25,7 +26,7 @@ logpdf_invgamma = @(x) prior_const(1,3) + prior_const(1,4) - (2.5+1)*log(x) - 0.
 %     r2(r1==true) = r2(r1==true) + logpdf_gamma(1./s2(r1==true));
     r2(r1==true) = r2(r1==true) + logpdf_invgamma(s2(r1==true));
 %     r2(r1==true) = r2(r1==true) + logpdf_chi2(s2(r1==true));
-    r2(r1==true) = r2(r1==true) - ( nu(r1==true)  - 2); % exponential prior: nu~exp(1) --> p(nu)=exp(-nu) from 2 to inf  
+    r2(r1==true) = r2(r1==true) + logpdf_exp(nu(r1==true)) ; % exponential prior: nu~exp(1) --> p(nu)=exp(-nu) from 2 to inf  
     
 %     R = [r1, r2];
 end

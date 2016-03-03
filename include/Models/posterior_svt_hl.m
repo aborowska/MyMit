@@ -53,6 +53,7 @@ function r2 = prior_svt_hl_in(theta, prior_const, PL, VaR)
     % logpdf_gamma = @(x) prior_const(1,3) + prior_const(1,4) + (2.5-1)*log(x) - x/0.025;
     logpdf_invgamma = @(x) prior_const(1,3) + prior_const(1,4) - (2.5+1)*log(x) - 0.025./x;
     % logpdf_chi2 = @(x) prior_const(1,3) + prior_const(1,4) - 0.5*log(x) - 0.5*x;    
+    logpdf_exp = @(x) log(prior_const(1,5)) - prior_const(1,5)*(x - 2);  
 
     c1 = (PL <= VaR);
     c2 = ((phi > 0) & (phi < 1));
@@ -66,7 +67,7 @@ function r2 = prior_svt_hl_in(theta, prior_const, PL, VaR)
 %     r2(r1==true) = r2(r1==true) + logpdf_gamma(1./s2(r1==true));
     r2(r1==true) = r2(r1==true) + logpdf_invgamma(s2(r1==true));
 %     r2(r1==true) = r2(r1==true) + logpdf_chi2(s2(r1==true));
-    r2(r1==true) = r2(r1==true) - (nu(r1==true)  - 2); % exponential prior: nu~exp(1) --> p(nu)=exp(-nu) from 2 to inf  
+    r2(r1==true) = r2(r1==true) + logpdf_exp(nu(r1==true)) ; % exponential prior: nu~exp(1) --> p(nu)=exp(-nu) from 2 to inf  
     r2(r1==true) = r2(r1==true) + prior_const(1,1) - 0.5*(eta(r1==true)).^2;
     r2(r1==true) = r2(r1==true) + duvt(eps(r1==true), nu(r1==true), 1, true); 
 
