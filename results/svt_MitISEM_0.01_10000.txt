@@ -1,0 +1,32 @@
+Model: svt 
+Algorithm: MitISEM 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+N:  10000
+M:  10000
+df1:   5
+df2:   5
+
+Acceptance: 
+----------------------------------------
+mean MH acceptance:  0.5909.
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR prelim (mean) estimate: -3.9104. 
+NSE VaR prelim: 0.0933. 
+VaR prelim: [-4.0037, -3.8172]. 
+ 
+100*0.01% VaR IS (mean) estimate: -3.8825. 
+NSE VaR IS estimate: 0.0530. 
+VaR: [-3.9355, -3.8295]. 
+ 
+100*0.01% ES prelim (mean) estimate: -4.8612. 
+NSE ES prelim: 0.1364. 
+ES prelim: [-4.9976, -4.7248]. 
+ 
+100*0.01% ES IS (mean) estimate: -4.8493. 
+NSE ES IS estimate: 0.0625. 
+ES: [-4.9118, -4.7868]. 

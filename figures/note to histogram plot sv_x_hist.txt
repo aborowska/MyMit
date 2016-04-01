@@ -1,0 +1,37 @@
+Note to the histogram plot sv_x_hist
+________________________________________________________________________
+
+x_T is the last ("today") value of the sampled (via simulation smoothing) state
+
+x_T		| Mean	| Std	| (x_T = y* - eps_sim)
+________________________________
+all		|0.6433	|0.5131	|
+high loss	|1.0406	|0.3730	|
+
+________________________________________________________________________
+
+eps_bar		| Mean	| Std	| (mean of the distrbution for eps_sim)
+________________________________
+all		|-0.0865|0.0685	|
+high loss	|-0.0902|0.0704	|
+
+________________________________________________________________________
+
+eps_sim		| Mean	| Std	|
+________________________________
+all		|-0.0832|0.5150	|
+high loss	|-0.4817|0.3720	|
+
+________________________________________________________________________
+
+(from the KF)
+
+C_T		| Mean	| Std	| (var of the distrbution for eps_sim)
+________________________________
+all		|0.2609	|0.0375	|
+high loss	|0.2593	|0.0379 |
+
+________________________________________________________________________
+
+Ergo: only the random variates used to obtain the smoothed draws are noticeably different for the draws which eventually lead to high losses. 
+Not the parameters of the (normal) distributions which they were generated from. 

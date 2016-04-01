@@ -1,0 +1,23 @@
+Model: svt 
+Algorithm: Direct 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+M:  10000
+df:   5
+
+Acceptance: 
+----------------------------------------
+mean MH acceptance:  0.0900.
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR direct (mean) estimate: -4.0663. 
+NSE VaR direct: 0.1194. 
+VaR direct: [-4.1856, -3.9469]. 
+ 
+100*0.01% ES direct (mean) estimate: -5.1718. 
+NSE ES direct: 0.1683. 
+ES direct: [-5.3401, -5.0034]. 
+ 

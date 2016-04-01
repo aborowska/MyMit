@@ -1,0 +1,512 @@
+# load libraries
+library(PerformanceAnalytics)
+library(quantmod)
+library(rugarch)
+library(car)
+library(FinTS)
+options(digits=4)
+# download data
+symbol.vec = c("MSFT", "^GSPC")
+getSymbols(symbol.vec, from ="2000-01-03", to = "2012-04-03")
+colnames(MSFT)
+start(MSFT)
+end(MSFT)
+# extract adjusted closing prices
+MSFT = MSFT[, "MSFT.Adjusted", drop=F]
+GSPC = GSPC[, "GSPC.Adjusted", drop=F]
+# plot prices
+plot(MSFT)
+plot(GSPC)
+# calculate log-returns for GARCH analysis
+MSFT.ret = CalculateReturns(MSFT, method="log")
+GSPC.ret = CalculateReturns(GSPC, method="log")
+# remove first NA observation
+MSFT.ret = MSFT.ret[-1,]
+GSPC.ret = GSPC.ret[-1,]
+colnames(MSFT.ret) ="MSFT"
+colnames(GSPC.ret) = "GSPC"
+# create combined data series
+MSFT.GSPC.ret = cbind(MSFT.ret,GSPC.ret)
+# plot returns
+plot(MSFT.ret)
+plot(GSPC.ret)
+#
+# Asymmetric garch
+#
+garch11.spec = ugarchspec(variance.model = list(garchOrder=c(1,1)),
+mean.model = list(armaOrder=c(0,0)))
+MSFT.garch11.fit = ugarchfit(spec=garch11.spec, data=MSFT.ret,
+solver.control=list(trace = 1))
+GSPC.garch11.fit = ugarchfit(spec=garch11.spec, data=GSPC.ret,
+solver.control=list(trace = 1))
+MSFT.garch11.fit
+GSPC.garch11.fit
+# Engle-Ng sign bias test
+signbias(MSFT.garch11.fit)
+signbias(GSPC.garch11.fit)
+# Nelson's egarch model
+egarch11.spec = ugarchspec(variance.model=list(model="eGARCH",
+garchOrder=c(1,1)),
+mean.model=list(armaOrder=c(0,0)))
+MSFT.egarch11.fit = ugarchfit(egarch11.spec, MSFT.ret)
+MSFT.egarch11.fit
+# GJR garch model
+gjrgarch11.spec = ugarchspec(variance.model=list(model="gjrGARCH",
+garchOrder=c(1,1)),
+mean.model=list(armaOrder=c(0,0)))
+MSFT.gjrgarch11.fit = ugarchfit(gjrgarch11.spec, MSFT.ret)
+MSFT.gjrgarch11.fit
+# aparch models
+aparch11.1.spec = ugarchspec(variance.model=list(model="apARCH",
+garchOrder=c(1,1)),
+mean.model=list(armaOrder=c(0,0)),
+fixed.pars=list(delta=1))
+MSFT.aparch11.1.fit = ugarchfit(aparch11.1.spec, MSFT.ret)
+MSFT.aparch11.1.fit
+nic.garch11 = newsimpact(MSFT.garch11.fit)
+nic.egarch11 = newsimpact(MSFT.egarch11.fit)
+nic.gjrgarch11 = newsimpact(MSFT.gjrgarch11.fit)
+nic.aparch11.1 = newsimpact(MSFT.aparch11.1.fit)
+# compare information criteria
+model.list = list(garch11 = MSFT.garch11.fit,
+egarch11 = MSFT.egarch11.fit,
+gjrgarch11 = MSFT.gjrgarch11.fit,
+aparch11.1 = MSFT.aparch11.1.fit)
+info.mat = sapply(model.list, infocriteria)
+rownames(info.mat) = rownames(infocriteria(MSFT.garch11.fit))
+info.mat
+# show news impact curve from estimated garch(1,1) and egarch(1,1)
+par(mfrow=c(2,2))
+plot(nic.garch11$zx, type="l", lwd=2, col="blue", main="GARCH(1,1)",
+nic.garch11$zy, ylab=nic.garch11$yexpr, xlab=nic.garch11$xexpr)
+plot(nic.egarch11$zx, type="l", lwd=2, col="blue", main="EGARCH(1,1)",
+nic.egarch11$zy, ylab=nic.egarch11$yexpr, xlab=nic.egarch11$xexpr)
+plot(nic.gjrgarch11$zx, type="l", lwd=2, col="blue", main="TGARCH(1,1)",
+nic.gjrgarch11$zy, ylab=nic.gjrgarch11$yexpr, xlab=nic.gjrgarch11$xexpr)
+plot(nic.aparch11.1$zx, type="l", lwd=2, col="blue", main="APARCH(1,1,1)",
+nic.aparch11.1$zy, ylab=nic.aparch11.1$yexpr, xlab=nic.aparch11.1$xexpr)
+par(mfrow=c(1,1))
+#
+# garch with non-normal errors
+#
+# recall normal GARCH(1,1)
+# examine standardized residuals
+MSFT.garch11.zt = residuals(MSFT.garch11.fit)/sigma(MSFT.garch11.fit)
+MSFT.garch11.zt = xts(MSFT.garch11.zt, order.by=index(MSFT.ret))
+qqPlot(coredata(MSFT.garch11.zt))
+plot(MSFT.garch11.fit, which=8)
+plot(MSFT.garch11.fit, which=9)
+# GARCH(1,1)  with Student-t errors
+garch11.t.spec = ugarchspec(variance.model = list(garchOrder=c(1,1)),
+mean.model = list(armaOrder=c(0,0)),
+distribution.model = "std")
+MSFT.garch11.t.fit = ugarchfit(spec=garch11.t.spec, data=MSFT.ret)
+MSFT.garch11.t.fit
+plot(MSFT.garch11.t.fit, which=9)
+aparch11.1.t.spec = ugarchspec(variance.model = list(model="apARCH",
+garchOrder=c(1,1)),
+mean.model = list(armaOrder=c(0,0)),
+distribution.model = "std",
+fixed.pars=list(delta=1))
+MSFT.aparch11.1.t.fit = ugarchfit(spec=aparch11.1.t.spec, data=MSFT.ret)
+MSFT.aparch11.1.t.fit
+# fit skewed t
+garch11.st.spec = ugarchspec(variance.model = list(garchOrder=c(1,1)),
+mean.model = list(armaOrder=c(0,0)),
+distribution.model = "sstd")
+MSFT.garch11.st.fit = ugarchfit(spec=garch11.st.spec, data=MSFT.ret)
+MSFT.garch11.st.fit
+plot(MSFT.garch11.st.fit, which=9)
+#
+# plot forecasts from competing models
+#
+MSFT.garch11.fcst = ugarchforecast(MSFT.garch11.fit, n.ahead=250)
+MSFT.garch11.t.fcst = ugarchforecast(MSFT.garch11.t.fit, n.ahead=250)
+MSFT.aparch11.1.fcst = ugarchforecast(MSFT.aparch11.1.fit, n.ahead=250)
+MSFT.aparch11.1.t.fcst = ugarchforecast(MSFT.aparch11.1.t.fit, n.ahead=250)
+# extract volatility forecasts
+MSFT.garch11.sigma = as.data.frame(MSFT.garch11.fcst)$sigma
+MSFT.garch11.t.sigma = as.data.frame(MSFT.garch11.t.fcst)$sigma
+MSFT.aparch11.1.sigma = as.data.frame(MSFT.aparch11.1.fcst)$sigma
+MSFT.aparch11.1.t.sigma = as.data.frame(MSFT.aparch11.1.t.fcst)$sigma
+ymax = max(MSFT.garch11.sigma,MSFT.garch11.t.sigma,MSFT.aparch11.1.sigma, MSFT.aparch11.1.t.sigma)
+ymin = min(MSFT.garch11.sigma,MSFT.garch11.t.sigma,MSFT.aparch11.1.sigma, MSFT.aparch11.1.t.sigma)
+plot.ts(MSFT.garch11.sigma, main="Volatility Forecasts",
+ylim=c(ymin,ymax), col="black",
+lwd=2, ylab="sigma(t+h|t)", xlab="h")
+lines(MSFT.garch11.t.sigma, col="blue", lwd=2)
+lines(MSFT.aparch11.1.sigma, col="green", lwd=2)
+lines(MSFT.aparch11.1.t.sigma, col="red", lwd=2)
+legend(x="topleft", legend=c("GARCH-n", "GARCH-t", "APARCH-n", "APARCH-t"),
+col=c("black", "blue","green","red"), lwd=2, lty = "solid")
+# evaluate rolling forecasts
+# re-fit models leaving 100 out-of-sample observations for forecast evaluation statistics
+MSFT.garch11.fit = ugarchfit(spec=garch11.spec, data=MSFT.ret,
+out.sample=100)
+MSFT.garch11.t.fit = ugarchfit(spec=garch11.t.spec, data=MSFT.ret,
+out.sample=100)
+MSFT.aparch11.1.fit = ugarchfit(aparch11.1.spec, MSFT.ret,
+out.sample=100)
+MSFT.aparch11.1.t.fit = ugarchfit(spec=aparch11.1.t.spec, data=MSFT.ret,
+out.sample=100)
+# compare persistence and unconditional variance
+c.mat = matrix(0, 4, 2)
+colnames(c.mat) = c("Persistence", "E[sig(t)]")
+rownames(c.mat) = c("GARCH-n", "GARCH-t", "APARCH-n","APARCH-t")
+c.mat["GARCH-n","Persistence"] = persistence(MSFT.garch11.fit)
+c.mat["GARCH-t","Persistence"] = persistence(MSFT.garch11.t.fit)
+c.mat["APARCH-n","Persistence"] = persistence(MSFT.aparch11.1.fit)
+c.mat["APARCH-t","Persistence"] = persistence(MSFT.aparch11.1.t.fit)
+c.mat["GARCH-n","E[sig(t)]"] = sqrt(uncvariance(MSFT.garch11.fit))
+c.mat["GARCH-t","E[sig(t)]"] = sqrt(uncvariance(MSFT.garch11.t.fit))
+c.mat["APARCH-n","E[sig(t)]"] = sqrt(uncvariance(MSFT.aparch11.1.fit))
+c.mat["APARCH-t","E[sig(t)]"] = sqrt(uncvariance(MSFT.aparch11.1.t.fit))
+c.mat
+# compute 100 1-step ahead rolling forecasts
+MSFT.garch11.fcst = ugarchforecast(MSFT.garch11.fit, n.roll=100, n.ahead=1)
+MSFT.garch11.t.fcst = ugarchforecast(MSFT.garch11.t.fit, n.roll=100, n.ahead=1)
+MSFT.aparch11.1.fcst = ugarchforecast(MSFT.aparch11.1.fit, n.roll=100, n.ahead=1)
+MSFT.aparch11.1.t.fcst = ugarchforecast(MSFT.aparch11.1.t.fit, n.roll=100, n.ahead=1)
+# compute forecast evaluation statistics
+fcst.list = list(garch11=MSFT.garch11.fcst,
+garch11.t=MSFT.garch11.t.fcst,
+aparch11.1=MSFT.aparch11.1.fcst,
+aparch11.t.1=MSFT.aparch11.1.t.fcst)
+fpm.mat = sapply(fcst.list, fpm)
+fpm.mat
+options(digits=4)
+# download data
+symbol.vec = c("MSFT", "^GSPC")
+getSymbols(symbol.vec, from ="2000-01-03", to = "2012-04-03")
+colnames(MSFT)
+start(MSFT)
+end(MSFT)
+# extract adjusted closing prices
+MSFT = MSFT[, "MSFT.Adjusted", drop=F]
+GSPC = GSPC[, "GSPC.Adjusted", drop=F]
+library(PerformanceAnalytics)
+library(quantmod)
+library(rugarch)
+library(car)
+library(FinTS)
+options(digits=4)
+install.packages("PerformanceAnalytics")
+library(PerformanceAnalytics)
+install.packages("quantmod")
+library(quantmod)
+install.packages("rugarch")
+library(rugarch)
+install.packages("car")
+library(car)
+install.packages("FinTS")
+library(FinTS)
+install.packages("rugarch")
+options(digits=4)
+# download data
+symbol.vec = c("MSFT", "^GSPC")
+getSymbols(symbol.vec, from ="2000-01-03", to = "2012-04-03")
+colnames(MSFT)
+start(MSFT)
+end(MSFT)
+?FinTS
+library("PerformanceAnalytics")
+library("quantmod")
+library("rugarch")
+install.packages("rugarch")
+library("rugarch")
+install.packages("AdMit")
+setwd('C:/Users/aga/Dysk Google/TI/MPhil/VU/MitISEM/notes')
+x <- 1
+write.csv(x, file = "x.csv")
+GelmanMeng <- function(x, A = 1, B = 0, C1 = 3, C2 = 3, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+set.seed(1234)
+outAdMit <- AdMit(GelmanMeng, mu0 = c(0.0, 0.1), control = list(Ns = 1e4))
+print(outAdMit)
+library("AdMit", lib.loc="~/R/win-library/3.1")
+m
+set.seed(1234)
+outAdMit <- AdMit(GelmanMeng, mu0 = c(0.0, 0.1), control = list(Ns = 1e4))
+print(outAdMit)
+outAdMit
+## Run AdMit (using importance sampling to estimate
+## the modes and the scale matrices)
+set.seed(1234)
+outAdMit <- AdMit(KERNEL = GelmanMeng,
+mu0 = c(0.0, 0.1),
+control = list(IS = TRUE, Ns = 1e4))
+print(outAdMit)
+install.packages("MitISEM")
+library("MitISEM", lib.loc="~/R/win-library/3.1")
+require(graphics)
+set.seed(1234);
+# define Gelman Meng Kernel
+GelmanMeng <- function(x, A = 1, B = 0, C1 = 3, C2 = 3, log = TRUE){
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+# get MitISEM approximation
+mu0 <-c(3,4)
+app.MitISEM <- MitISEM(KERNEL=GelmanMeng,mu0=mu0,control=list(N=2000,trace=TRUE))
+mit=app.MitISEM$mit
+# plot approximation (components and full approximation)
+MitISEM.plot.comps <- function(mit,x1,x2,log=FALSE){
+Mitcontour <- function(x1,x2,mit,log=FALSE){
+dmvgt(cbind(x1,x2),mit=mit,log=log)
+}
+H <- length(mit$p)
+K <- ncol(mit$mu)
+cols <- 1:H
+for (h in 1:H){
+mit.h  <-list(p=1,mu=matrix(mit$mu[h,],1,K),
+Sigma=matrix(mit$Sigma[h,],1,(K^2)),df=mit$df[h])
+z      <- outer(x1,x2,FUN=Mitcontour,mit=mit.h)
+contour(x1,x2,z,col=h,lty=h,labels="",add=(h!=1),
+xlab="x1",ylab="x2",main='MitISEM approximation components')
+}
+legend("topright",paste("component ",1:H),lty=cols,col=cols,bty='n')
+z <- outer(x1,x2, FUN=Mitcontour,mit=mit)
+image(x1,x2,z,las=1,col=gray((20:0)/20),main='MitISEM approximation')
+}
+x1 <- seq(-2,6,0.05)
+x2 <- seq(-2,7,0.05)
+MitISEM.plot.comps(mit,x1,x2)
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = 0, C1 = 3, C2 = 3, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+set.seed(1234)
+outAdMit <- AdMit(GelmanMeng, mu0 = c(0.0, 0.1), control = list(Ns = 1e4))
+print(outAdMit)
+GelmanMeng <- function(x, A = 0, B = 1, C1 = 3, C2 = 3, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = 1, C1 = 3, C2 = 3, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+GelmanMeng <- function(x, A = 0, B = 1, C1 = 1, C2 = 1, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = 1, C1 = 0.1, C2 = 0.1, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = 0.5, C1 = 0.5, C2 = 0.1, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = 2, C1 = -1, C2 = -2, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = 2, C1 = -1, C2 = -0.5, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+GelmanMeng <- function(x, A = 0, B = sqrt(0.5), C1 = 1, C2 = 2, log = TRUE)
+{
+if (is.vector(x))
+x <- matrix(x, nrow = 1)
+r <- -.5 * (A * x[,1]^2 * x[,2]^2 + x[,1]^2 + x[,2]^2
+- 2 * B * x[,1] * x[,2] - 2 * C1 * x[,1] - 2 * C2 * x[,2])
+if (!log)
+r <- exp(r)
+as.vector(r)
+}
+PlotGelmanMeng <- function(x1, x2)
+{
+GelmanMeng(cbind(x1, x2), log = FALSE)
+}
+x1 <- x2 <- seq(from = -1.0, to = 6.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+x1 <- x2 <- seq(from = -1.0, to = 10.0, by = 0.02)
+z <- outer(x1, x2, FUN = PlotGelmanMeng)
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+cex.axis = 1.1, cex.lab = 1.2,
+xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+## Run AdMit (with default values)
+set.seed(1234)
+outAdMit <- AdMit(GelmanMeng, mu0 = c(0.0, 0.1), control = list(Ns = 1e4))
+print(outAdMit)
+library("AdMit", lib.loc="~/R/win-library/3.1")
+#Parameter s
+alpha <− 0.9
+beta <− 0.7
+eta <− 1
+zeta <− 0.1
+T <− 24
+N <− 1000
+c <− 0.05
+ESSmin <− 0.3
+# Funct ie voor t r ekking en u i t q1 , qt
+rq1 <− function ( y=NA) return (rnorm( 1 , 0 , 1 ) )
+rqt <− function (x , y=NA) return (rnorm( 1 , alpha*x + beta , eta ) )

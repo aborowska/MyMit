@@ -1,0 +1,28 @@
+Model: sv_x 
+Algorithm: MitISEM 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+N:  10000
+M:  10000
+df1:   5
+df2:   5
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR prelim (mean) estimate: -3.6716. 
+NSE VaR prelim: 0.0779. 
+VaR prelim: [-3.7495, -3.5937]. 
+ 
+100*0.01% VaR IS (mean) estimate: -3.6693. 
+NSE VaR IS estimate: 0.0615. 
+VaR: [-3.7308, -3.6078]. 
+ 
+100*0.01% ES prelim (mean) estimate: -4.4387. 
+NSE ES prelim: 0.1176. 
+ES prelim: [-4.5562, -4.3211]. 
+ 
+100*0.01% ES IS (mean) estimate: -4.4562. 
+NSE ES IS estimate: 0.1337. 
+ES: [-4.5899, -4.3224]. 

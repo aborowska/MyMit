@@ -1,0 +1,25 @@
+% http://stackoverflow.com/questions/12522888/arrayfun-can-be-significantly-slower-than-an-explicit-loop-in-matlab-why
+A = 0; B = sqrt(0.5); C1 = 1; C2 = 2; L = false;
+x = -1:0.02:10;
+n = length(x);
+[X1,X2] = meshgrid(x,x);
+V1 = reshape(X1,n*n,1); V2 = reshape(X2,n*n,1);
+V = [V1,V2];
+GM_fix = @(a) GelmanMeng(a,A,B,C1,C2,L);
+GM = arrayfun(@(ii) GM_fix(V(ii,:)), 1:n*n, 'un', 0);
+
+GM = arrayfun(@(ii) GM_fix([V1(ii),V2(ii)]), 1:n, 'un', 0);
+GM = cell2mat(GM);
+
+
+image(x1, x2, z, las = 1, col = gray((20:0)/20),
+      cex.axis = 1.1, cex.lab = 1.2,
+      xlab = expression(X[1]), ylab = expression(X[2]))
+box()
+abline(a = 0, b = 1, lty = "dotted")
+
+
+## Run AdMit (with default values)
+set.seed(1234)
+outAdMit <- AdMit(GelmanMeng, mu0 = c(0.0, 0.1), control = list(Ns = 1e4))
+print(outAdMit)

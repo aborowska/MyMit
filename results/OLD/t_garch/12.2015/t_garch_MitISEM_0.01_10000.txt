@@ -1,0 +1,28 @@
+Model: t_garch 
+Algorithm: MitISEM 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+N:  10000
+M:  10000
+df1:   5
+df2:   5
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR prelim (mean) estimate: -2.7991. 
+NSE VaR prelim: 0.0629. 
+VaR prelim: [-2.8620, -2.7362]. 
+ 
+100*0.01% VaR IS (mean) estimate: -2.7985. 
+NSE VaR IS estimate: 0.0083. 
+VaR: [-2.8068, -2.7902]. 
+ 
+100*0.01% ES prelim (mean) estimate: -3.4505. 
+NSE ES prelim: 0.0936. 
+ES prelim: [-3.5441, -3.3569]. 
+ 
+100*0.01% ES IS (mean) estimate: -3.4546. 
+NSE ES IS estimate: 0.0320. 
+ES: [-3.4866, -3.4226]. 

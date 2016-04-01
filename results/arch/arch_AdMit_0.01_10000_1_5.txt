@@ -1,0 +1,33 @@
+Model: arch 
+Algorithm: AdMit 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+Ns:  10000
+Np:  1000
+M:  10000
+df1:   1
+df2:   5
+
+Acceptance: 
+----------------------------------------
+mean MH acceptance:  0.5958.
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR prelim (mean) estimate: -5.6238. 
+NSE VaR prelim: 0.1008. 
+VaR prelim: [-5.7246, -5.5230]. 
+ 
+100*0.01% VaR IS (mean) estimate: -5.6230. 
+NSE VaR IS estimate: 0.0357. 
+VaR: [-5.6587, -5.5872]. 
+ 
+100*0.01% ES prelim (mean) estimate: -6.5033. 
+NSE ES prelim: 0.1254. 
+ES prelim: [-6.6287, -6.3780]. 
+ 
+100*0.01% ES IS (mean) estimate: -6.5207. 
+NSE ES IS estimate: 0.0241. 
+ES: [-6.5448, -6.4966]. 

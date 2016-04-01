@@ -1,0 +1,29 @@
+Model: t_garch 
+Algorithm: AdMit 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+Ns:  10000
+Np:  1000
+M:  10000
+df1:   5
+df2:   5
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR prelim (mean) estimate: -2.7965. 
+NSE VaR prelim: 0.0596. 
+VaR prelim: [-2.8561, -2.7370]. 
+ 
+100*0.01% VaR IS (mean) estimate: -2.7985. 
+NSE VaR IS estimate: 0.0153. 
+VaR: [-2.8137, -2.7832]. 
+ 
+100*0.01% ES prelim (mean) estimate: -3.4435. 
+NSE ES prelim: 0.0890. 
+ES prelim: [-3.5325, -3.3544]. 
+ 
+100*0.01% ES IS (mean) estimate: -3.4557. 
+NSE ES IS estimate: 0.0431. 
+ES: [-3.4989, -3.4126]. 

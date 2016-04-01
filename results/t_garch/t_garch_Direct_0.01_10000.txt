@@ -1,0 +1,23 @@
+Model: t_garch 
+Algorithm: Direct 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+M:  10000
+df:   5
+
+Acceptance: 
+----------------------------------------
+mean MH acceptance:  0.1740.
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR direct (mean) estimate: -2.7999. 
+NSE VaR direct: 0.0692. 
+VaR direct: [-2.8691, -2.7307]. 
+ 
+100*0.01% ES direct (mean) estimate: -3.4529. 
+NSE ES direct: 0.1004. 
+ES direct: [-3.5533, -3.3525]. 
+ 

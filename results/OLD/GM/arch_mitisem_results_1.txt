@@ -1,0 +1,28 @@
+Controls: 
+----------------------------------------
+cont.mit.Hmax:  10
+cont.mit.dfnc:   1
+
+Preliminary: 
+----------------------------------------
+Preliminary MH acceptance rate: 0.9300
+VaR_prelim:  -5.6405
+
+Mit: 
+----------------------------------------
+IS (mean) VAR estimate: -5.6933
+IS (mean) ES estimate: -6.5923
+
+No. of components q1: 3
+Df. of components q1:	7.24	1.24	1.08	
+No. of components q2: 3
+Df. of components q2:	16.55	8.83	6.05	
+
+CoV q1: 0.1462.
+CoV q2: 0.4002.
+
+NSE: 
+----------------------------------------
+NSE IS VaR estimate: 0.0085.
+NSE IS ES estimate: 0.0124.
+

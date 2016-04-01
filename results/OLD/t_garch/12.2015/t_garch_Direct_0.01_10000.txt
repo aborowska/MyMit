@@ -1,0 +1,19 @@
+Model: t_garch 
+Algorithm: Direct 
+----------------------------------------
+Controls: 
+----------------------------------------
+N_sim:  100
+M:  10000
+df:   5
+
+Estimates: 
+----------------------------------------
+100*0.01% VaR direct (mean) estimate: -2.8023. 
+NSE VaR direct: 0.0716. 
+VaR direct: [-2.8739, -2.7307]. 
+ 
+100*0.01% ES direct (mean) estimate: -3.4439. 
+NSE ES direct: 0.1038. 
+ES direct: [-3.5477, -3.3401]. 
+ 
