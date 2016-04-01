@@ -30,10 +30,10 @@ function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_sv_
     par_NAIS.C = C;
 %     par_SV = theta(:,1:3);
     par_SV = theta;
-%     [~, lng_y, lnw_x, eps_bar, eps_sim, C_T] = NAIS_loglik_hl(y, par_SV, par_NAIS, cont); 
-    [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik_hl(y, par_SV, par_NAIS, cont); 
     
-    lnw_x = lnw_x + lnp_T;
+    [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik_hl(y, par_SV, par_NAIS, cont); 
+
+    lnw_x = lnw_x + sum(lnp_T,2);
 %     x = theta(:,6);
     x_h1 = c + phi.*(x(:,end) - c) + sqrt(sigma2).*eta;
     y_h1 = exp(0.5*x_h1).*eps;    

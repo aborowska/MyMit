@@ -1,4 +1,4 @@
-function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_svt(y, theta, par_NAIS_init, prior_const, cont) 
+function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND, y_star] = posterior_svt(y, theta, par_NAIS_init, prior_const, cont) 
     N = size(theta,1);
     T = size(y,1);
     prior = prior_svt(theta(:,1:4), prior_const); 
@@ -16,7 +16,7 @@ function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_svt
     end
     par_SV = theta(:,1:4);
     fprintf('nais_loglik\n');
-    [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
+    [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND, y_star] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
 
     d = lng_y + lnw_x + prior;
 end

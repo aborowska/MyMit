@@ -10,6 +10,7 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init,
     resampl_on = cont.resmpl_on;
     
 %% Step 1: Initialisation
+    fprintf('\nStep 1: Initialisation\n');
     if (N <= 2000)
         [theta, lnk] = fn_rmvgt_robust(N, mit_init, kernel, resampl_on, cont.DUPA);
     else
@@ -28,6 +29,7 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init,
     
 
 %% Step 2: Adaptation
+    fprintf('\nStep 2: Adaptation\n');
     [mu_adapt, Sigma_adapt] = fn_muSigma(theta, w_norm);
     mit_adapt.mu = mu_adapt;
     mit_adapt.Sigma = Sigma_adapt;
@@ -51,6 +53,7 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init,
     CV = [CV, CV_new];
 
 %% Step 3: ISEM
+    fprintf('\nStep 3: ISEM\n');
 mit_old = mit_adapt;
 
     [mit_new, ~] = fn_optimt(theta, mit_adapt, w_norm, cont, GamMat);
@@ -59,7 +62,7 @@ mit_old = mit_adapt;
         [theta, lnk, ~, x, lng_y, lnw_x] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on, cont.DUPA);
     else
 %         x = zeros(N,T); 
-        x = zeros(N,1); 
+        x = zeros(N,cont.nais.HP+1); 
         lnk = zeros(N,1);
         lng_y = zeros(N,1);
         lnw_x = zeros(N,1);
@@ -76,6 +79,7 @@ mit_old = mit_adapt;
     CV = [CV, CV_new];    
 
 %% Step 4: Iteration on number of mixture components
+    fprintf('\nStep 4: Iteration\n');
 
     H = length(mit_new.p);  % number of components
     hstop = false;
@@ -120,7 +124,7 @@ mit_old = mit_adapt;
             [theta, lnk, ~, x, lng_y, lnw_x] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on, cont.DUPA);
         else
 %             x = zeros(N,T); 
-            x = zeros(N,1); 
+            x = zeros(N,cont.nais.HP+1); 
             lnk = zeros(N,1);
             lng_y = zeros(N,1);
             lnw_x = zeros(N,1);

@@ -117,7 +117,7 @@ ES_IS = zeros(N_sim,1);
 % SML 
 % load('SML_ibm.mat', 'par_SV_opt', 'heN_sim_SV_opt') 
 % theta = [c, phi, sigma2, nu]
-if strcmp(model,'sv')
+if isempty(strfind(model, 't'))
     mu_init = [0.5, 0.98, 0.15^2];
     load('SML_ibm.mat', 'par_SV_opt', 'V_SV_corr_opt') 
 %     load('SML_arch.mat', 'par_SV_opt', 'V_SV_corr_opt') 
@@ -136,7 +136,7 @@ mit_init.Sigma = Sigma;
 mit_init.p = cont.mit.pnc;
 mit_init.df = cont.mit.dfnc;
     
-if strcmp(model,'sv')
+if isempty(strfind(model, 't'))
     kernel = @(a) posterior_sv(y, a, par_NAIS_init, prior_const, cont.nais);
 else
     kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
@@ -144,23 +144,18 @@ end
 [mit1, theta1, x1, w1, lnk1, lng_y1, lnw_x1, CV1] = EMitISEM(mit_init, kernel, cont, GamMat);
 
 if save_on
-    if strcmp(model,'sv')
-        save(['results/sv_mit1_',int2str(N),'.mat'],'mit1','theta1', 'x1', ...
-            'w1', 'lnk1','CV1','cont','p_bar','N');
-    else
-        save(['results/svt_mit1_',int2str(N),'.mat'],'mit1','theta1', 'x1', ...
-            'w1', 'lnk1','CV1','cont','p_bar','N');
-    end
+    save(['results/',model,'_mit1_',int2str(N),'.mat'],'mit1','theta1', 'x1',...
+        'w1', 'lnk1','CV1','cont','p_bar','N');
 end
  
-%%
+%% just for plotting
 c1 = theta1(:,1);
 phi1 = theta1(:,2);
 sigma21 = theta1(:,3);
 
 eta_h1_1 = randn(N,1);
 
-if strcmp(model,'sv')
+if isempty(strfind(model, 't'))
     eps_h1_1 = randn(N,1);
     x_h1_1 = c1 + phi1.*(x1(:,end) - c1) + sqrt(sigma21).*eta_h1_1;
     y_h1_1 = exp(0.5*x_h1_1).*eps_h1_1;
@@ -194,7 +189,7 @@ SV_plot1;
 % simulate returns based on the draw of theta and future return paths     
 % compute VaR_prelim
 
-for sim = 2:5%1:N_sim    
+for sim = 1:N_sim    
     fprintf('NSE sim = %i.\n', sim);
         
     [theta, x, lnw, lnk, ~, ~, ~, accept(sim,1)] = EMit_MH(M+1000, d, kernel, mit1, GamMat, true);
@@ -219,7 +214,7 @@ for sim = 2:5%1:N_sim
     
     eta_h1 = randn(M,1);
     
-    if strcmp(model,'sv')
+    if isempty(strfind(model, 't'))
         eps_h1 = randn(M,1);
         x_h1 = c + phi.*(x(:,end) - c) + sqrt(sigma2).*eta_h1;
         y_h1 = exp(0.5*x_h1).*eps_h1;
@@ -253,23 +248,22 @@ if ~exist('VaR_prelim_used','var')
     VaR_prelim_used = VaR_prelim;
 end
 
-if strcmp(model,'sv')
-    save(['results/sv_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
-        'lnw', 'lnk','CV1','cont','p_bar','N','M','N_sim', ...
-        'VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real','VaR_prelim_used');
-else
-    save(['results/svt_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
+if save_on
+    save(['results/',model,'_VaR_prelim_',int2str(N),'.mat'],'mit1','accept','theta', 'x', ...
         'lnw', 'lnk','CV1','cont','p_bar','N','M','N_sim', ...
         'VaR_prelim_MC','VaR_prelim','ES_prelim','ind','ind_real','VaR_prelim_used');
 end
 
-M_real = find(PL_h1 < VaR_prelim, 1, 'last' );
-
 %% QERMit 1c.:
 % get mit approximation of the conditional joint density of
 % parameters and future returns given the returns are below VaR_prelim
-% approximation of the joint high loss distribution
-% here: not future returns but future disturbances  (varepsilons)
+
+% take all the variables corresponding to the returns below VaR_prelim
+% --> to constuct mit_init_hl, i.e. a starting mixture for mit2 
+% where mu and Sigma are IS based
+
+M_real = find(PL_h1 < VaR_prelim, 1, 'last' );
+
 eps_h1 = eps_h1(ind_real,:);
 eta_h1 = eta_h1(ind_real,:);
 theta = theta(ind_real,:);
@@ -303,11 +297,12 @@ draw_hl_init = [theta_hl_init, eta_hl_init, eps_hl_init];
 ind_fin = isfinite(lnk_hl_init);
 lnk_hl_init = lnk_hl_init(ind_fin,:); 
 draw_hl_init = draw_hl_init(ind_fin,:);
-if strcmp(model,'sv')
+if isempty(strfind(model, 't'))
     lnd_hl_init = dmvgt(draw_hl_init(:,1:3), mit1, true, GamMat);
 else
     lnd_hl_init = dmvgt(draw_hl_init(:,1:4), mit1, true, GamMat);
 end
+
 w_hl_init =  fn_ISwgts(lnk_hl_init, lnd_hl_init, false);
 [mu_hl_init, Sigma_hl_init] = fn_muSigma(draw_hl_init, w_hl_init);
 
@@ -316,7 +311,7 @@ mit_hl_init.Sigma = Sigma_hl_init;
 mit_hl_init.p = 1;
 mit_hl_init.df = 1;
 
-if strcmp(model,'sv')
+if isempty(strfind(model, 't'))
     kernel = @(a) posterior_sv_hl(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
 else
     kernel = @(a) posterior_svt_hl(y, a, VaR_prelim, par_NAIS_init, prior_const, cont.nais); 
@@ -391,16 +386,31 @@ for sim = 1:N_sim
         kernel = @(a) posterior_svt(y, a, par_NAIS_init, prior_const, cont.nais);
     end
     
+%     lnk = zeros(M,1);
+%     x = zeros(M,1);
+%     lng_y = zeros(M,1);
+%     lnw_x = zeros(M,1);
+%     for ii = 1:(M/1000)
+%         fprintf('ii = %i\n',ii)
+%         ind = (1:1000) + (ii-1)*1000; 
+%         [lnk(ind,:), x(ind,:), lng_y(ind,:), lnw_x(ind,:)] = kernel(theta_opt(ind,1:4));      
+%     end
     lnk = zeros(M,1);
-    x = zeros(M,1);
+    x = zeros(M,cont.nais.HP+1);
     lng_y = zeros(M,1);
     lnw_x = zeros(M,1);
+    eps_bar = zeros(M,1);
+    eps_sim = zeros(M,1);
+    C_sim = zeros(M,1);
+    lnp_T = zeros(M,cont.nais.HP+1);
+    y_star = zeros(M,cont.nais.HP+1);
+     
     for ii = 1:(M/1000)
         fprintf('ii = %i\n',ii)
         ind = (1:1000) + (ii-1)*1000; 
-        [lnk(ind,:), x(ind,:), lng_y(ind,:), lnw_x(ind,:)] = kernel(theta_opt(ind,1:4));      
+        [lnk(ind,:), x(ind,:), lng_y(ind,:), lnw_x(ind,:), eps_bar(ind,:), eps_sim(ind,:), C_sim(ind,:), lnp_T(ind,:), ~, y_star(ind,:)] = kernel(theta_opt(ind,:));      
     end
-    
+        
     if strcmp(model,'sv')
         lnk = lnk + 2*prior_const(1,1) - 0.5*(theta_opt(:,4)).^2 - 0.5*(theta_opt(:,5)).^2;
     else
@@ -426,14 +436,14 @@ for sim = 1:N_sim
     if strcmp(model,'sv')
         eta_opt = theta_opt(:,4);
         eps_opt = theta_opt(:,5);  
-        x_opt_h1 = c_opt + phi_opt.*(x - c_opt) + sqrt(sigma2_opt).*eta_opt;
+        x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
         y_opt_h1 = exp(0.5*x_opt_h1).*eps_opt;
     else
         nu_opt = theta_opt(:,4);
         rho_opt = (nu_opt-2)./nu_opt;
         eta_opt = theta_opt(:,5);
         eps_opt =  theta_opt(:,6);
-        x_opt_h1 = c_opt + phi_opt.*(x - c_opt) + sqrt(sigma2_opt).*eta_opt;
+        x_opt_h1 = c_opt + phi_opt.*(x(:,end) - c_opt) + sqrt(sigma2_opt).*eta_opt;
         y_opt_h1 = sqrt(rho_opt).*exp(0.5*x_opt_h1).*eps_opt;
     end
 
@@ -548,11 +558,18 @@ if plot_on2
     y_opt_h1 = y_opt_h1(ind_y); 
     PL_opt_h1 = f_pl(sum(y_opt_h1,2));
     [PL_opt_h1, ind] = sort(PL_opt_h1); 
-   
+ 
+    limit = [1, M,-10, 10];
+
     figure(777)
     set(gcf,'units','normalized','outerposition',[0 0 0.5 0.5]);
     set(gcf,'defaulttextinterpreter','latex');
+    
     hold on
+    axis(limit)
+    set(gca,'XTick',0:2000:10000)
+    set(gca,'YTick',-10:2:10)   
+    
     plot(PL_opt_h1,'b')
     pos =  max(find(PL_opt_h1<=VaR_prelim));
     scatter(pos, VaR_prelim,'MarkerEdgeColor','green','MarkerFaceColor','green')    
@@ -563,13 +580,7 @@ if plot_on2
 
     title(['Sorted future profit/losses values $$PL(y_{T+1}^{(i)})$$. Model: $$',strrep(model,'_','\_'),'$$.'])
     if print_on
-        if strcmp(model,'sv_x')
-            name = 'figures/sv_x_predict.png';
-        elseif strcmp(model,'sv')
-            name = 'figures/sv_predict.png';
-        else
-            name = 'figures/svt_predict.png';
-        end
+        name = ['figures/',model,'_predict.png'];
         fig = gcf;
         fig.PaperPositionMode = 'auto';
         print(name,'-dpng','-r0')

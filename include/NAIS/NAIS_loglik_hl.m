@@ -1,10 +1,11 @@
 function [theta_sim, lng_y, lnw, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik_hl(y, par_SV, par_NAIS, cont)
 % Computes the marginal likelihood from the KF and the NAIS importance
 % weight for the signal generated from the simulation smoother.
-% If x_T are passed in - substitute the last draws of state from the simulation
-% smoother with them.
-% For the draw of the last state, its log evalaution on the Gaussian
-% candidate is passed as output.
+% If x_T are passed in as the last parameter par_SV: 
+% substitute the last draws of state from the simulation smoother with them.
+% For the draw of the last state(s), the corresponding transition
+% probability is passed as output lnp_T.
+
     m = size(par_SV,2);
     b = par_NAIS.b;
     C = par_NAIS.C;
@@ -25,20 +26,24 @@ function [theta_sim, lng_y, lnw, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_logli
     
     % simulation smoothing for linear state space model to sample a signal trajectory via JSDK
     RND = randn(n,S);
-%     if (((cont.err == 'n') && (m==6)) || (((cont.err == 't')) && (m==7)))
-%         RND(n,:) = par_SV(:,end)'; 
-%     end
+    
     [theta_sim, eps_bar, eps_sim, C_T]= SimSmooth(y_star, v, F_inv, K, L, par_KFS, RND);
 
-    
-    if (((cont.err == 'n') && (m==6)) || (((cont.err == 't')) && (m==7)))
+    if (((cont.err == 'n') && (m==6)) || (((cont.err == 't')) && (m==7))) % x_T are passed in as the last parameter par_SV
         theta_sim(n,:) = par_SV(:,end)'; 
     end
+
     
-% transition probability    
-mu_T = theta_sim(n,:) - par_SV(:,1)'-(par_SV(:,2)').*(theta_sim(n-1,:)- par_SV(:,1)');
-lnp_T = -0.5*(log(2*pi) + log(par_SV(:,3)') + (mu_T.^2)./(par_SV(:,3)')); 
-lnp_T = lnp_T';
+% transition probability 
+lnp_T = zeros(S,cont.HP+1);
+for ii = 0:cont.HP
+%     mu_T = theta_sim(n,:) - par_SV(:,1)'-(par_SV(:,2)').*(theta_sim(n-1,:)- par_SV(:,1)');
+    mu_T = theta_sim(n-cont.HP+ii,:) - par_SV(:,1)'-(par_SV(:,2)').*(theta_sim(n-1-cont.HP+ii,:)- par_SV(:,1)');
+%     lnp_T = -0.5*(log(2*pi) + log(par_SV(:,3)') + (mu_T.^2)./(par_SV(:,3)')); 
+%     lnp_T = lnp_T';    
+    lnp_T_curr = -0.5*(log(2*pi) + log(par_SV(:,3)') + (mu_T.^2)./(par_SV(:,3)')); 
+    lnp_T(:,ii+1) = lnp_T_curr'; 
+end
 
     % compute the logweights
     if (cont.err == 'n')
@@ -51,7 +56,7 @@ lnp_T = lnp_T';
         lnp = p_const - 0.5*(theta_sim + (nu+1).*log(1 + y2)); 
     end
     lng = a + b.*theta_sim - 0.5*C.*theta_sim.^2;
-%      lnp_T = lnp(n,:)';
+%     lnp_T = lnp(n,:)';
 %     lng_T = lng(n,:)';
     lnp = sum(lnp,1);
     lng = sum(lng,1);

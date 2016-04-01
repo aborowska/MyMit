@@ -1,7 +1,7 @@
 function  [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_sv_x(y, theta, par_NAIS_init, prior_const, cont) 
  % To EVALUATE the draws - either with given last state or with the last
  % state comping from the simulation smoother
-    N = size(theta);
+    N = size(theta,1);
     T = size(y,1);
     prior = prior_sv(theta(:,1:3), prior_const);
   

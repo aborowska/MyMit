@@ -48,14 +48,21 @@ x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x_gam);
 
 % prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  -2.5*log(0.025), -log(gamma(2.5))];
-prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5))];
 % prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  -0.5*log(2), -log(gamma(0.5))];
+if strcmp(model, 'sv')
+    prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5))];
+else
+    prior_const = [-0.5*log(2*pi), - log(beta(20, 1.5)),  2.5*log(0.025), -log(gamma(2.5)), 0.1]; % the last one is lambda for nu
+end
 
 logpdf_norm = @(x) prior_const(1,1) -0.5*(x.^2);
 logpdf_beta = @(x) prior_const(1,2)  + (20-1)*log(x) + (1.5-1)*log(1-x); 
 % % logpdf_gamma = @(x) prior_const(1,3) + prior_const(1,4) + (2.5-1)*log(x) - x/0.025;
 logpdf_invgamma = @(x) prior_const(1,3) + prior_const(1,4) - (2.5+1)*log(x) - 0.025./x;
 % % logpdf_chi2 = @(x) prior_const(1,3) + prior_const(1,4) -0.5*log(x) - 0.5*x;
+if strcmp(model, 'svt')
+    logpdf_exp = @(x) log(prior_const(1,5)) - prior_const(1,5)*(x - 2);  
+end
 
 %% Data
 y = csvread('IBM_ret.csv');
