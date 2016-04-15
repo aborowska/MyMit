@@ -35,7 +35,7 @@ if usr_prompt
     p_bar = 'Select the quantile for VaR estimation: [0.01/0.02/0.05] ';
     p_bar = input(p_bar);
 else
-    model = 'svt';
+    model = 'sv';
     N_sim = 100;
     hp = 1;
     p_bar = 0.01;
