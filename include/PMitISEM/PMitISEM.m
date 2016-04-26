@@ -3,7 +3,7 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
     S = length(partition);
  
     Hmax = cont.mit.Hmax;  
-    iter_max = 5; % cont.mit.iter_max;
+    iter_max = cont.mit.iter_max; % cont.mit.iter_max;
 
     CV_tol = cont.mit.CV_tol;
     CV_old = cont.mit.CV_old;
@@ -13,7 +13,9 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
     %% STEP 1: ADAPTATION
     % Adapted patial mixture - to have an input to ISEM
     pmit_adapt = struct('mu',cell(1,S),'Sigma',cell(1,S),'df',cell(1,S),'p',cell(1,S));
-    for s = 1:S    
+    for s = 1:S   
+        fprintf('\nStep 1. Subset no.: %d.\n',s)
+
         [s1, s2] = fn_partition_ends(partition, d, s);
         theta_s = draw0(:,s1:s2);
         if (s==1)
@@ -46,7 +48,7 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
         
         % STEP 2: ITERATE ON NUMBER OF COMPONENTS
         for s = 1:S 
-            fprintf('Subset no.: %d.\n',s)
+            fprintf('\n\nStep 2. Subset no.: %d.\n',s)
 
             hstop = false;
             H_s = 1;  
@@ -105,11 +107,17 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
                 if (s==1)
                     pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat); % w_curr only to locate the new component; w0 to run ISEM
                 else
-                   X = fn_const_X(draw0(:,1:s1-1));
+                    X = fn_const_X(draw0(:,1:s1-1));
         %            [beta, Sigma] = fn_beta(theta_s,w0,X); 
         %            pmit(s).mu = beta; 
         %            pmit(s).Sigma = Sigma;
-                   pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+                    pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+%                     pmit_new = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+%                     if ~isempty(fieldnames(pmit_new))
+%                         pmit(s) = pmit_new;
+%                     else
+%                         pmit(s) = pmit_old;
+%                     end
                 end
 
                 lnd_curr = fn_dpmit(draw0, pmit, partition, fn_const_X, true, GamMat);  % for all draws!
@@ -139,8 +147,11 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
         w_pmit = fn_ISwgts(lnk_pmit, lnd_pmit, false); 
         CV_pmit = fn_CVstop(w_pmit, [], []);
         CV_mix = [CV_mix, 0, CV_pmit];
+        pmit_pre = pmit;
         % update with the latest draws and the corresponding IS weighs
         for s = 1:S 
+            fprintf('\nStep 3. Subset no.: %d.\n',s)
+
             [s1, s2] = fn_partition_ends(partition, d, s);
             theta_s = draw_pmit(:,s1:s2);
             if (s==1)

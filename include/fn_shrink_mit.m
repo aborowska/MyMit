@@ -19,14 +19,14 @@ function [crash, mit_s] = fn_shrink_mit(mit, tol_pr)
         % shrank mixture density
         d = sqrt(size(mit.Sigma,2));
         ind = logical(~crash);
-        ind_m = logical(ones(1,d));
-        ind_S = logical(ones(1,d^2));
-        
-        mit_s.p = mit.p(ind);
-        mit_s.p = mit_s.p/sum(mit_s.p);
+%         ind_m = logical(ones(1,d));
+%         ind_S = logical(ones(1,d^2));
+%         
+        mit_s.mu = mit.mu(ind,:);
+        mit_s.Sigma = mit.Sigma(ind,:);      
         mit_s.df = mit.df(ind);
-        mit_s.mu = mit.mu(ind,ind_m);
-        mit_s.Sigma = mit.Sigma(ind,ind_S);
+        mit_s.p = mit.p(ind);
+        mit_s.p = mit_s.p/sum(mit_s.p);       
     else 
         mit_s = mit;
     end

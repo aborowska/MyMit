@@ -133,6 +133,7 @@ draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = kernel(draw0);
 clear draw_hl w_hl lnk_hl lnd_hl
+cont.mit.iter_max = 1;
 [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat);
 
 

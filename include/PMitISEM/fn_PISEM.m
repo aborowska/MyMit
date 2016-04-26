@@ -21,7 +21,7 @@ function mit = fn_PISEM(theta, mit, w, cont, GamMat, X)
     rho = zeros(N,H);       % (theta-mu)'*Sigma^(-1)*(theta-mu)     
     
 %% 1 step: EXPECTATION
-fprintf('Expectation \n')
+% fprintf('Expectation \n')
     % update conditional expectation given last parameters
     for h = 1:H
         Sigma_h = mit.Sigma(h,:);
@@ -72,7 +72,7 @@ fprintf('Expectation \n')
     delta = z_wg + (1-z);
     
 %% 2 step: MAXIMIZATION
-fprintf('Maximisation\n')
+% fprintf('Maximisation\n')
 
     Sigma = zeros(H,d^2);
     if ~P

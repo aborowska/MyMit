@@ -21,3 +21,4 @@ cont.df.range = [1,10];
 cont.df.tol = eps^(0.25);
 
 cont.resmpl_on = true;
+cont.mit.iter_max = 5;
