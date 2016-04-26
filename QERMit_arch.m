@@ -35,6 +35,7 @@ f_stdev = @(aa) sqrt(S+(y_T^2-S)*aa); % then the one-day-ahead forecast given al
 mu_init = 0.03;
 % mu_hl = [0.15, -3]; % <-- for p_bar = 0.01 
 M = 10000;
+BurnIn = 1000;
 N_sim = 100;
 
 H = 1; % forecast horizon
@@ -67,8 +68,6 @@ accept = zeros(N_sim,length(P_bars));
 
 VaR_IS = zeros(N_sim,length(P_bars));
 ES_IS = zeros(N_sim,length(P_bars));
-% hl_w = zeros(N_sim,length(P_bars)); % Sum of weights for high losses
-% hp_w = zeros(N_sim,length(P_bars)); % Sum of weights for high profits
 
 for p_bar = P_bars
     fprintf('\np_bar: %4.2f\n',p_bar);
@@ -90,7 +89,7 @@ for p_bar = P_bars
 
         [alpha1, accept(sim,P_bars==p_bar)] = Mit_MH(M+1000, kernel, mit1, GamMat);
         fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept(sim,P_bars==p_bar), model, algo);
-        alpha1 = alpha1(1001:M+1000);
+        alpha1 = alpha1(BurnIn+1:M+BurnIn);
 
         eps1 = randn(M,H);
 %         y_T1 = zeros(M,H);
@@ -227,7 +226,7 @@ for p_bar = P_bars
  
         arch_plot4; % The sorted future profit/losses 
 
-        fprintf('IS 100*%4.2f%% VAR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,P_bars==p_bar), model, algo);
+        fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,P_bars==p_bar), model, algo);
         fprintf('IS 100*%4.2f%% ES estimate: %6.4f (%s, %s). \n', p_bar, ES_IS(sim,P_bars==p_bar), model, algo);  
     end
     

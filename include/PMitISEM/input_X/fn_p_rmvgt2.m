@@ -1,4 +1,4 @@
-function [theta, lnk] = fn_p_rmvgt(N, pmit, d, partition, kernel, y, X)
+function [theta, lnk] = fn_p_rmvgt2(N, pmit, d, partition, kernel, fn_const_X, fn_input_X)
 % sampling from mixture of multivariate t densities
 % with the parameter vector of size d divided into ordered subsets
 % the mean may depend on the matrix X being a function of data y 
@@ -20,8 +20,14 @@ function [theta, lnk] = fn_p_rmvgt(N, pmit, d, partition, kernel, y, X)
             df = pmit(s).df;
             p = pmit(s).p;
             theta(:,s1:s2) = rmvgt2(N, mu, Sigma, df, p); % Sampling from the mixture of t
+            input_X = fn_input_X(theta(:,s1:s2));
         else
-            X = fn_const_X(theta(:,1:s1-1));  % X is a function of the draws from previous subsets
+            if ~isstruct(input_X)
+                input_X = theta(:,1:s1-1);
+            else
+                input_X.theta = theta(:,1:s1-1);
+            end             
+            X = fn_const_X(input_X);  % X is a function of the draws from previous subsets
             beta = pmit(s).mu;
             Sigma = pmit(s).Sigma;
             df = pmit(s).df;
@@ -30,9 +36,11 @@ function [theta, lnk] = fn_p_rmvgt(N, pmit, d, partition, kernel, y, X)
         end
     end
     
-    % lnk - N vector of log-kernel evaluations at draws
-    fprintf('\n'); 
-    fprintf('kernel computation')
-    fprintf('\n'); 
-    lnk = kernel(theta); 
+  	if isa(kernel, 'function_handle')
+        % lnk - N vector of log-kernel evaluations at draws
+        fprintf('\n'); 
+        fprintf('kernel computation')
+        fprintf('\n'); 
+        lnk = kernel(theta); 
+    end
 end 

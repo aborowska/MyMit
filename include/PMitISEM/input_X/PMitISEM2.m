@@ -1,0 +1,197 @@
+function [pmit, CV_mix, CV, iter] = PMitISEM2(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont, GamMat)
+
+    SS = length(partition);
+ 
+    Hmax = cont.mit.Hmax;  
+    iter_max = 5; % cont.mit.iter_max;
+
+    CV_tol = cont.mit.CV_tol;
+    CV_old = cont.mit.CV_old;
+
+    CV = cell(SS,1);
+
+    %% STEP 1: ADAPTATION
+    % Adapted patial mixture - to have an input to ISEM
+    pmit_adapt = struct('mu',cell(1,SS),'Sigma',cell(1,SS),'df',cell(1,SS),'p',cell(1,SS));
+    input_X = fn_input_X(draw0);
+    for s = 1:SS    
+        [s1, s2] = fn_partition_ends(partition, d, s);
+        theta_s = draw0(:,s1:s2);
+        if (s==1)
+            [pmit_adapt(s).mu, pmit_adapt(s).Sigma] = fn_muSigma(theta_s, w0);
+        else
+            if ~isstruct(input_X)
+                input_X = draw0(:,1:s1-1);
+            else
+                input_X.theta = draw0(:,1:s1-1);
+            end              
+            X = fn_const_X(input_X);
+            %         r = size(X,2);
+            %        beta = fn_beta(theta_s,w0,X); 
+            %        pmit(s).mu = reshape(beta,1,r*d_s); % x = theta(:,s1:s2);
+            [beta, Sigma] = fn_beta(theta_s,w0,X); 
+            pmit_adapt(s).mu = beta; % x = theta(:,s1:s2);
+            pmit_adapt(s).Sigma = Sigma;
+        end   
+        pmit_adapt(s).df = cont.mit.dfnc;
+        pmit_adapt(s).p = 1;
+    end
+    [CV0, ~] = fn_CVstop(w0, [], []);
+
+    CV_mix = CV0;
+    CV(:) = {CV0};
+
+    pmit = pmit_adapt;
+    hstop_mix = false;
+    iter = 0;
+
+    while ((iter < iter_max) && (hstop_mix == false))
+        iter = iter + 1;
+
+        fprintf('\nPMit mixture iteration no.: %d.\n',iter)
+        
+        % STEP 2: ITERATE ON NUMBER OF COMPONENTS
+        for s = 1:SS 
+            fprintf('Subset no.: %d.\n',s)
+
+            hstop = false;
+            H_s = 1;  
+
+            % the first component
+            [s1, s2] = fn_partition_ends(partition, d, s);
+            theta_s = draw0(:,s1:s2);
+            if (s==1)
+                pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat);
+            else
+                if ~isstruct(input_X)
+                    input_X = draw0(:,1:s1-1);
+                else
+                    input_X.theta = draw0(:,1:s1-1);
+                end              
+                X = fn_const_X(input_X);
+                if (iter == 1)
+                    [beta, Sigma] = fn_beta(theta_s,w0,X); 
+                    pmit(s).mu = beta; % x = theta(:,s1:s2);
+                    pmit(s).Sigma = Sigma;
+                end
+                pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+            end
+            
+            if ~isstruct(input_X)
+                input_X = draw0;
+            else
+                input_X.theta = draw0;
+            end 
+            lnd_curr = fn_dpmit2(input_X, pmit, partition, fn_const_X, true, GamMat);
+
+            w_curr = fn_ISwgts(lnk0, lnd_curr, false); % we keep lnk0 fixed, only candidate evaluation changes
+            CV_old =  CV{s};
+            [CV_new, ~] = fn_CVstop(w_curr, [], []);
+            CV(s) = {[CV{s}, CV_new]}; 
+
+            % Step 2b & 2c:
+            while ((H_s < Hmax) && (hstop == false))
+                H_s = H_s+1;
+                ind_w = fn_select(w_curr, cont.mit.ISpc);
+                theta_nc = draw0(ind_w,:);
+                w_nc = w_curr(ind_w);
+
+                theta_nc_s = theta_nc(:,s1:s2);
+
+                % NEW COMPONENT
+                % compute new component's mode and scale from IS weights
+                mit_nc.p = cont.mit.pnc;
+                mit_nc.df = cont.mit.dfnc;
+                if (s==1)
+                    [mit_nc.mu, mit_nc.Sigma] = fn_muSigma(theta_nc_s, w_nc);
+                else
+                    X = fn_const_X(theta_nc(:,1:s1-1));
+                    [beta, Sigma] = fn_beta(theta_nc_s,w_nc,X); 
+                    mit_nc.mu = beta; 
+                    mit_nc.Sigma = Sigma;
+                end              
+
+                % COBINE OLD AND NC
+                % combine the old mixture mit_new and the new component mit_nc
+                pmit_old = pmit(s);
+                pmit(s) = fn_updateMit(pmit(s), mit_nc); 
+
+                % UPDATE COMBINED
+                % update mode, scale and df  of all mixture components
+                if (s==1)
+                    pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat); % w_curr only to locate the new component; w0 to run ISEM
+                else
+                   X = fn_const_X(draw0(:,1:s1-1));
+        %            [beta, Sigma] = fn_beta(theta_s,w0,X); 
+        %            pmit(s).mu = beta; 
+        %            pmit(s).Sigma = Sigma;
+                   pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+                end
+
+                
+                if ~isstruct(input_X)
+                    input_X = draw0;
+                else
+                    input_X.theta = draw0;
+                end 
+                lnd_curr = fn_dpmit2(input_X, pmit, partition, fn_const_X, true, GamMat); % for all draws!
+
+                w_curr = fn_ISwgts(lnk0, lnd_curr, false); % we keep lnk0 fixed, only candidate evaluation changes
+                CV_old = CV{s}; 
+                CV_old = CV_old(:,end);
+                [CV_new, hstop_new] = fn_CVstop(w_curr, CV_old, CV_tol);
+                CV(s) = {[CV{s}, CV_new]}; 
+        %         if (H > 1)
+                    hstop = hstop_new;
+        %         end   
+            end
+
+        %     CV_old = CV{s}; 
+        %     if (CV_old(:,end) > CV_old(:,end-1))
+        %         pmit(s) = pmit_old;
+        %     end
+        end
+
+
+        %% STEP 3: sample from pmit and check convergence
+        [draw_pmit ,lnk_pmit] = fn_p_rmvgt(size(draw0,1), pmit, d, partition, kernel, fn_const_X, fn_input_X);         
+        input_X = fn_input_X(draw_pmit);
+        if ~isstruct(input_X)
+            input_X = draw_pmit;
+        else
+            input_X.theta = draw_pmit;
+        end 
+        lnd_pmit = fn_dpmit2(input_X, pmit, partition, fn_const_X, true, GamMat);        
+        
+        w_pmit = fn_ISwgts(lnk_pmit, lnd_pmit, false); 
+        CV_pmit = fn_CVstop(w_pmit, [], []);
+        CV_mix = [CV_mix, 0, CV_pmit];
+        % update with the latest draws and the corresponding IS weighs
+        for s = 1:SS 
+            [s1, s2] = fn_partition_ends(partition, d, s);
+            d_s = s2-s1+1;
+            theta_s = draw0(:,s1:s2);
+            if (s==1)
+                pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat);
+            else
+               X = fn_const_X(draw0(:,1:s1-1));
+        %        [beta, Sigma] = fn_beta(theta_s,w0,X); 
+        %        pmit(s).mu = beta;
+        %        pmit(s).Sigma = Sigma;
+               pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+            end
+        end
+        
+        
+        lnd_curr = fn_dpmit(draw_pmit, pmit, partition, fn_const_X, true, GamMat);  % for all draws!
+        w_curr = fn_ISwgts(lnk_pmit, lnd_curr, false); % we keep lnk0 fixed, only candidate evaluation changes
+        [CV_curr, hstop_mix] = fn_CVstop(w_curr, CV_pmit, CV_tol);
+        CV_mix = [CV_mix, CV_curr];
+
+        if ~hstop
+            draw0 = draw_pmit;
+            w0 = w_pmit;
+            lnk0 = lnk_pmit;
+        end
+    end    
+end

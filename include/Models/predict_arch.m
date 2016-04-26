@@ -1,4 +1,9 @@
 function [y_hp, eps_hp] = predict_arch(alpha, y_T, S, hp, eps)
+    % alpha - parameter vector
+    % y_T - the last observation
+    % S - sample variance
+    % hp - horizion period
+    % eps - (optional) error terms for prediction
     [N ,~] = size(alpha);
      
 %     omega = S*(1-alpha); % variance targeting constraint
@@ -10,9 +15,9 @@ function [y_hp, eps_hp] = predict_arch(alpha, y_T, S, hp, eps)
     end
     
     y_hp = zeros(N,hp+1);    
-    y_hp(:,1) = y_T*ones(N,1);
+    y_hp(:,1) = y_T*ones(N,1); % the last observation in the first column
     
-    f_ht = @(a) sqrt(S^2 + alpha.*(a - S^2));
+    f_ht = @(xx) sqrt(S + alpha.*(xx.^2 - S)); % observation equation
     
     for ii = 2:(hp+1)
         y_hp(:,ii) = eps_hp(:,ii-1).*f_ht(y_hp(:,ii-1));

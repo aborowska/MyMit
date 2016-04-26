@@ -17,7 +17,7 @@ function [crash, mit_s] = fn_shrink_mit(mit, tol_pr)
     
     if (any(crash)) % http://matlabtricks.com/post-23/tutorial-on-matrix-indexing-in-matlab
         % shrank mixture density
-        [~,d] = size(mit.mu);
+        d = sqrt(size(mit.Sigma,2));
         ind = logical(~crash);
         ind_m = logical(ones(1,d));
         ind_S = logical(ones(1,d^2));

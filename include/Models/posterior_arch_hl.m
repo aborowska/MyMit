@@ -5,11 +5,11 @@ function d = posterior_arch_hl(theta, data, S, VaR, L)
     H = H-1;
     T = length(data);
 
-    y = data(T);
+    y_T = data(T);
     ind = 2:T;
 
 %     prior = prior_arch_hl(alpha, eps, y, S, VaR, L);
-    prior = prior_arch_hl(alpha, eps, y, S, VaR); % in logs
+    prior = prior_arch_hl(alpha, eps, y_T, S, VaR); % in logs
 
     d = -Inf*ones(N,1);
     h = zeros(T,1); h(1,1) = S;
@@ -35,7 +35,7 @@ function d = posterior_arch_hl(theta, data, S, VaR, L)
 end
 
 % function R = prior_arch_hl(alpha, eps, y, S, VaR, L)
-function R = prior_arch_hl(alpha, eps, y, S, VaR)
+function R = prior_arch_hl(alpha, eps, y_T, S, VaR)
     % uniform prior on a parameter alpha on [0,1)
     % prior is an Nx2 matrix: 
     % 1 col - constraint satisfied?
@@ -47,10 +47,10 @@ function R = prior_arch_hl(alpha, eps, y, S, VaR)
 %     c2 = (eps <= b); 
     
     if (H == 1)
-        h = S*(1-alpha) + (y^2)*alpha;
+        h = S*(1-alpha) + (y_T^2)*alpha;
         c2 = (fn_PL(sqrt(h).*eps) <= VaR);
     else
-        y_T1 = predict_arch(alpha, y, S, H, eps);
+        y_T1 = predict_arch(alpha, y_T, S, H, eps);
         c2 = (fn_PL(y_T1) <= VaR);
     end
     r1 = (c1 & c2);

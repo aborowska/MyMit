@@ -30,9 +30,11 @@ function [theta, lnk] = fn_p_rmvgt(N, pmit, d, partition, kernel, fn_const_X)
         end
     end
     
-    % lnk - N vector of log-kernel evaluations at draws
-    fprintf('\n'); 
-    fprintf('kernel computation')
-    fprintf('\n'); 
-    lnk = kernel(theta); 
+  	if isa(kernel, 'function_handle')
+        % lnk - N vector of log-kernel evaluations at draws
+        fprintf('\n'); 
+        fprintf('kernel computation')
+        fprintf('\n'); 
+        lnk = kernel(theta); 
+    end
 end 
