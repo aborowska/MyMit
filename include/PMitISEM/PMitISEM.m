@@ -1,6 +1,6 @@
-function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat)
+function [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat)
 
-    S = length(partition);
+    SS = length(partition);
  
     Hmax = cont.mit.Hmax;  
     iter_max = cont.mit.iter_max; % cont.mit.iter_max;
@@ -8,12 +8,12 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
     CV_tol = cont.mit.CV_tol;
     CV_old = cont.mit.CV_old;
 
-    CV = cell(S,1);
+    CV = cell(SS,1);
 
     %% STEP 1: ADAPTATION
     % Adapted patial mixture - to have an input to ISEM
-    pmit_adapt = struct('mu',cell(1,S),'Sigma',cell(1,S),'df',cell(1,S),'p',cell(1,S));
-    for s = 1:S   
+    pmit_adapt = struct('mu',cell(1,SS),'Sigma',cell(1,SS),'df',cell(1,SS),'p',cell(1,SS));
+    for s = 1:SS  
         fprintf('\nStep 1. Subset no.: %d.\n',s)
 
         [s1, s2] = fn_partition_ends(partition, d, s);
@@ -34,21 +34,21 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
     end
     [CV0, ~] = fn_CVstop(w0, [], []);
 
-    CV_mix = CV0;
+    CV_mix = [CV0, CV0];
     CV(:) = {CV0};
 
     pmit = pmit_adapt;
     hstop_mix = false;
     iter = 0;
-
+Hmax=1
     while ((iter < iter_max) && (hstop_mix == false))
         iter = iter + 1;
 
         fprintf('\nPMit mixture iteration no.: %d.\n',iter)
         
         % STEP 2: ITERATE ON NUMBER OF COMPONENTS
-        for s = 1:S 
-            fprintf('\n\nStep 2. Subset no.: %d.\n',s)
+        for s = 1:SS
+            fprintf('\nStep 2. Subset no.: %d.\n',s)
 
             hstop = false;
             H_s = 1;  
@@ -112,12 +112,6 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
         %            pmit(s).mu = beta; 
         %            pmit(s).Sigma = Sigma;
                     pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
-%                     pmit_new = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
-%                     if ~isempty(fieldnames(pmit_new))
-%                         pmit(s) = pmit_new;
-%                     else
-%                         pmit(s) = pmit_old;
-%                     end
                 end
 
                 lnd_curr = fn_dpmit(draw0, pmit, partition, fn_const_X, true, GamMat);  % for all draws!
@@ -139,17 +133,15 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
 
         end
 
-
-
         %% STEP 3: sample from pmit and check convergence
-        [draw_pmit ,lnk_pmit] = fn_p_rmvgt(size(draw0,1), pmit, d, partition, kernel, fn_const_X);  
+        [draw_pmit, lnk_pmit] = fn_p_rmvgt(size(draw0,1), pmit, d, partition, kernel, fn_const_X);  
         lnd_pmit = fn_dpmit(draw_pmit, pmit, partition, fn_const_X, true, GamMat);
         w_pmit = fn_ISwgts(lnk_pmit, lnd_pmit, false); 
         CV_pmit = fn_CVstop(w_pmit, [], []);
-        CV_mix = [CV_mix, 0, CV_pmit];
+        CV_mix = [CV_mix; CV_pmit, 0];
         pmit_pre = pmit;
         % update with the latest draws and the corresponding IS weighs
-        for s = 1:S 
+        for s = 1:SS 
             fprintf('\nStep 3. Subset no.: %d.\n',s)
 
             [s1, s2] = fn_partition_ends(partition, d, s);
@@ -164,15 +156,18 @@ function [pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X
                pmit(s) = fn_Poptimt(theta_s, pmit(s), w_pmit, cont, GamMat, X);
             end
         end
+        pmit_pre2 = pmit;
+
         lnd_curr = fn_dpmit(draw_pmit, pmit, partition, fn_const_X, true, GamMat);  % for all draws!
         w_curr = fn_ISwgts(lnk_pmit, lnd_curr, false); % we keep lnk0 fixed, only candidate evaluation changes
-        [CV_curr, hstop_mix] = fn_CVstop(w_curr, CV_pmit, CV_tol);
-        CV_mix = [CV_mix, CV_curr];
+        [CV_curr, hstop_mix] = fn_CVstop(w_curr, CV_mix(end-1,2), CV_tol);
+        CV_mix(end,2) = CV_curr;
 
 %         if ~hstop
             draw0 = draw_pmit;
             w0 = w_pmit;
             lnk0 = lnk_pmit;
+          
 %         end
     end    
 

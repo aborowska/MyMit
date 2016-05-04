@@ -4,6 +4,7 @@ function [draw_mm, VaR, y_H, PL] = BigDraw(M, H, BurnIn, p_bar, mit1, kernel, y_
     % M = 10000;
     MM = 2*M;
     % kernel = @(x) posterior_debug(x, y, a, b, true);
+    fprintf('\nBigDraw\n')
     theta1 = Mit_MH(F*M+BurnIn, kernel, mit1, GamMat);
     theta1 = theta1((BurnIn+1):(F*M+BurnIn),:);
     

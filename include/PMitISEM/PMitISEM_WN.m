@@ -6,8 +6,8 @@ s = RandStream('mt19937ar','Seed',0);
 RandStream.setGlobalStream(s); 
 
 addpath(genpath('include/'));
-plot_on = true;
-save_on = true;
+plot_on = false;
+save_on = false;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -20,11 +20,15 @@ y = y - mean(y);
 % sigma is the VARIANCE of the error term, i.e. y_t ~ NID(0, sigma)
 sigma_init = 0.9;
 
-% Control parameters for  MitISEM 
+% Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 MitISEM_Control
 cont.mit.dfnc = 5;
 cont.mit.N = 10000;
 cont.resmpl_on = false;
+
+cont2 = cont;
+cont2.mit.iter_max = 5;
+cont2.df.range = [1,20];
 % hyper parameters for the prior for sigma2(inv. gamma)
 a = 1; % if a == 0, then the flat prior is used; if a == 1, then the conjugate prior (inv. gamma)
 b = 1; 
@@ -45,15 +49,14 @@ VaR_IS = zeros(N_sim,1);
 ES_IS = zeros(N_sim,1);
 
 % Metropolis-Hastings for the parameters
-M = 100000;
+M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 100; % forecast horizon
-d = H+1; % dimension of theta
-partition = [1,3:H+1];
+H = 10; % forecast horizon
+% d = H+1; % dimension of theta
+% partition = [1,3:H+1];
 % partition = [1,3,5*(1:49)+2];
-% partition = [1:2:251];
-S = length(partition); % number of subsets    
+% partition = [1:2:251]; 
 
 
 % model = ['WN',sprintf('%d',partition(1,2)-partition(1,1))];
@@ -87,7 +90,7 @@ for sim = 1:N_sim
 end
 
 if plot_on
-    Plot_hor_direct(y_H,y(end), VaR_prelim(sim,1),model);
+    Plot_hor_direct(y_H,y(end), VaR_prelim(sim,1),model,save_on);
 end
 
 
@@ -95,15 +98,33 @@ end
 % clear y_H
 % High loss draws = the target of the truncated H-days-ahead return distibution
 
-draw_hl = [sigma1, eps_H];
-clear  sigma1 eps_H
-draw_hl = draw_hl(ind,:);
-draw_hl = draw_hl(PL <= VaR_prelim(sim,1),:);  
+% draw_hl = [sigma1, eps_H];
+% clear  sigma1 eps_H
+% draw_hl = draw_hl(ind,:);
+% draw_hl = draw_hl(PL <= VaR_prelim(sim,1),:);  
+
+
+% If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
+% arch model
+%         kernel = @(xx) posterior_arch(xx, data, S, true);
+%         % y_H = y_predict(draw_mm); 
+%         y_predict = @(draw) predict_arch(draw(:,1), y_T, S, H, draw(:,2:end));  
+        kernel = @(xx) posterior_debug(xx, y, a, b, true);
+%         y_predict = @(draw) predict_arch(draw(:,1), y_T, S, H, draw(:,2:end));  
+        y_predict = @(draw) bsxfun(@times,draw(:,2:end),sqrt(draw(:,1))); 
+% cont2.mit.N =10000; % the desired number of high-loss draws         
+        [draw_hl, VaR_est, ~, ~] = BigDraw(cont2.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat);
+% figure(123); hold on; plot(VaR_prelim); plot(VaR_est*ones(N_sim,1),'r'); plot(mean(VaR_prelim)*ones(N_sim,1));hold off
+
+if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est')
+end
 
 % WEIGHTS to initialise PMitISEM
 % future disturbances are generated from the target thus have weights 1
 % log kernel evaluation - only for the parameter draws
-kernel = @(x) posterior_debug(x, y, a, b, true);
+kernel = @(xx) posterior_debug(xx, y, a, b, true);
 lnk_hl = kernel(draw_hl(:,1)); 
 % log candidate evaluation
 lnd_hl = dmvgt(draw_hl(:,1), mit1, true, GamMat);
@@ -117,7 +138,8 @@ w_hl = exp(w_hl - max(w_hl));
 % mit_struct = struct('mu',[],'Sigma',[],'df',[],'p',[]);
 % pmit_struct = struct('mu',cell(1,S),'Sigma',cell(1,S),'df',cell(1,S),'p',cell(1,S));
 
-partition = [1,3:H+1];
+% partition = [1,3:H+1];
+partition = [1,4:2:11];
 % partition = [1,3,5*(1:49)+2];
 % partition = [1:2:251];
 S = length(partition);
@@ -131,11 +153,37 @@ CV_tol = cont.mit.CV_tol;
 
 draw0 = draw_hl;
 w0 = w_hl;
-lnk0 = kernel(draw0);
-clear draw_hl w_hl lnk_hl lnd_hl
-cont.mit.iter_max = 1;
-[pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat);
+lnk0 = lnk_hl; %kernel(draw0);
+% clear draw_hl w_hl lnk_hl lnd_hl
 
+cont2.mit.iter_max = 5;
+cont.df.range = [1,20];
+cont = cont2;
+profile on
+% [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
+[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM_debug(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat)
+
+profile off
+profile viewer
+
+ if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est','pmit','CV_mix','CV')
+ end
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','pmit_adapt', 'pmit_step2', 'pmit_step2_up')
+
+% pmit_step2 = pmit
+% pmit_step3 = pmit
+% pmit_iter2 = pmit
+
+% pmit = pmit_pre2 %final
+% pmit = pmit_pre 
+% 
+% pmit = pmit_step2_up;
+% pmit = pmit_step2;
+% pmit = pmit_adapt
 
 %% VaR with PMit
 for sim = 1:N_sim 
@@ -159,7 +207,8 @@ for sim = 1:N_sim
 
     % optimal weights
     [s1, s2] = fn_partition_ends(partition, d, 1);
-    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,s1:s2), mit1, true, GamMat));
+%     exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,s1:s2), mit1, true, GamMat));
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1), mit1, true, GamMat));
     exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
 
     exp_lnd2 = 0.5*exp(exp_lnd2);
@@ -179,14 +228,39 @@ for sim = 1:N_sim
     toc
 end
 
+% VaR_step2_up = VaR_IS;
+% ES_step2_up = ES_IS;
+
+% VaR_step2 = VaR_IS;
+% ES_step2 = ES_IS;
+
+% VaR_adapt = VaR_IS;
+% ES_adapt = ES_IS;
+
+
+% VaR_IS = VaR_step2_up;
+% ES_IS = ES_step2_up;
+% pmit = pmit_step2_up;
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl',...
+%     'pmit_adapt','VaR_adapt','ES_adapt',...
+%     'pmit_step2','VaR_step2','ES_step2',...
+%     'pmit_step2_up','VaR_step2_up','ES_step2_up')
+
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','VaR_IS','ES_prelim','ES_IS','pmit')
+    save(name,'VaR_prelim','VaR_IS','ES_prelim','ES_IS','pmit','mit1','accept','draw_hl','VaR_est')
 end
+
+
+% VaR_IS = VaR_IS_pre2;
+% ES_IS = ES_IS_pre2;
 
 if plot_on
-    Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim);
+    Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim,save_on);
 
     y_pmit = bsxfun(@times,draw_pmit(:,2:d),sqrt(draw_pmit(:,1)));  
-    Plot_hor_pmit(y_pmit, y(end), mean(VaR_prelim),model)
+    Plot_hor_pmit(y_pmit, y(end), mean(VaR_prelim),model,save_on)
 end
+

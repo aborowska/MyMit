@@ -53,7 +53,9 @@ function R = prior_arch_hl(alpha, eps, y_T, S, VaR)
         y_T1 = predict_arch(alpha, y_T, S, H, eps);
         c2 = (fn_PL(y_T1) <= VaR);
     end
-    r1 = (c1 & c2);
+    
+    c3 = all(abs(eps)<10,2);
+    r1 = (c1 & c2 & c3);
     r2 = -Inf*ones(length(alpha),1);
     r2(r1==true) = 1;
 %     if (~L)

@@ -94,7 +94,12 @@ function mit = fn_PISEM(theta, mit, w, cont, GamMat, X)
 
             tmp_r = repmat(tmp_wg,1,r).*X; % (N)x(r)
             beta = X'*tmp_r; % (r)x(N) * (N)x(r) = (r)*(r) % <-- this is the 'denominator'
-            beta = beta\tmp_r'*theta; % inv(beta)=beta\ % (r)x(r) * (r)x(N) * (N)x(d) = (r)x(d) 
+            if r == 2
+                beta = [beta(2,2), -beta(1,2); -beta(2,1), beta(1,1)]/(beta(1,1)*beta(2,2)-beta(1,2)*beta(2,1));
+                beta = beta*tmp_r'*theta; % here beta is already inverted
+            else
+                beta = beta\tmp_r'*theta; % inv(beta)=beta\ % (r)x(r) * (r)x(N) * (N)x(d) = (r)x(d) 
+            end
             mu(h,:) = reshape(beta,1,r*d); % back to the mitisem format of storing parameters
             
             tmp_mu = X*beta; % mu = X*beta % <-- (N)x(r) * (r)x(d) = (N)x(d)

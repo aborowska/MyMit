@@ -25,30 +25,27 @@ S = var(data); % data variance for the variance targeting
          
 mu_init = 0.03;
 % Metropolis-Hastings for the preliminary
-M = 10000;
+M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 10; % forecast horizon
+H = 250; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 
-plot_on = false;
-print_on  = false;
-plot_on2 = false;
-save_on = false;
+plot_on = true;
+save_on = true;
 
+% Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 MitISEM_Control
 cont.mit.dfnc = 5;
 cont.mit.N = 10000;
 cont.resmpl_on = false;
 
 cont2 = cont;
-% cont2.mit.Hmax = 10;
-% cont2.mit.dfnc = 5;
-% cont2.mit.CV_tol = 0.1;
-cont2.df.range = [1, 40];
+cont2.mit.iter_max = 1;
+cont2.df.range = [1,20];
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
@@ -82,14 +79,14 @@ for sim = 1:N_sim
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end
 
+
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept')
 end
 
-
 if plot_on
-    Plot_hor_direct(y_H,y_T,VaR_prelim(sim,1),model);
+    Plot_hor_direct(y_H,y_T,VaR_prelim(sim,1),model,save_on);
 end
 
 % Choose the starting point (mu_hl) for the constuction of the approximaton
@@ -103,10 +100,15 @@ end
         kernel = @(xx) posterior_arch(xx, data, S, true);
         % y_H = y_predict(draw_mm); 
         y_predict = @(draw) predict_arch(draw(:,1), y_T, S, H, draw(:,2:end));  
+% cont2.mit.N =10000; % the desired number of high-loss draws         
 
-        [draw_hl, VaR_est, ~, ~] = BigDraw(M, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat);
+        [draw_hl, VaR_est, ~, ~] = BigDraw(cont2.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat);
 
 
+if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est')
+end
 
 % log kernel evaluation - only for the parameter draws, epsilons are drawn
 % from the target so their weigths are 1
@@ -131,15 +133,35 @@ CV_tol = cont.mit.CV_tol;
 
 draw0 = draw_hl;
 w0 = w_hl;
-lnk0 = kernel(draw0);
-clear draw_hl w_hl lnk_hl lnd_hl
-[pmit, CV_mix, CV, iter] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat);
+lnk0 = lnk_hl; %kernel(draw0);
+% clear draw_hl w_hl lnk_hl lnd_hl
+if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl')
+end
+
+% [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
+[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM_debug(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont, GamMat)
 
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','pmit')
+    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','pmit','CV_mix','CV')
 end
 
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','pmit_adapt', 'pmit_step2', 'pmit_step2_up')
+ 
+% pmit_step2 = pmit
+% pmit_step3 = pmit
+% pmit_iter2 = pmit
+
+% pmit = pmit_pre2 %final
+% pmit = pmit_pre 
+% 
+% pmit = pmit_step2_up;
+% pmit = pmit_step2;
+% pmit = pmit_adapt
 
 %% VaR with PMit
 for sim = 1:N_sim   
@@ -177,19 +199,71 @@ for sim = 1:N_sim
     ES_IS(sim,1) = IS_estim(1,2);   
   
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,1), model, algo);  
-end
 
+end
+kernel = @(xx) posterior_arch_hl(xx, data, S, mean(VaR_prelim), true);
+
+% VaR_step2_up = VaR_IS;
+% ES_step2_up = ES_IS;
+
+% VaR_step2 = VaR_IS;
+% ES_step2 = ES_IS;
+
+% VaR_adapt = VaR_IS;
+% ES_adapt = ES_IS;
+
+
+% VaR_IS = VaR_step2_up;
+% ES_IS = ES_step2_up;
+% pmit = pmit_step2_up;
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl',...
+%     'pmit_adapt','VaR_adapt','ES_adapt',...
+%     'pmit_step2','VaR_step2','ES_step2',...
+%     'pmit_step2_up','VaR_step2_up','ES_step2_up')
 
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','VaR_IS','ES_prelim','ES_IS','pmit')
+    save(name,'VaR_prelim','VaR_IS','ES_prelim','ES_IS','pmit','mit1','accept','draw_hl','VaR_est')
+end
+
+
+% VaR_IS = VaR_IS_pre2;
+% ES_IS = ES_IS_pre2;
+if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'Hmax1.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept',...
+        'draw_hl','w_hl','lnk_hl','pmit','VaR_IS','ES_IS')
 end
 
 
 if plot_on
-    Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim);
+    [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim,save_on);
     
     y_pmit = predict_arch(draw_pmit(:,1), y_T, S, H, draw_pmit(:,2:H+1));  
-    Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model)
+    Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,save_on)
 end
+
+%% Outliers detection
+V2 = VaR_outlier{2,1};
+VO2 = zeros(length(VaR_outlier{2,1}),1);
+for ii = 1:length(V2)
+    VO2(ii,1) = find(VaR_IS == V2(1,ii));
+end
+
+E2 = ES_outlier{2,1};
+EO2 = zeros(length(ES_outlier{2,1}),1);
+for ii = 1:length(E2)
+    EO2(ii,1) = find(ES_IS == E2(1,ii));
+end
+
+ind_redo = [VO2; EO2]; % redo the 'VaR with PMit' loop for these indicies
  
+%%% REDO and resave
+
+if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept',...
+        'draw_hl','w_hl','lnk_hl','pmit','VaR_IS','ES_IS')
+end

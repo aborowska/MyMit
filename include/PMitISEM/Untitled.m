@@ -49,7 +49,7 @@
 % GP = [0.1300    0.1100    0.7750    0.8150]    
     set(gca,'OuterPosition',[-0.04 0 1.1 1.06],'units','normalized')   
      1/( 0.8150+0.13) =  1.0582
-aa = 1/(GP(1)+GP(4))
+aa = 1/(GP(1)+GP(4))    
      set(gca,'OuterPosition',[0 0 1 1],'units','normalized')   
      
       plotTickLatex2D;

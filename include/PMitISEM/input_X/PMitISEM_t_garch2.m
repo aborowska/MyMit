@@ -20,7 +20,7 @@ y_T = data(T);
 S = var(data);
 
 p_bar = 0.01;
-H = 250; % forecast horizon
+H = 10; % forecast horizon
 
 M = 10000;
 BurnIn = 1000;
@@ -100,7 +100,7 @@ end
 
 
 if plot_on
-    Plot_hor_direct(y_H,y_T, VaR_prelim(sim,1),model,save_on);
+    Plot_hor_direct(y_H,y_T, VaR_prelim(sim,1),model, save_on);
 end
 
 
@@ -110,7 +110,8 @@ kernel = @(xx) posterior_t_garch_mex(xx, data, S, GamMat);
 y_predict = @(draw) predict_t_garch_new(draw(:,1:4), data, S, H, draw(:,5:end));
 tic
 [draw_hl, VaR_est, ~, ~] = BigDraw(cont2.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, 4);
-toc
+toc %Elapsed time is 1469.888427 seconds.
+
 
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -134,8 +135,10 @@ partition = [1,6:H+4];
 d = H+4;
 % S = var(data);
 
-fn_const_X = @(xx) t_garch_const_X(xx, data, S);
-kernel = @(xx) posterior_arch_hl(xx, data, S, mean(VaR_prelim), true);
+fn_const_X = @(xx) t_garch_const_X2(xx, data, S);
+fn_input_X = @(xx) t_garch_input_X(xx, data, S);
+kernel = @(xx) posterior_t_garch_hl_mex(xx, data, S, mean(VaR_prelim), GamMat);
+
 CV_old = cont.mit.CV_old;
 CV_tol = cont.mit.CV_tol;
 
@@ -143,16 +146,32 @@ draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
 % clear draw_hl w_hl lnk_hl lnd_hl
-
 cont2.mit.iter_max = 5;
 cont.df.range = [1,20];
-cont = cont2;
-[pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
+cont=cont2;
+% [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
+[pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt] = PMitISEM2(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est','pmit','CV_mix','CV')
 end
+
+
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','pmit_adapt', 'pmit_step2', 'pmit_step2_up')
+ 
+% pmit_step2 = pmit
+% pmit_step3 = pmit
+% pmit_iter2 = pmit
+
+% pmit = pmit_pre2 %final
+% pmit = pmit_pre 
+% 
+% pmit = pmit_step2_up;
+% pmit = pmit_step2;
+% pmit = pmit_adapt
 
 %% VaR with PMit
 for sim = 1:N_sim   
@@ -199,17 +218,75 @@ for sim = 1:N_sim
   
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,1), model, algo);  
 end
+kernel = @(xx) posterior_t_garch_mex(xx, data ,S, GamMat);
+% VaR_step2_up = VaR_IS;
+% ES_step2_up = ES_IS;
 
+% VaR_step2 = VaR_IS;
+% ES_step2 = ES_IS;
+
+% VaR_adapt = VaR_IS;
+% ES_adapt = ES_IS;
+
+
+% VaR_IS = VaR_step2_up;
+% ES_IS = ES_step2_up;
+% pmit = pmit_step2_up;
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl',...
+%     'pmit_adapt','VaR_adapt','ES_adapt',...
+%     'pmit_step2','VaR_step2','ES_step2',...
+%     'pmit_step2_up','VaR_step2_up','ES_step2_up')
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est','pmit','CV_mix','CV','VaR_IS','ES_IS')
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim_redo',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept',...
+        'draw_hl','w_hl','lnk_hl','pmit','VaR_IS','ES_IS')
 end
 
 if plot_on
-    Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim,save_on);
+    [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim,save_on);
     
     h_T = volatility_t_garch_mex(draw_pmit(:,1:4), data, S);
     [y_pmit, ~] = predict_t_garch(draw_pmit(:,1:4), y_T, S, h_T, H, draw_pmit(:,5:d));
     Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,save_on)
+end
+
+
+%% Outliers detection
+% preliminary
+V1 = VaR_outlier{1,1};
+VO1 = zeros(length(VaR_outlier{1,1}),1);
+for ii = 1:length(V1)
+    VO1(ii,1) = find(VaR_prelim == V1(1,ii));
+end
+
+E1 = ES_outlier{1,1};
+EO1 = zeros(length(ES_outlier{1,1}),1);
+for ii = 1:length(E1)
+    EO1(ii,1) = find(ES_prelim == E1(1,ii));
+end
+
+% IS
+V2 = VaR_outlier{2,1};
+VO2 = zeros(length(VaR_outlier{2,1}),1);
+for ii = 1:length(V2)
+    VO2(ii,1) = find(VaR_IS == V2(1,ii));
+end
+
+E2 = ES_outlier{2,1};
+EO2 = zeros(length(ES_outlier{2,1}),1);
+for ii = 1:length(E2)
+    EO2(ii,1) = find(ES_IS == E2(1,ii));
+end
+
+ind_redo = [VO2; EO2]; % redo the 'VaR with PMit' loop for these indicies
+ 
+%%% REDO and resave
+
+if save_on
+    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'VaR_prelim','ES_prelim','mit1','accept',...
+        'draw_hl','w_hl','lnk_hl','pmit','VaR_IS','ES_IS')
 end
