@@ -1,8 +1,8 @@
 function mit = fn_PISEM(theta, mit, w, cont, GamMat, X)
 
     [N,d] = size(theta);
-    H = size(mit.p,2);
-    
+    H = size(mit.p,2);       
+
     P = false; % partial
     if (nargin == 6)
         r = size(X,2); % X is (N)x(r) - for each draw a vector of length r

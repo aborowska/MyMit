@@ -1,4 +1,4 @@
-function Plot_hor_pmit(y_pmit,y_T, VaR_prelim, model, save_on)
+function Plot_hor_pmit(y_pmit,y_T, VaR_prelim, model, algo, save_on)
     [M,H] = size(y_pmit);
     
     f_pl = @(aa) 100*(exp(aa/100) - 1); % percentage profit loss
@@ -54,7 +54,7 @@ function Plot_hor_pmit(y_pmit,y_T, VaR_prelim, model, save_on)
     set(YL,'Position',YLp)
     
     if save_on
-        name = ['figures/PMitISEM/',model,'_hor_pmit_H', num2str(H),'.png'];
+        name = ['figures/PMitISEM/',model,'_',algo,'_hor_pmit_H', num2str(H),'.png'];
         set(gcf,'PaperPositionMode','auto');
         print(name,'-dpng','-r0')
     end

@@ -199,8 +199,9 @@ for sim = 1:N_sim
     lnk_opt = lnk_opt + eps_pdf;
     
     % optimal weights
-    [s1, s2] = fn_partition_ends(partition, d, 1);
-    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,s1:s2), mit1, true, GamMat));
+%     [s1, s2] = fn_partition_ends(partition, d, 1);
+%     exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,s1:s2), mit1, true, GamMat));
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:4), mit1, true, GamMat));
     exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
 
     exp_lnd2 = 0.5*exp(exp_lnd2);

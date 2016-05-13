@@ -26,7 +26,7 @@ function d = posterior_arch_hl(theta, data, S, VaR, L)
 %                 pdf(jj,1) = log(normpdf(data(jj,1),0,sqrt(h(jj,1))));
 %             end
 %             d(ii,1) = sum(pdf) + log(normpdf(eps(ii,1))) + prior(ii,2); 
-            d(ii,1) = sum(pdf) + prior(ii,2)  - 0.5*(H*log(2*pi) + sum(eps(ii,1).^2,2)); 
+            d(ii,1) = sum(pdf) + prior(ii,2)  - 0.5*(H*log(2*pi) + sum(eps(ii,:).^2,2)); 
         end
     end
     if (~L)

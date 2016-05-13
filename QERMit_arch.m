@@ -36,14 +36,14 @@ mu_init = 0.03;
 % mu_hl = [0.15, -3]; % <-- for p_bar = 0.01 
 M = 10000;
 BurnIn = 1000;
-N_sim = 100;
+N_sim = 20;
 
 H = 1; % forecast horizon
 
 plot_on = false;
 print_on  = false;
-plot_on2 = true;
-save_on = true;
+plot_on2 = false;
+save_on = false;
 
 MitISEM_Control
 cont.mit.dfnc = 5;

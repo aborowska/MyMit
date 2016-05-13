@@ -49,11 +49,10 @@ plot_on = true;
 print_on  = false;
 
 
-L = true;
-kernel_init = @(a) - posterior_arch(a, data, S, L);
+kernel_init = @(a) - posterior_arch(a, data, S, true);
 [mu, Sigma] = fn_initopt(kernel_init, mu_init);
 mit_direct = struct('mu',mu,'Sigma',Sigma,'p',1,'df',cont.mit.dfnc);
-kernel = @(a) posterior_arch(a, data, S, L);
+kernel = @(a) posterior_arch(a, data, S, true);
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);

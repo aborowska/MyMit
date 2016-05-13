@@ -174,6 +174,17 @@ profile viewer
 % name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
 % save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','pmit_adapt', 'pmit_step2', 'pmit_step2_up')
 
+% pmit_step2 = pmit
+% pmit_step3 = pmit
+% pmit_iter2 = pmit
+
+% pmit = pmit_pre2 %final
+% pmit = pmit_pre 
+% 
+% pmit = pmit_step2_up;
+% pmit = pmit_step2;
+% pmit = pmit_adapt
+
 %% VaR with PMit
 for sim = 1:N_sim 
     tic
@@ -216,7 +227,26 @@ for sim = 1:N_sim
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,1), model, algo);  
     toc
 end
- 
+
+% VaR_step2_up = VaR_IS;
+% ES_step2_up = ES_IS;
+
+% VaR_step2 = VaR_IS;
+% ES_step2 = ES_IS;
+
+% VaR_adapt = VaR_IS;
+% ES_adapt = ES_IS;
+
+
+% VaR_IS = VaR_step2_up;
+% ES_IS = ES_step2_up;
+% pmit = pmit_step2_up;
+
+% name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_debug_Nsim',num2str(N_sim),'.mat'];
+% save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl',...
+%     'pmit_adapt','VaR_adapt','ES_adapt',...
+%     'pmit_step2','VaR_step2','ES_step2',...
+%     'pmit_step2_up','VaR_step2_up','ES_step2_up')
 
 if save_on
     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -224,10 +254,13 @@ if save_on
 end
 
 
+% VaR_IS = VaR_IS_pre2;
+% ES_IS = ES_IS_pre2;
+
 if plot_on
-    Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,algo,H,N_sim,save_on);
+    Boxplot_PMitISEM(VaR_prelim,VaR_IS,ES_prelim,ES_IS,model,H,N_sim,save_on);
 
     y_pmit = bsxfun(@times,draw_pmit(:,2:d),sqrt(draw_pmit(:,1)));  
-    Plot_hor_pmit(y_pmit, y(end), mean(VaR_prelim),model,algo,save_on)
+    Plot_hor_pmit(y_pmit, y(end), mean(VaR_prelim),model,save_on)
 end
 

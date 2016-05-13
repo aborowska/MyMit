@@ -40,7 +40,7 @@ function [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt] = PMitISEM(dr
     pmit = pmit_adapt;
     hstop_mix = false;
     iter = 0;
-Hmax=1
+
     while ((iter < iter_max) && (hstop_mix == false))
         iter = iter + 1;
 

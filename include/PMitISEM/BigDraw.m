@@ -5,8 +5,13 @@ function [draw_mm, VaR, y_H, PL] = BigDraw(M, H, BurnIn, p_bar, mit1, kernel, y_
     MM = 2*M;
     % kernel = @(x) posterior_debug(x, y, a, b, true);
     fprintf('\nBigDraw\n')
-    theta1 = Mit_MH(F*M+BurnIn, kernel, mit1, GamMat);
-    theta1 = theta1((BurnIn+1):(F*M+BurnIn),:);
+    
+    if isstruct(mit1)
+        theta1 = Mit_MH(F*M+BurnIn, kernel, mit1, GamMat);
+        theta1 = theta1((BurnIn+1):(F*M+BurnIn),:);
+    else
+        theta1 = repmat(mit1,F*M,1);
+    end
     
 	theta_new = theta1(1:MM,:);
     if (nargin == 9) % the optional last argument says in which culumn theta are degrees of freedom

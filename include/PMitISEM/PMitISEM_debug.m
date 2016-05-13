@@ -37,7 +37,7 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
     CV_mix = [CV0, CV0];
     CV(:) = {CV0};
 
-pmit = pmit_adapt;
+    pmit = pmit_adapt;
     hstop_mix = false;
     iter = 0;
 
@@ -46,7 +46,7 @@ pmit = pmit_adapt;
 
         fprintf('\nPMit mixture iteration no.: %d.\n',iter)
         
-        % STEP 2: ITERATE ON NUMBER OF COMPONENTS
+        %% STEP 2: ITERATE ON NUMBER OF COMPONENTS
         for s = 1:SS
             fprintf('\nStep 2. Subset no.: %d.\n',s)
 
@@ -71,7 +71,7 @@ pmit = pmit_adapt;
             lnd_curr = fn_dpmit(draw0, pmit, partition, fn_const_X, true, GamMat);
 
             w_curr = fn_ISwgts(lnk0, lnd_curr, false); % we keep lnk0 fixed, only candidate evaluation changes
-            CV_old =  CV{s};
+            CV_old = CV{s};
             [CV_new, ~] = fn_CVstop(w_curr, [], []);
             CV(s) = {[CV{s}, CV_new]}; 
 
@@ -132,27 +132,9 @@ pmit = pmit_adapt;
         %     end
 
         end
-pmit_step2=pmit;
-        %% STEP 2 UP
-         for s = 1:SS 
-            fprintf('\nStep 2up. Subset no.: %d.\n',s)
+        pmit_step2 = pmit;
 
-            [s1, s2] = fn_partition_ends(partition, d, s);
-            theta_s = draw0(:,s1:s2);
-            if (s==1)
-                pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat);
-            else
-               X = fn_const_X(draw0(:,1:s1-1));
-        %        [beta, Sigma] = fn_beta(theta_s,w0,X); 
-        %        pmit(s).mu = beta;
-        %        pmit(s).Sigma = Sigma;
-               pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
-            end
-        end
-pmit_step2_up = pmit;        
-        
         %% STEP 3: sample from pmit and check convergence
-try
         [draw_pmit, lnk_pmit] = fn_p_rmvgt(size(draw0,1), pmit, d, partition, kernel, fn_const_X);  
         lnd_pmit = fn_dpmit(draw_pmit, pmit, partition, fn_const_X, true, GamMat);
         w_pmit = fn_ISwgts(lnk_pmit, lnd_pmit, false); 
@@ -175,10 +157,6 @@ try
                pmit(s) = fn_Poptimt(theta_s, pmit(s), w_pmit, cont, GamMat, X);
             end
         end
-catch
-    pmit = pmit_step2_up;
-end
-        
         pmit_step3 = pmit;
 
         lnd_curr = fn_dpmit(draw_pmit, pmit, partition, fn_const_X, true, GamMat);  % for all draws!
@@ -189,9 +167,7 @@ end
 %         if ~hstop
             draw0 = draw_pmit;
             w0 = w_pmit;
-            lnk0 = lnk_pmit;
-          
+            lnk0 = lnk_pmit;          
 %         end
     end    
-
 end

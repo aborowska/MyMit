@@ -10,5 +10,8 @@ function  ep = duvt(eps, nu, hp, L)
 
     if L
         ep = log(ep);
+        ep = sum(ep,2);
+    else
+        ep = prod(ep,2);
     end
 end

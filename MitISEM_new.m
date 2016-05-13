@@ -30,7 +30,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
         end
         mit_init.mu = mu;
         mit_init.Sigma = Sigma;
-        mit_init.df = 1;
+        mit_init.df = cont.mit.dfnc;%1;
         mit_init.p = 1;
         
     elseif isa(kernel_init, 'struct')
@@ -129,10 +129,11 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 
         % NEW COMPONENT
         % compute new component's mode and scale from IS weights
-        mit_nc.p = cont.mit.pnc;
-        mit_nc.df = cont.mit.dfnc;
-        [mit_nc.mu, mit_nc.Sigma] = fn_muSigma(theta_nc, w_nc);
 
+        [mit_nc.mu, mit_nc.Sigma] = fn_muSigma(theta_nc, w_nc);
+        mit_nc.df = cont.mit.dfnc;
+        mit_nc.p = cont.mit.pnc;
+   
         % COBINE OLD AND NC
         % combine the old mixture mit_new and the new component mit_nc
         mit_old = mit_new;

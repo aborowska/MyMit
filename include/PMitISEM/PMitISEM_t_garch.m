@@ -20,7 +20,7 @@ y_T = data(T);
 S = var(data);
 
 p_bar = 0.01;
-H = 250; % forecast horizon
+H = 100; % forecast horizon
 
 M = 10000;
 BurnIn = 1000;
@@ -88,13 +88,11 @@ for sim = 1:N_sim
 
     VaR_prelim(sim,1) = PL(round(p_bar*M_real));
     ES_prelim(sim,1) = mean(PL(round(1:p_bar*M)));   
-    fprintf('p_bar = %4.2f, VaR_prelim = %4.5f. \n', p_bar, VaR_prelim(sim,1))
-    fprintf('p_bar = %4.2f, NSE VaR_prelim = %4.5f. \n', p_bar, std(VaR_prelim(VaR_prelim<0,1)))
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept')
 end
 
@@ -102,8 +100,6 @@ end
 if plot_on
     Plot_hor_direct(y_H,y_T, VaR_prelim(sim,1),model,save_on);
 end
-
-
 
 % If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
 kernel = @(xx) posterior_t_garch_mex(xx, data, S, GamMat);
@@ -113,7 +109,7 @@ tic
 toc
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est')
 end
 
@@ -127,7 +123,6 @@ lnd_hl = dmvgt(draw_hl(:,1:4), mit1, true, GamMat);
 % importance weights
 w_hl = lnk_hl - lnd_hl;
 w_hl = exp(w_hl - max(w_hl));
-
 
 %% PMitISEM
 partition = [1,6:H+4];
@@ -150,7 +145,7 @@ cont = cont2;
 [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt] = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est','pmit','CV_mix','CV')
 end
 
@@ -173,15 +168,16 @@ for sim = 1:N_sim
     kernel = @(xx) posterior_t_garch_mex(xx, data ,S, GamMat);
     lnk_opt = kernel(draw_opt(:,1:4)); 
     
-    eps_pdf = zeros(M, 1);
-    for hh = 1:H
-        eps_pdf = eps_pdf + log(tpdf(draw_opt(:,4+hh),draw_opt(:,4)));
-    end
+%     eps_pdf = zeros(M, 1);
+%     for hh = 1:H
+%         eps_pdf = eps_pdf + log(tpdf(draw_opt(:,4+hh),draw_opt(:,4)));
+%     end
+    eps_pdf = duvt(draw_opt(:,4+1:H+4), draw_opt(:,4), H, true);
     lnk_opt = lnk_opt + eps_pdf;
     
     % optimal weights
-    [s1, s2] = fn_partition_ends(partition, d, 1);
-    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,s1:s2), mit1, true, GamMat));
+%     [s1, s2] = fn_partition_ends(partition, d, 1);
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:4), mit1, true, GamMat));
     exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
 
     exp_lnd2 = 0.5*exp(exp_lnd2);
@@ -202,7 +198,7 @@ end
 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est','pmit','CV_mix','CV','VaR_IS','ES_IS')
 end
 
@@ -211,5 +207,5 @@ if plot_on
     
     h_T = volatility_t_garch_mex(draw_pmit(:,1:4), data, S);
     [y_pmit, ~] = predict_t_garch(draw_pmit(:,1:4), y_T, S, h_T, H, draw_pmit(:,5:d));
-    Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,save_on)
+    Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,algo,save_on)
 end

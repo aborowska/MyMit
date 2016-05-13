@@ -3,6 +3,12 @@ function [mit_new, summary] = fn_Poptimt(theta, mit, w, cont, GamMat, X)
 % densities using IS weighted EM algorithm, given N draws from the initial
 % H component mixture
      
+    % robustification against NaN or -Inf draws 
+    ind_fin = find(isfinite(sum(theta,2)));
+    theta = theta(ind_fin,:);
+    X = X(ind_fin,:);
+    w = w(ind_fin,:);
+   
     % ISEM until convergence
     conv = 0; % convergence indicator
     iter = 0; % number of current iteratiosn
