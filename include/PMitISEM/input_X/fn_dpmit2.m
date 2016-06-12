@@ -9,9 +9,9 @@ function lnd = fn_dpmit2(input_X, pmit, partition, fn_const_X, L, GamMat)
     end    
      
     d = size(theta,2);
-    S = length(partition);
+    SS = length(partition);
     
-    for ss = 1:S
+    for ss = 1:SS
         [s1,s2] = fn_partition_ends(partition, d, ss);
 %         lnd = lnd + dmvgt(theta(:,s1:s2), pmit(ss), true, GamMat);
         if (ss == 1)

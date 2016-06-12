@@ -20,7 +20,7 @@ function y_hp = predict_t_garch_new_noS(theta, data, S, hp, eps)
     y_hp(:,1) = y_T*ones(N,1);
 
     h = zeros(N,hp+1); 
-    h_T = volatility_t_garch_noS(theta, data, S);
+    h_T = volatility_t_garch_noS_mex(theta, data, S);
     h(:,1) = h_T;
     
     for jj = 2:(hp+1)

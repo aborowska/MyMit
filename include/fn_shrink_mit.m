@@ -5,7 +5,7 @@ function [crash, mit_s] = fn_shrink_mit(mit, tol_pr)
     % indicator for zero variance for each component
     crash_Sigma = zeros(H,1); 
 	for h = 1:H
-         crash_Sigma(h,1) = fn_testSigma(mit.Sigma(h,:)); % indicator for crashing variance
+        crash_Sigma(h,1) = fn_testSigma(mit.Sigma(h,:)); % indicator for crashing variance
     end
     % indicator for two small mixture probability
     crash_Prob = fn_testProb(mit.p, tol_pr);

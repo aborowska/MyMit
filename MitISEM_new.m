@@ -38,7 +38,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     end
     
     % get draws and IS weights from naive  
-    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_init, kernel, resampl_on);
+    [theta, lnk, ~] = fn_rmvgt_robust(N, mit_init, kernel, resampl_on);
 %     display(ind_red);
     lnd = dmvgt(theta, mit_init, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
@@ -91,7 +91,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     mit_adapt.p = 1;
     
     % get draws and IS weights from adapted  
-    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_adapt, kernel, resampl_on);
+    [theta, lnk, ~] = fn_rmvgt_robust(N, mit_adapt, kernel, resampl_on);
 %     display(ind_red);
     lnd = dmvgt(theta, mit_adapt, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
@@ -106,7 +106,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     [mit_new, summary_adapt] = fn_optimt(theta, mit_adapt, w, cont, GamMat);
 
     % get draws and log kernel evaluation
-    [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
+    [theta, lnk, ~] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
 %     display(ind_red);
     lnd = dmvgt(theta, mit_new, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
@@ -122,6 +122,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     hstop = false;
     while ((H < Hmax) && (hstop == false))
         H = H+1;
+        fprintf('H = %d\n',H);
         % select the largest weights and corresponding draws
         ind_w = fn_select(w, cont.mit.ISpc);
         theta_nc = theta(ind_w,:);
@@ -142,7 +143,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 %%% ??? %%%        
         % DRAW FROM COMBINED
         % get draws and log kernel evaluation from the new mixture mit_new 
-        [theta, lnk, ind_red] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
+        [theta, lnk, ~] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
 %         display(ind_red);
 
         lnd = dmvgt(theta, mit_new, true, GamMat);
@@ -166,9 +167,9 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
         
         [CV_new, hstop_new] = fn_CVstop(w, CV_old, CV_tol);
         CV = [CV, CV_new]
-        if (H > 1)
+%         if (H > 1)
             hstop = hstop_new;
-        end       
+%         end       
     end
 
 %%

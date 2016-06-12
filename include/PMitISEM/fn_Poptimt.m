@@ -4,7 +4,7 @@ function [mit_new, summary] = fn_Poptimt(theta, mit, w, cont, GamMat, X)
 % H component mixture
      
     % robustification against NaN or -Inf draws 
-    ind_fin = find(isfinite(sum(theta,2)));
+    ind_fin = find(isfinite(sum(theta,2)) & sum(theta.^2,2)<cont.EM.stab);
     theta = theta(ind_fin,:);
     X = X(ind_fin,:);
     w = w(ind_fin,:);

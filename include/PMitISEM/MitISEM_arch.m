@@ -9,12 +9,12 @@ addpath(genpath('include/'));
 x = (0:0.00001:50)' + 0.00001;
 GamMat = gamma(x);
 
-% algo = 'MitISEM';
+algo = 'MitISEM';
 model = 'arch';
+
+% Data
 data = csvread('GSPC_ret.csv');
 data = 100*data;
-
-% QERMit ARCH 
 ind_arch = find(data<=-5.5, 1, 'last' );
 data = data(1:ind_arch,1);
 data = data - mean(data);
@@ -32,113 +32,30 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 10; % forecast horizon
+H = 100; % forecast horizon
 % d = H+1; % dimension of theta
-% partition = [1,3:H+1];
 
 plot_on = true;
 save_on = true;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
-MitISEM_Control
-cont.mit.dfnc = 5;
-cont.mit.N = 10000;
-cont.resmpl_on = false;
-
-cont2 = cont;
-cont2.mit.iter_max = 1;
+cont2 = MitISEM_Control;
+cont2.mit.dfnc = 5;
+cont2.mit.N = 10000;
+cont2.resmpl_on = false;
 cont2.df.range = [1,10];
 
 
-VaR_direct = zeros(N_sim,1);
-ES_direct = zeros(N_sim,1);
-accept_direct = zeros(N_sim,1);
+VaR_mit = zeros(N_sim,1);
+ES_mit = zeros(N_sim,1);
+time_mit = zeros(2,1);
 
-VaR_prelim = zeros(N_sim,1);
-ES_prelim = zeros(N_sim,1);
-accept = zeros(N_sim,1);
+%% PRELIM & BIG DRAW
+name =  ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+load(name);
 
-VaR_IS = zeros(N_sim,1);
-ES_IS = zeros(N_sim,1);
-
-%% Direct
-algo = 'Direct';
-kernel_init = @(a) - posterior_arch(a, data, S, true);
-% kernel_init = @(a) - posterior_arch_noS(a, data, true);
-
-[mu, Sigma] = fn_initopt(kernel_init, mu_init);
-cont_direct = cont;
-mit_direct = struct('mu',mu,'Sigma',Sigma,'p',1,'df',cont_direct.mit.dfnc);
-
-
-for sim = 1:N_sim
-    fprintf('\nDirect sim = %i.\n', sim);
-    kernel = @(a) posterior_arch(a, data, S, true);
-    % kernel = @(a) posterior_arch_noS(a, data, true);
-    [alpha_direct, accept_direct(sim,1)] = Mit_MH(M+BurnIn, kernel, mit_direct, GamMat);
-    fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept_direct(sim,1), model, algo);
-    alpha_direct = alpha_direct(BurnIn+1:M+BurnIn,:);
-
-    eps_direct = randn(M,H);
-    
-    y_direct = predict_arch(alpha_direct, y_T, S, H, eps_direct);
-%     y_direct = predict_arch_noS(alpha_direct, y_T, S, H, eps_direct);
-
-    PL_direct = sort(fn_PL(y_direct));
-    VaR_direct(sim,1) = PL_direct(p_bar*M);
-    ES_direct(sim,1) = mean(PL_direct(1:p_bar*M));
-    
-    fprintf('Direct 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_direct(sim,1), model, algo);
-end
-
-if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_direct','ES_direct','mit_direct','accept_direct')
-end
-
-%% QERMit 1a.: 
-algo = 'MitISEM';
-kernel_init = @(a) - posterior_arch(a, data, S, true);
-kernel = @(a) posterior_arch(a, data, S, true);
-[mit1, summary1] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat);
-
-for sim = 1:N_sim
-    fprintf('\nPrelim sim = %i.\n', sim);
-    kernel = @(a) posterior_arch(a, data, S, true);
-
-    [alpha1, accept(sim,1)] = Mit_MH(M+BurnIn, kernel, mit1, GamMat);
-    fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept(sim,1), model, algo);
-    alpha1 = alpha1(BurnIn+1:M+1000);
-
-    eps1 = randn(M,H);
-    y_H = predict_arch(alpha1, y_T, S, H, eps1);
-    % get the preliminary VaR estimate as the 100th of the ascendingly sorted percentage loss values
-    [PL_H, ind] = sort(fn_PL(y_H));
-    VaR_prelim(sim,1) = PL_H(p_bar*M);
-    ES_prelim(sim,1) = mean(PL_H(1:p_bar*M));    
-    fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
-end
-
-if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','accept')
-end
-
-%% Choose the starting point (mu_hl) for the constuction of the approximaton
- % If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
-% arch model
-        kernel = @(xx) posterior_arch(xx, data, S, true);
-        % y_H = y_predict(draw_mm); 
-        y_predict = @(draw) predict_arch(draw(:,1), y_T, S, H, draw(:,2:end));  
-% cont2.mit.N =10000; % the desired number of high-loss draws         
-
-        [draw_hl, VaR_est, ~, ~] = BigDraw(cont2.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat);
-
-if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','VaR_est')
-end
-
+% WEIGHTS to initialise MitISEM
+% future disturbances are generated from the target thus have weights 1
 % log kernel evaluation - only for the parameter draws, epsilons are drawn
 % from the target so their weigths are 1
 kernel = @(xx) posterior_arch(xx, data, S, true);
@@ -153,13 +70,12 @@ w_hl = exp(w_hl - max(w_hl));
 
 
 %% Standard MitISEM
-
 [mu_hl, Sigma_hl] = fn_muSigma(draw_hl, w_hl);
 d = size(draw_hl,2);
 
 % cont2.mit.N = 10000;
-cont2.mit.Hmax = 10;
-
+cont2.mit.Hmax = 1;
+cont2.mit.CV_tol = 0.15;
 mit_hl.mu = mu_hl;
 mit_hl.Sigma = Sigma_hl;
 mit_hl.df = cont2.mit.dfnc;
@@ -169,21 +85,24 @@ mit_hl.p = 1;
  
 kernel_init = @(a) - posterior_arch_hl(a, data, S, mean(VaR_prelim), true);
 kernel = @(a) posterior_arch_hl(a, data, S, mean(VaR_prelim), true);
-if (H < 3)
+tic
+if (H < 40)
     [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
 else
+%     cont2.mit.Hmax = 10;
     [mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_hl, cont2, GamMat);
 end
-    
+time_mit(1,1) = time_mit(1,1) + toc;
+
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','mit2','summary2')
+    save(name,'mit2','summary2')
 end
 
 
 %% VaR with standard MitISEM
+tic
 for sim = 1:N_sim
-    resampl_on = false;
     fprintf('\nVaR IS iter: %d\n',sim)
 
     alpha1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
@@ -212,22 +131,26 @@ for sim = 1:N_sim
     y_opt = predict_arch(draw_opt(:,1), y_T, S, H, draw_opt(:,2:H+1));  
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
-    VaR_IS(sim,1) = IS_estim(1,1);
-    ES_IS(sim,1) = IS_estim(1,2);
+    VaR_mit(sim,1) = IS_estim(1,1);
+    ES_mit(sim,1) = IS_estim(1,2);
     PL_opt = fn_PL(y_opt);
 
-    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,1), model, algo);
-    fprintf('IS 100*%4.2f%% ES estimate: %6.4f (%s, %s). \n', p_bar, ES_IS(sim,1), model, algo);  
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_mit(sim,1), model, algo);
+    fprintf('IS 100*%4.2f%% ES estimate: %6.4f (%s, %s). \n', p_bar, ES_mit(sim,1), model, algo);  
 end
-kernel = @(xx) posterior_arch_hl(xx, data, S, mean(VaR_prelim), true);
+time_mit(2,1) = toc/N_sim;
 
+y2 = predict_arch(draw2(:,1), y_T, S, H, draw2(:,2:H+1));  
+PL2 = fn_PL(y2);
+mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','VaR_IS','ES_prelim','ES_IS','mit2','mit1','accept','draw_hl','VaR_est')
+    save(name,'VaR_mit','ES_mit','mit2','summary2','mit_eff','time_mit')
 end
 
 
 labels_in = {'prelim','mitisem'};
-Boxplot_PMitISEM(VaR_prelim, VaR_IS, ES_prelim, ES_IS, model, algo, H, N_sim, true, labels_in);
+Boxplot_PMitISEM(VaR_prelim, VaR_mit, ES_prelim, ES_mit, model, algo, H, N_sim, true, labels_in);
 
+% Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,algo,save_on)
