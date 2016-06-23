@@ -23,7 +23,7 @@
     S = var(data);
 
     p_bar = 0.01;
-    H = 250; % forecast horizon
+    H = 10; % forecast horizon
 
     M = 10000;
     BurnIn = 1000;

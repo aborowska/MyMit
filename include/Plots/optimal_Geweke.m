@@ -62,7 +62,7 @@ if v_new
     set(gca,'TickLabelInterpreter','latex')
 else
     %     plotTickLatex2D
-    plotTickLatex2D('FontSize',14);;
+    plotTickLatex2D('FontSize',14);
 end
 % name = 'figures/other/optimal_IS_cand.png';
 name = 'figures/other/optimal_IS_cand_poster.png';

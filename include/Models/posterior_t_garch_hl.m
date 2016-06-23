@@ -19,7 +19,8 @@ function d = posterior_t_garch_hl(theta, data, S, VaR, L, hyper, GamMat)
     
     prior = prior_t_garch_hl(alpha, beta, mu, nu, PL_hp, VaR, L, hyper);
     d = -Inf*ones(N,1);
-    h = zeros(T,1); h(1,1) = S;
+    h = zeros(T,1); 
+    h(1,1) = S;
     omega = S*(1-alpha-beta); % variance targeting constraint
     rho = (nu-2)./nu;
     
@@ -33,6 +34,10 @@ function d = posterior_t_garch_hl(theta, data, S, VaR, L, hyper, GamMat)
         
         pdf = zeros(T,1);
         if (prior(ii,1)) % when all the parameter constraints are satisfied
+%             h(1,1) = omega(ii,1)/(1-alpha(ii,1)-beta(ii,1)); % unconditional variance to initialize h_1
+%             pdf(1,1) = dmvt(data(1,1), mu(ii,1), rho(ii,1)*h(1,1), nu(ii,1), GamMat);
+%             pdf(1,1)= log(pdf(1,1));            
+            
             h(ind) = omega(ii,1) + alpha(ii,1)*(data(ind-1,1)-mu(ii,1)).^2;
             for jj = ind
                 h(jj,1) = h(jj,1) + beta(ii,1)*h(jj-1,1);

@@ -133,7 +133,24 @@ function  [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISE
                 end
             end
             pmit_step2 = pmit;
+            
+%% Step 2 up
+for s = 1:SS 
+    fprintf('\nStep 2 up. Subset no.: %d.\n',s)
 
+    [s1, s2] = fn_partition_ends(partition, d, s);
+    theta_s = draw0(:,s1:s2);
+    if (s==1)
+        pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat);
+    else
+       X = fn_const_X(draw0(:,1:s1-1));
+%        [beta, Sigma] = fn_beta(theta_s,w0,X); 
+%        pmit(s).mu = beta;
+%        pmit(s).Sigma = Sigma;
+       pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+    end
+end
+pmit_step2_up = pmit;
         %% STEP 3: sample from pmit and check convergence
         [draw_pmit, lnk_pmit] = fn_p_rmvgt(size(draw0,1), pmit, d, partition, kernel, fn_const_X);  
         lnd_pmit = fn_dpmit(draw_pmit, pmit, partition, fn_const_X, true, GamMat);

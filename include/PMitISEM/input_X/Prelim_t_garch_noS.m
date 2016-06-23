@@ -95,6 +95,11 @@ for sim = 1:N_sim
 end    
 time_prelim(2,1) = toc/N_sim;
 
+
+if plot_on
+    Plot_hor_direct(y_H,y_T,VaR_prelim(sim,1),model,save_on);
+end
+
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim')
