@@ -30,7 +30,7 @@ mu_init = [0, 0.01, 0.1, 0.89, 8];
 DD = size(mu_init,2);
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for PMitISEM
 cont2 = MitISEM_Control;
@@ -72,19 +72,21 @@ draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
 
-if (H > 10)
-    cont2.mit.iter_max = 1;
-else
-    cont2.mit.iter_max = 5;
-end
+% if (H > 10)
+%     cont2.mit.iter_max = 1;
+% else
+    cont2.mit.iter_max = 6;
+% end
 cont2.df.range = [1,10];
-cont2.mit.Hmax = 1;
+if (H==250)
+    cont2.mit.Hmax = 1;
+end
 cont = cont2;
 
 tic
 % [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
 [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM2(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
-time_pmit(1,1) = time_pmit(1,1) + toc;
+time_pmit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -94,8 +96,18 @@ end
 
 
 %% VaR with PMit
+
+% pmit = pmit_adapt;
+% 
+% pmit = pmit_step2;
+% 
+% pmit = pmit_step2_up;
+% 
+% pmit = pmit_step3;
+
 tic
-for sim = 2:N_sim   
+for sim = 1:N_sim  
+%     profile on
     fprintf('\nVaR IS iter: %d\n',sim)
 
     theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
@@ -105,11 +117,18 @@ for sim = 2:N_sim
     end
     draw1 = [theta1, eps1];
     clear theta1 eps1
+    input_X_1 = fn_input_X(draw1);
 
-    draw_pmit  = fn_p_rmvgt(M/2, pmit, d, partition, [], fn_const_X);  
-    draw_opt = [draw1; draw_pmit];
+%     draw_pmit  = fn_p_rmvgt(M/2, pmit, d, partition, [], fn_const_X);  
+    [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt2(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
+
+    draw_opt = [draw1; draw_pmit];   
+    
+    input_X.theta = draw_opt;
+    input_X.f_T = [input_X_1.f_T; input_X_pmit.f_T];
     clear draw1 %draw_pmit
-
+    clear input_X_1 input_X_pmit
+    
     kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
     lnk_opt = kernel(draw_opt(:,1:5)); 
 
@@ -118,15 +137,17 @@ for sim = 2:N_sim
 
     % optimal weights
     exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:DD), mit1, true, GamMat));
-    exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
-
+%     exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
+    exp_lnd2 = fn_dpmit2(input_X, pmit, partition, fn_const_X, true, GamMat);        
+    
     exp_lnd2 = 0.5*exp(exp_lnd2);
     exp_lnd = exp_lnd1 + exp_lnd2;
     lnd_opt = log(exp_lnd);
     w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
 
     % IS VaR estimation
-    f_T = volatility_t_gas_mex(draw_opt(:,1:DD), y);
+%     f_T = volatility_t_gas_mex(draw_opt(:,1:DD), y);
+    f_T = input_X.f_T;
     [y_opt, ~] = predict_t_gas(draw_opt(:,1:DD), y_T, f_T, H, draw_opt(:,DD+1:H+DD));
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
@@ -134,9 +155,23 @@ for sim = 2:N_sim
     ES_pmit(sim,1) = IS_estim(1,2);   
 
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
+%     profile off
+%     profile viewer
 end
-
 time_pmit(2,1) = toc/N_sim;
+
+% VaR_adapt = VaR_pmit;
+% ES_adapt = ES_pmit;
+% 
+% VaR_step2 = VaR_pmit;
+% ES_step2 = ES_pmit;
+% 
+% VaR_step2_up = VaR_pmit;
+% ES_step2_up = ES_pmit;
+% 
+% VaR_step3 = VaR_pmit;
+% ES_step3 = ES_pmit;
+
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];

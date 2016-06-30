@@ -132,14 +132,7 @@ void posterior_t_garch_noS_hyper_mex(double *y, mwSignedIndex N, mwSignedIndex T
          
     /* PDF */
     for (i=0; i<N; i++) 
-    {
-//         mexPrintf("r1[%i] = %i\n",i,r1[i]);       
-//         mexPrintf("r2[%i] = %6.4f\n",i,r2[i]);       
-       
-//         mexPrintf("alpha[%i] = %6.4f\n", i, theta[i]); 
-//         mexPrintf("beta[%i] = %6.4f\n", i, theta[i+N]);
-//         mexPrintf("mu[%i] = %6.4f\n", i, theta[2*N+i]);
-//         mexPrintf("nu[%i] = %6.4f\n", i, theta[i+3*N]);           
+    {         
         
         if (r1[i]==1)
         {

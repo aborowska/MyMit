@@ -5,11 +5,14 @@ close all
 M = 10000;
 N_sim = 20;
 p_bar = 0.01;
+model = 't_gas';
 % model = 't_garch2_noS';
-model = 'arch';
+% model = 'arch';
 % model = 'WN';
 
 switch model
+    case 't_gas'
+        model_tex = 'GAS(1,1)-$t$';        
     case 't_garch2_noS'
         model_tex = 'GARCH(1,1)-$t$';
     case 'arch'
@@ -17,7 +20,7 @@ switch model
     case 'WN'
         model_tex = 'White Noise';
 end
-horizons = {'10','20','40','100','250'} ;   
+horizons = {'10','20','40','100','250'} ;
 algos = {'Direct','Prelim','MitISEM','PMitISEM'};
 
 VaR_mat_prelim = zeros(2,5);
@@ -205,6 +208,8 @@ switch model
         param = '\alpha';
     case 't_garch'
         param = '\theta';
+    case 't_gas'
+        param = '\theta';
 end
 h='10';
 name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -240,6 +245,10 @@ fprintf(FID, '\\end{tabular} \n');
 fprintf(FID, '\\end{table} \n');
 fclose(FID);
 
+%% Time-Precision
+save_on = true;
+H = 10;
+Plot_time_precision(model, save_on, H, p_bar, N_sim, M)
 
 %% Box Plots
 for ii=1:3

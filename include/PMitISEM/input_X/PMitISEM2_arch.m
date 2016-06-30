@@ -97,6 +97,15 @@ end
 
 %% VaR with PMit
 tic
+
+pmit = pmit_adapt;
+
+pmit = pmit_step2;
+
+pmit = pmit_step2_up;
+
+pmit = pmit_step3;
+
 for sim = 1:N_sim   
     fprintf('\nVaR IS iter: %d\n',sim)
      
@@ -131,6 +140,19 @@ for sim = 1:N_sim
   
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
 end      
+
+VaR_adapt = VaR_pmit;
+ES_adapt = ES_pmit;
+
+VaR_step2 = VaR_pmit;
+ES_step2 = ES_pmit;
+
+VaR_step2_up = VaR_pmit;
+ES_step2_up = ES_pmit;
+
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
+
 time_pmit(2,1) = toc/N_sim;
 kernel = @(xx) posterior_arch_hl(xx, data, S, mean(VaR_prelim), true);
 

@@ -125,7 +125,7 @@ void posterior_t_gas_hyper_mex(double *y, mwSignedIndex N, mwSignedIndex T,
     /* PDF */
     for (i=0; i<N; i++) 
     {
-
+  
         if (r1[i]==1)
         {
             d[i] = r2[i];

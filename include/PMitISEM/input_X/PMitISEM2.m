@@ -160,6 +160,25 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
         end
         pmit_step2 = pmit;
 
+        %% Step 2 up
+%         for s = 1:SS 
+%             fprintf('\nStep 2 up. Subset no.: %d.\n',s)
+%             [s1, s2] = fn_partition_ends(partition, d, s);
+%             theta_s = draw0(:,s1:s2);
+%             if (s==1)
+%                 pmit(s) = fn_optimt(theta_s, pmit(s), w0, cont, GamMat);
+%             else
+%                 if ~isstruct(input_X)
+%                     input_X = draw0(:,1:s1-1);
+%                 else
+%                     input_X.theta = draw0(:,1:s1-1);
+%                 end              
+%                 X = fn_const_X(input_X);
+%                 pmit(s) = fn_Poptimt(theta_s, pmit(s), w0, cont, GamMat, X);
+%             end
+%         end
+%         pmit_step2_up = pmit;
+        
         %% STEP 3: sample from pmit and check convergence
         [draw_pmit, lnk_pmit] = fn_p_rmvgt2(size(draw0,1), pmit, d, partition, kernel, fn_const_X, fn_input_X);         
         input_X = fn_input_X(draw_pmit);

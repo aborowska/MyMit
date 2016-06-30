@@ -5,11 +5,14 @@ close all
 M = 10000;
 N_sim = 20;
 p_bar = 0.01;
-model = 't_garch2_noS';
+model = 't_gas';
+% model = 't_garch2_noS';
 % model = 'arch';
 % model = 'WN';
 
 switch model
+    case 't_gas'
+        model_tex = 'GAS(1,1)-$t$';        
     case 't_garch2_noS'
         model_tex = 'GARCH(1,1)-$t$';
     case 'arch'
@@ -39,7 +42,7 @@ fprintf(FID, caption);
 label = ['\\label{tab:res_pmit_',model,'} \n'];
 fprintf(FID, label);
 fprintf(FID, '\\begin{tabular}{ccccccc}  \n');
-fprintf(FID, ' Horizon & & $VaR_{prelim}$ & $VaR_{pmit}$ & & $ES_{prelim}$ & $ES_{pmit}$ \\\\ \\hline \n');
+fprintf(FID, ' Horizon & & $VaR_{adapt}$ & $VaR_{pmit}$ & & $ES_{adapt}$ & $ES_{pmit}$ \\\\ \\hline \n');
 
 ii = 0;
 for h = horizons
@@ -148,7 +151,7 @@ fprintf(FID, caption);
 label = ['\\label{tab:res_algos_',model,'} \n'];
 fprintf(FID, label);
 fprintf(FID, '\\begin{tabular}{ccccccccccc}  \n');
-fprintf(FID, ' H & & $VaR_{direct}$ & $VaR_{prelim}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{direct}$ & $ES_{prelim}$ & $ES_{mit}$ & $ES_{pmit}$ \\\\ \\hline \n');
+fprintf(FID, ' H & & $VaR_{naive}$ & $VaR_{adapt}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{adapt}$ & $ES_{mit}$ & $ES_{pmit}$ \\\\ \\hline \n');
 
 for h = horizons
     VaR_direct = NaN;
@@ -205,6 +208,8 @@ switch model
         param = '\alpha';
     case 't_garch'
         param = '\theta';
+    case 't_gas'
+        param = '\theta';
 end
 h='10';
 name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -240,6 +245,10 @@ fprintf(FID, '\\end{tabular} \n');
 fprintf(FID, '\\end{table} \n');
 fclose(FID);
 
+%% Time-Precision
+save_on = true;
+H = 10;
+Plot_time_precision(model, save_on, H, p_bar, N_sim, M)
 
 %% Box Plots
 for ii=1:3

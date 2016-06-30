@@ -20,7 +20,7 @@ algo = 'Prelim';
 
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for MitISEM
 cont1 = MitISEM_Control;
@@ -35,7 +35,7 @@ M = 10000;
 BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
-H = 20;
+H = 10;
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
@@ -96,9 +96,9 @@ end
 
 % If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
 kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
-y_predict = @(draw) predict_t_gas_new(draw(:,1:d), y, H, draw(:,d+1:end));
+y_predict = @(draw) predict_t_gas_new(draw(:,1:DD), y, H, draw(:,DD+1:end));
 tic
-[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
+[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, DD);
 time_bigdraw = toc;
  
 if save_on

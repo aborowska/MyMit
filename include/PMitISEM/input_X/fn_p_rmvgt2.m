@@ -1,4 +1,4 @@
-function [theta, lnk] = fn_p_rmvgt2(N, pmit, d, partition, kernel, fn_const_X, fn_input_X)
+function [theta, lnk, input_X] = fn_p_rmvgt2(N, pmit, d, partition, kernel, fn_const_X, fn_input_X)
 % sampling from mixture of multivariate t densities
 % with the parameter vector of size d divided into ordered subsets
 % the mean may depend on the matrix X being a function of data y 
@@ -36,6 +36,7 @@ function [theta, lnk] = fn_p_rmvgt2(N, pmit, d, partition, kernel, fn_const_X, f
         end
     end
     
+    lnk = [];
   	if isa(kernel, 'function_handle')
         % lnk - N vector of log-kernel evaluations at draws
         fprintf('\n'); 

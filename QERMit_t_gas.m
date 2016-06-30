@@ -118,7 +118,7 @@ end
 kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
 y_predict = @(draw) predict_t_gas_new(draw(:,1:d), y, H, draw(:,d+1:end));
 tic
-[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
+[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, DD);
 time_bigdraw = toc;
  
 if save_on

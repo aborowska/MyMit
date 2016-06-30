@@ -137,7 +137,10 @@ if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_prelim','ES_prelim','mit1','accept','draw_hl','w_hl','lnk_hl','pmit','CV_mix','CV')
 end
-
+pmit = pmit_adapt;
+pmit = pmit_step2;
+pmit = pmit_step2_up;
+pmit = pmit_step3;
 %% VaR with PMit
 for sim = 1:N_sim   
     fprintf('\nVaR IS iter: %d\n',sim)
@@ -174,7 +177,20 @@ for sim = 1:N_sim
     ES_IS(sim,1) = IS_estim(1,2);   
   
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_IS(sim,1), model, algo);  
-end      
+end
+
+VaR_IS_adapt = VaR_IS;
+ES_IS_adapt = ES_IS;
+
+VaR_IS_step2 = VaR_IS;
+ES_IS_step2 = ES_IS;
+
+VaR_IS_step2_up = VaR_IS;
+ES_IS_step2_up = ES_IS;
+
+VaR_IS_step3 = VaR_IS;
+ES_IS_step3 = ES_IS;
+
 kernel = @(xx) posterior_arch_hl(xx, data, S, mean(VaR_prelim), true);
 
 y_pmit = predict_arch(draw_pmit(:,1), y_T, S, H, draw_pmit(:,2:H+1));  
