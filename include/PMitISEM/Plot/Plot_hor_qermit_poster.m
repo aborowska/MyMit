@@ -27,8 +27,10 @@ function Plot_hor_qermit_poster(y_H, y_pmit, sim, VaR_prelim, model, algo, save_
     plotTickLatex2D('FontSize',14);
     
     if save_on
-        name = ['figures/PMitISEM/',model,'_',algo,'_hor_qermit_H', num2str(H),'_poster.png'];
+%         name = ['figures/PMitISEM/',model,'_',algo,'_hor_qermit_H', num2str(H),'_poster.png'];
+        name = ['figures/PMitISEM/',model,'_',algo,'_hor_qermit_H', num2str(H),'_poster.eps'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%         print(name,'-dpng','-r0')
+        print(name,'-depsc','-r0')
     end
 end

@@ -7,7 +7,7 @@ RandStream.setGlobalStream(s);
 
 addpath(genpath('include/'));
 plot_on = true;
-save_on = true;
+save_on = false;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -47,7 +47,7 @@ time_mit = zeros(2,1);
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 40; % forecast horizon
+H = 10; % forecast horizon
 p_bar = 0.01;
 
 %% PRELIM & BIG DRAW
@@ -57,7 +57,7 @@ load(name);
 % WEIGHTS to initialise MitISEM
 % future disturbances are generated from the target thus have weights 1
 % log kernel evaluation - only for the parameter draws
-kernel = @(xx) posterior_debug(xx, y, a, b, true);
+kernel = @(xx) posterior_WN(xx, y, a, b, true);
 lnk_hl = kernel(draw_hl(:,1)); 
 % log candidate evaluation
 lnd_hl = dmvgt(draw_hl(:,1), mit1, true, GamMat);
@@ -81,8 +81,8 @@ mit_hl.p = 1;
 % mu_init = mu_hl;
 % mit_init = mit_hl;
  
-kernel_init = @(x) - posterior_debug_hl(x, y, a, b, mean(VaR_prelim), true); 
-kernel = @(x) posterior_debug_hl(x, y, a, b, mean(VaR_prelim), true); 
+kernel_init = @(x) - posterior_WN_hl(x, y, a, b, mean(VaR_prelim), true); 
+kernel = @(x) posterior_WN_hl(x, y, a, b, mean(VaR_prelim), true); 
 tic
 if (H <= 100)
     [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
@@ -96,7 +96,7 @@ if save_on
     save(name,'mit2','summary2')
 end
 
-% kernel_init = @(x) - posterior_debug(x, y, a, b, true);
+% kernel_init = @(x) - posterior_WN(x, y, a, b, true);
 % [mu, Sigma] = fn_initopt(kernel_init, sigma_init);
 % mit_direct = struct('mu',mu,'Sigma',Sigma,'p',1,'df',5);
 
@@ -115,7 +115,7 @@ for sim = 1:N_sim
     draw_opt = [draw1; draw2];
 
     %% IS weights
-    kernel = @(x) posterior_debug(x, y, a, b, true);
+    kernel = @(x) posterior_WN(x, y, a, b, true);
     lnk_opt = kernel(draw_opt(:,1));
 
     kernel = @(aa) - 0.5*(log(2*pi) + aa.^2);

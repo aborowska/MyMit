@@ -51,7 +51,8 @@ figure(1234)
     if save_on
         name = ['figures/PMitISEM/',model,'_VaR_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'_poster.png'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%             print(name,'-dpng','-r0')
+            print(name,'-depsc','-r0')
     end
     
     
@@ -72,7 +73,8 @@ figure(6789)
     if save_on
         name = ['figures/PMitISEM/',model,'_ES_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'_poster.png'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%             print(name,'-dpng','-r0')
+            print(name,'-depsc','-r0')
     end
     
 % ERRORBARS   
@@ -100,7 +102,8 @@ figure(1111)
     if save_on
         name = ['figures/PMitISEM/',model,'_VaR_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%             print(name,'-dpng','-r0')
+            print(name,'-depsc','-r0')
     end
     
     
@@ -128,5 +131,6 @@ figure(2222)
     if save_on
         name = ['figures/PMitISEM/',model,'_ES_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%             print(name,'-dpng','-r0')
+            print(name,'-depsc','-r0')
     end

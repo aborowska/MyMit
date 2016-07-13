@@ -1,0 +1,30 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Computation time-precision trade-off for the 250-days ahead  $99\%$ VaR and ES evaluation in GAS(1,1)-$t$ model.} 
+\label{tab:time_precision_t_gas} 
+\begin{tabular}{lcccc}  
+  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}  \\ \cline{2-5} 
+  & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
+Total time & 15.92 s & 179.07 s &  NaN s & 4289.75 s \\ 
+Time construction candidate & 0.77 s & 163.07 s &  NaN s & 4242.32 s \\ 
+ (including $q_{1}$) &   &  (163.07 s) & (163.07 s) & (163.07 s) \\ 
+ (including $q_{2}$) &   &  & ( NaN s) & (4079.24 s) \\ 
+[Initialisation for $q_{2}$]&   &   & [1561.96 s] & [1561.96 s] \\ 
+Time sampling & 15.15 s & 16.00 s &  NaN s & 47.44 s  \\  
+Number of draws used & 10000 & 10000 & 10000 & 10000 \\ 
+Time per draw & 0.02 ms & 0.02 ms &  NaN ms & 0.05 ms \\ \hline 
+\multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
+Time: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 1500.01 s & 1500.01 s &  NaN s & 1500.01 s \\ 
+\hspace{1cm} for $ES$ & 1500.01 s & 1500.01 s &  NaN s & 1500.01 s \\ 
+Draws: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 989460 & 835845  &    NaN  & -578088  \\ 
+\hspace{1cm} for $ES$ & 989460 & 835845  &    NaN   & -578088  \\ 
+\hline 
+Slope: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 0.10 & 0.08  &  NaN  & 0.15  \\ 
+\hspace{1cm} for $ES$ & 0.0460 & 0.06  &  NaN   & 0.11  \\  \hline 
+\end{tabular} 
+\end{table} 
+} 

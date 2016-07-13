@@ -32,9 +32,9 @@ BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
 
-H = 20; % forecast horizon
+H = 10; % forecast horizon
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont1 = MitISEM_Control;

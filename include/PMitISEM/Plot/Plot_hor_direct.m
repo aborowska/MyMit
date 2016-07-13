@@ -9,20 +9,23 @@ function Plot_hor_direct(y_H, y_T, VaR_prelim, model, save_on)
     y_H = [y_T*ones(M,1),ret];
     clear ret
   
+%     ind_red = (y_H(1:1000,H+1) <= VaR_prelim);
+    ind = isfinite(y_H(:,H+1)) & (all(abs(y_H)<(-2)*VaR_prelim,2));  
+    y_H = y_H(ind,:);
     ind_red = (y_H(1:1000,H+1) <= VaR_prelim);
-
-    figure(10)
+    
+    ff = figure(10);
     set(gcf,'units','normalized','outerposition',[0.1 0.1 0.3 0.4]);
 %     set(gcf,'defaulttextinterpreter','latex');
 
     hold on
-    plot(0:H,y_H(~ind_red,:)','k')
-    plot(0:H,y_H(ind_red,:)','r')
+    plot(0:H,y_H(~ind_red,:)','k','LineWidth',2)
+    plot(0:H,y_H(ind_red,:)','r','LineWidth',2)
     plot(0:H,VaR_prelim*ones(1,1+H),'m','LineWidth',2) 
     hold off
     
-    xlabel('Forecast horizon') % x-axis label
-    ylabel('Cumulative return') % y-axis label
+    xlabel('Forecast horizon','FontSize', 12) % x-axis label
+    ylabel('Cumulative return','FontSize', 12) % y-axis label
 
 %     GP = get(gca, 'Position');
     GO = get(gca, 'OuterPosition');
@@ -42,7 +45,7 @@ function Plot_hor_direct(y_H, y_T, VaR_prelim, model, save_on)
     set(gca, 'YTick', tick_sort); 
     set(gca,'YTickLabel',new_label)   
     
-    plotTickLatex2D;
+    plotTickLatex2D('FontSize',12);
     
     XL = get(gca,'XLabel');
     XLp = get(XL,'Position');
@@ -54,8 +57,19 @@ function Plot_hor_direct(y_H, y_T, VaR_prelim, model, save_on)
     set(YL,'Position',YLp)
     
     if save_on
-        name = ['figures/PMitISEM/',model,'_hor_direct_H', num2str(H),'.png'];
+%         name = ['figures/PMitISEM/',model,'_hor_direct_H', num2str(H),'.png'];
+        name = ['figures/PMitISEM/',model,'_hor_direct_H', num2str(H),'.eps'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+        print_fail = 1;
+        while print_fail 
+            try 
+%                 print(name,'-dpng','-r0')
+%                 print(name,'-depsc','-r0')                    
+                print(ff,name,'-depsc','-r0')
+                print_fail = 0;
+            catch
+                print_fail = 1;
+            end
+        end
     end
 end

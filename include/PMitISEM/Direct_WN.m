@@ -7,7 +7,7 @@ RandStream.setGlobalStream(s);
 
 addpath(genpath('include/'));
 plot_on = true;
-save_on = true;
+save_on = false;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -50,7 +50,7 @@ H = 10; % forecast horizon
 p_bar = 0.01;
 
 
-kernel_init = @(x) - posterior_debug(x, y, a, b, true);
+kernel_init = @(x) - posterior_WN(x, y, a, b, true);
 tic
 [mu, Sigma] = fn_initopt(kernel_init, sigma_init);
 mit_direct = struct('mu',mu,'Sigma',Sigma,'p',1,'df',cont_direct.mit.dfnc);
@@ -59,7 +59,7 @@ time_direct(1,1)= toc;
 tic
 for sim = 1:N_sim
     fprintf('\nDirect sim = %i.\n', sim);
-    kernel = @(x) posterior_debug(x, y, a, b, true);
+    kernel = @(x) posterior_WN(x, y, a, b, true);
     [sigma_direct, accept_direct(sim,1)] = Mit_MH(M+BurnIn, kernel, mit_direct, GamMat);
     fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept_direct(sim,1), model, algo);
     sigma_direct = sigma_direct(BurnIn+1:M+BurnIn,:);

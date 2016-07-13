@@ -1,4 +1,5 @@
 addpath(genpath('include/'));
+close all
 
 v_new = ver('symbolic');
 v_new = v_new.Release;
@@ -34,38 +35,49 @@ set(gcf,'defaulttextinterpreter','latex');
 subplot(2,1,1)
 hold on
 % plot(x,y)
-plot(x,y,'LineWidth',3)
+% plot(x,y,'LineWidth',3)
+plot(x,y,'LineWidth',2)
 % scatter(VaR, 0,'MarkerFaceColor','red')
 scatter(VaR, 0,100,'MarkerEdgeColor','r','MarkerFaceColor','r')
 hold off
 % title('Profit/loss density and $$99\%$$ VaR')
-title('Profit/loss density and $$99\%$$ VaR', 'FontSize', 14)
+% title('Profit/loss density and $$99\%$$ VaR', 'FontSize', 14)
+title('Profit/loss density and $$99\%$$ VaR', 'FontSize', 12)
+
 if v_new
     set(gca,'TickLabelInterpreter','latex')
 else
 %     plotTickLatex2D
-    plotTickLatex2D('FontSize',14);
+%     plotTickLatex2D('FontSize',14);
+    plotTickLatex2D('FontSize',12);
 end
 
 
 subplot(2,1,2)
 hold on
 % plot(x,y_opt)
-plot(x,y_opt,'LineWidth',3)
+% plot(x,y_opt,'LineWidth',3)
+plot(x,y_opt,'LineWidth',2)
 % scatter(VaR, 0,'MarkerFaceColor','red')
 scatter(VaR, 0,100,'MarkerEdgeColor','r','MarkerFaceColor','r')
 hold off
 % title('Optimal IS candidate')
-title('Optimal IS candidate', 'FontSize', 14)
+% title('Optimal IS candidate', 'FontSize', 14)
+title('Optimal IS candidate', 'FontSize', 12)
 
 if v_new
     set(gca,'TickLabelInterpreter','latex')
 else
     %     plotTickLatex2D
-    plotTickLatex2D('FontSize',14);
+%     plotTickLatex2D('FontSize',14);
+    plotTickLatex2D('FontSize',12);
 end
 % name = 'figures/other/optimal_IS_cand.png';
-name = 'figures/other/optimal_IS_cand_poster.png';
+% name = 'figures/other/optimal_IS_cand_poster.png';
+% name = 'figures/other/optimal_IS_cand_poster.eps';
+name = 'figures/other/optimal_IS_cand.eps';
+
 fig = gcf;
 fig.PaperPositionMode = 'auto';
-print(name,'-dpng','-r0')
+% print(name,'-dpng','-r0')
+print(name,'-depsc','-r0')

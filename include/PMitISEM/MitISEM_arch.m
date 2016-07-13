@@ -32,11 +32,11 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 100; % forecast horizon
+H = 10; % forecast horizon
 % d = H+1; % dimension of theta
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont2 = MitISEM_Control;
@@ -92,7 +92,7 @@ else
 %     cont2.mit.Hmax = 10;
     [mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_hl, cont2, GamMat);
 end
-time_mit(1,1) = time_mit(1,1) + toc;
+time_mit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];

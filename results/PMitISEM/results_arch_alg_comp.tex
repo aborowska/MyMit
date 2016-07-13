@@ -1,0 +1,22 @@
+\begin{table}[h] 
+\centering 
+\caption{Results for the $99\%$ VaR and ES, in the ARCH(1,1) model, based on $N=10000$ candidate draws and $20$ replications to obtain NSEs.} 
+\label{tab:res_algos_arch} 
+\begin{tabular}{ccccccccccc}  
+ H & & $VaR_{naive}$ & $VaR_{adapt}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{adapt}$ & $ES_{mit}$ & $ES_{pmit}$ \\ \hline 
+10 & & -10.4550 & -10.3523 & -10.3937 & -10.3759 & & -12.1103 & -11.9621 & -12.1270 & -12.0683  \\ 
+ & & (0.1470) & (0.2065) & (0.0423) & (0.0231) & & (0.2354) & (0.2117) & (0.0630) & (0.0703)   \\ [1ex] 
+20 & & -13.3881 & -13.3238 & -13.4187 & -13.4241 & & -15.2874 & -15.2458 & -15.3917 & -15.3965  \\ 
+ & & (0.2565) & (0.1790) & (0.0428) & (0.0334) & & (0.3599) & (0.2727) & (0.1062) & (0.1001)   \\ [1ex] 
+40 & & -17.7687 & -17.8440 & -17.7621 & -17.7631 & & -20.0907 & -20.2003 & -20.1133 & -20.1596  \\ 
+ & & (0.2786) & (0.2974) & (0.0938) & (0.0519) & & (0.2734) & (0.3547) & (0.1164) & (0.0875)   \\ [1ex] 
+100 & & -25.9948 & -26.0558 &    NaN & -26.1095 & & -29.0322 & -29.3261 &    NaN & -29.2389  \\ 
+ & & (0.3694) & (0.4645) & (   NaN) & (0.1215) & & (0.4404) & (0.4778) & (   NaN) & (0.2055)   \\ [1ex] 
+250 & & -37.5010 & -37.6557 &    NaN & -37.5432 & & -41.5885 & -41.6701 &    NaN & -41.5268  \\ 
+ & & (0.3788) & (0.4396) & (   NaN) & (0.3579) & & (0.4451) & (0.4729) & (   NaN) & (0.3808)   \\ [1ex] 
+\hline 
+\end{tabular} 
+\raggedright 
+
+\vspace{5pt}\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.} 
+\end{table} 

@@ -13,17 +13,17 @@ function Plot_hor_pmit(y_pmit,y_T, VaR_prelim, model, algo, save_on)
     y_pmit = y_pmit(ind,:);
     ind_red = (y_pmit(1:1000,H+1) <= mean(VaR_prelim));
 
-    figure(11)
+    ff = figure(11);
     set(gcf,'units','normalized','outerposition',[0.1 0.1 0.3 0.4]);
 %     set(gcf,'defaulttextinterpreter','latex');
 
     hold on
-    plot(0:H,y_pmit(~ind_red,:)','k')
-    plot(0:H,y_pmit(ind_red,:)','r')
+    plot(0:H,y_pmit(~ind_red,:)','k','LineWidth',2)
+    plot(0:H,y_pmit(ind_red,:)','r','LineWidth',2)
     plot(0:H,mean(VaR_prelim)*ones(1,1+H),'m','LineWidth',2) 
     hold off
-    xlabel('Forecast horizon') % x-axis label
-    ylabel('Cumulative return') % y-axis label
+    xlabel('Forecast horizon','FontSize', 12) % x-axis label
+    ylabel('Cumulative return','FontSize', 12) % y-axis label
     
 %     GP = get(gca, 'Position');
     GO = get(gca, 'OuterPosition');
@@ -42,7 +42,7 @@ function Plot_hor_pmit(y_pmit,y_T, VaR_prelim, model, algo, save_on)
     new_label = new_label(ind_tick,:);
     set(gca, 'YTick', tick_sort); 
     set(gca,'YTickLabel',new_label)
-    plotTickLatex2D;
+    plotTickLatex2D('FontSize',12);
 
     XL = get(gca,'XLabel');
     XLp = get(XL,'Position');
@@ -54,8 +54,19 @@ function Plot_hor_pmit(y_pmit,y_T, VaR_prelim, model, algo, save_on)
     set(YL,'Position',YLp)
     
     if save_on
-        name = ['figures/PMitISEM/',model,'_',algo,'_hor_pmit_H', num2str(H),'.png'];
+%         name = ['figures/PMitISEM/',model,'_',algo,'_hor_pmit_H', num2str(H),'.png'];
+        name = ['figures/PMitISEM/',model,'_hor_pmit_H', num2str(H),'.eps'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+        print_fail = 1;
+        while print_fail 
+            try 
+%                 print(name,'-dpng','-r0')
+%                 print(name,'-depsc','-r0')                    
+                print(ff,name,'-depsc','-r0')
+                print_fail = 0;
+            catch
+                print_fail = 1;
+            end
+        end
     end
 end

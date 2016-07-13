@@ -59,6 +59,7 @@ function Plot_hor_direct_poster(y_H, y_T, VaR_prelim, model, save_on)
     if save_on
         name = ['figures/PMitISEM/',model,'_hor_direct_H', num2str(H),'_poster.png'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%             print(name,'-dpng','-r0')
+            print(name,'-depsc','-r0')
     end
 end

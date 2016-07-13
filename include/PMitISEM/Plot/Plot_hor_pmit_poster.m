@@ -54,8 +54,10 @@ function Plot_hor_pmit_poster(y_pmit,y_T, VaR_prelim, model, algo, save_on)
 %     set(YL,'Position',YLp)
     
     if save_on
-        name = ['figures/PMitISEM/',model,'_',algo,'_hor_pmit_H', num2str(H),'_poster.png'];
+%         name = ['figures/PMitISEM/',model,'_',algo,'_hor_pmit_H', num2str(H),'_poster.png'];
+        name = ['figures/PMitISEM/',model,'_',algo,'_hor_pmit_H', num2str(H),'_poster.eps'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+%         print(name,'-dpng','-r0')
+        print(name,'-depsc','-r0')
     end
 end

@@ -1,0 +1,24 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Computation time-precision trade-off for the 10-days ahead  $99\%$ VaR and ES evaluation in GARCH(1,1)-$t$ model.} 
+\label{tab:time_precision_t_garch2_noS} 
+\begin{tabular}{lcccc}  
+  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}  \\ \cline{2-5} 
+  & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
+Total time & 14.96 s & 101.64 s & 172.27 s & 221.10 s \\ 
+Time construction candidate & 1.23 s & 87.67 s & 159.64 s & 207.84 s \\ 
+ (including $q_{2}$) &   &  & (71.98 s) & (120.17 s) \\ 
+Time sampling & 13.73 s & 13.97 s & 12.62 s & 13.26 s  \\  
+Number of draws used & 10000 & 10000 & 10000 & 10000 \\ \hline 
+\multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
+Time: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 700.01 s & 700.01 s & 232.58 s & 222.37 s \\ 
+\hspace{1cm} for $ES$ & 700.01 s & 700.01 s & 620.50 s & 350.90 s \\ 
+Draws: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 509022 & 438287  &  57780  &  10961  \\ 
+\hspace{1cm} for $ES$ & 509022 & 438287  & 365089   & 107924  \\ 
+\hline 
+\end{tabular} 
+\end{table} 
+} 

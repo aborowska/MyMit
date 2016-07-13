@@ -31,12 +31,12 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 40; % forecast horizon
+H = 10; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);

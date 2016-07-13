@@ -1,0 +1,24 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Computation time-precision trade-off for the 10-days ahead  $99\%$ VaR and ES evaluation in ARCH(1,1) model.} 
+\label{tab:time_precision_arch} 
+\begin{tabular}{lcccc}  
+  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}  \\ \cline{2-5} 
+  & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
+Total time & 1.06 s & 5.62 s & 7.73 s & 37.10 s \\ 
+Time construction candidate & 0.37 s & 4.92 s & 7.08 s & 36.08 s \\ 
+ (including $q_{2}$) &   &  & (2.15 s) & (31.15 s) \\ 
+Time sampling & 0.69 s & 0.69 s & 0.66 s & 1.02 s  \\  
+Number of draws used & 10000 & 10000 & 10000 & 10000 \\ \hline 
+\multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
+Time: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 23.21 s & 50.45 s & 8.89 s & 36.92 s \\ 
+\hspace{1cm} for $ES$ & 58.94 s & 52.77 s & 11.09 s & 43.84 s \\ 
+Draws: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 331939 & 655135  &  27625  &   8264  \\ 
+\hspace{1cm} for $ES$ & 851254 & 688520  &  61122   &  75977  \\ 
+\hline 
+\end{tabular} 
+\end{table} 
+} 

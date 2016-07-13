@@ -1,0 +1,22 @@
+\begin{table}[h] 
+\centering 
+\caption{Results for the $99\%$ VaR and ES, in the GAS(1,1)-$t$ model, based on $N=10000$ candidate draws and $20$ replications to obtain NSEs.} 
+\label{tab:res_algos_t_gas} 
+\begin{tabular}{ccccccccccc}  
+ H & & $VaR_{naive}$ & $VaR_{adapt}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{adapt}$ & $ES_{mit}$ & $ES_{pmit}$ \\ \hline 
+10 & & -8.2206 & -8.1934 & -8.1859 & -8.1764 & & -9.7714 & -9.7370 & -9.7521 & -9.7536  \\ 
+ & & (0.1451) & (0.1366) & (0.0551) & (0.0264) & & (0.2494) & (0.2344) & (0.1001) & (0.0563)   \\ [1ex] 
+20 & & -11.1933 & -11.2609 & -11.1919 & -11.2044 & & -13.4102 & -13.4437 & -13.4319 & -13.3886  \\ 
+ & & (0.2005) & (0.2637) & (0.0831) & (0.0488) & & (0.2222) & (0.2343) & (0.1268) & (0.1119)   \\ [1ex] 
+40 & & -15.1103 & -15.3160 &    NaN & -15.2166 & & -18.1460 & -18.4705 &    NaN & -18.3460  \\ 
+ & & (0.3783) & (0.3107) & (   NaN) & (0.0813) & & (0.5381) & (0.4341) & (   NaN) & (0.1596)   \\ [1ex] 
+100 & & -22.1018 & -22.5187 &    NaN & -22.1524 & & -27.3554 & -27.6891 &    NaN & -27.3496  \\ 
+ & & (0.5127) & (0.4456) & (   NaN) & (0.1258) & & (0.8185) & (0.6695) & (   NaN) & (0.3631)   \\ [1ex] 
+250 & & -31.1840 & -31.0330 &    NaN & -30.5711 & & -39.0111 & -39.2088 &    NaN & -38.6292  \\ 
+ & & (0.8193) & (0.8712) & (   NaN) & (0.3791) & & (1.1983) & (1.0200) & (   NaN) & (0.4316)   \\ [1ex] 
+\hline 
+\end{tabular} 
+\raggedright 
+
+\vspace{5pt}\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.} 
+\end{table} 

@@ -1,15 +1,18 @@
-function Beta = Plot_beta(pmit,model,H,save_on,version)
+function [Beta, Sigma, nu] = Plot_beta(pmit,model,H,save_on,version)
     SS = size(pmit,2); 
     r = size(pmit(2).mu,2);
     Beta = zeros(SS,r);
-    
+    Sigma = zeros(SS-1,1);
+    nu = zeros(SS-1,1);
     for ii = 2:SS
         Beta(ii-1,:) = pmit(ii).p*pmit(ii).mu;
+        Sigma(ii-1,1) = pmit(ii).p*pmit(ii).Sigma;
+        nu(ii-1,1) = pmit(ii).p*pmit(ii).df';
     end
     Beta(SS,:) = Beta(SS-1,:);
     
     if ((nargin == 4) || (version == 1))    
-        figure(9) 
+        ff = figure(9) ;
         set(gcf,'units','normalized','outerposition',[0.1 0.1 0.3 0.5]);   
         S = stairs(2:SS+1,Beta);
         set(S(1),'Color','b','LineWidth',2)
@@ -39,7 +42,7 @@ function Beta = Plot_beta(pmit,model,H,save_on,version)
         end
     
     elseif (version == 2)
-        figure(9) 
+        ff = figure(9);
         set(gcf,'units','normalized','outerposition',[0.1 0.1 0.3 0.4]);   
         S = stairs(2:SS+1,Beta(:,2));
         set(S(1),'Color','r','LineWidth',2)
@@ -64,9 +67,20 @@ function Beta = Plot_beta(pmit,model,H,save_on,version)
     end
     
     if save_on
-        name = ['figures/PMitISEM/',model,'_beta_H', num2str(H),'.png'];
+%         name = ['figures/PMitISEM/',model,'_beta_H', num2str(H),'.png'];
+        name = ['figures/PMitISEM/',model,'_beta_H', num2str(H),'.eps'];
         set(gcf,'PaperPositionMode','auto');
-        print(name,'-dpng','-r0')
+        print_fail = 1;
+        while print_fail 
+            try 
+%                     print(name,'-dpng','-r0')
+%                     print(name,'-depsc','-r0')
+                print(ff,name,'-depsc','-r0')
+                print_fail = 0;
+            catch
+                print_fail = 1;
+            end
+        end
     end
         
 end

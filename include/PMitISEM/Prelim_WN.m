@@ -7,7 +7,7 @@ RandStream.setGlobalStream(s);
 
 addpath(genpath('include/'));
 plot_on = true;
-save_on = true;
+save_on = false;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -42,7 +42,7 @@ N_sim = 20;
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 40; % forecast horizon
+H = 10; % forecast horizon
 p_bar = 0.01;
 % d = H+1; % dimension of theta
 
@@ -52,8 +52,8 @@ accept = zeros(N_sim,1);
 time_prelim = zeros(2,1);
 
 % Construct the approximation to the parameter posterior
-kernel_init = @(x) - posterior_debug(x, y, a, b, true);
-kernel = @(x) posterior_debug(x, y, a, b, true);
+kernel_init = @(x) - posterior_WN(x, y, a, b, true);
+kernel = @(x) posterior_WN(x, y, a, b, true);
 tic
 [mit1, summary1] = MitISEM_new(kernel_init, kernel, sigma_init, cont1, GamMat);
 time_prelim(1,1) = toc;
@@ -63,7 +63,7 @@ time_prelim(1,1) = toc;
 tic
 for sim = 1:N_sim 
     fprintf('\nVaR prelim iter: %d\n',sim)
-    kernel = @(x) posterior_debug(x, y, a, b, true);
+    kernel = @(x) posterior_WN(x, y, a, b, true);
     [sigma1, accept(sim,1)] = Mit_MH(M+BurnIn, kernel, mit1, GamMat);
     fprintf('(%s) MH acceptance rate: %4.2f. \n', model, accept(sim,1));
     sigma1 = sigma1((BurnIn+1):(M+BurnIn));
@@ -93,7 +93,7 @@ end
 
 %% Generate many high loss draws to initialise the HL density approximation
 % If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
-kernel = @(xx) posterior_debug(xx, y, a, b, true);
+kernel = @(xx) posterior_WN(xx, y, a, b, true);
 y_predict = @(draw) bsxfun(@times,draw(:,2:end),sqrt(draw(:,1))); 
 % cont1.mit.N = 10000; % the desired number of high-loss draws         
 tic

@@ -1,4 +1,4 @@
-function [y_hp, eps_hp] = predict_t_garch_noS(theta, y_T, S, h_T, hp, eps)
+function [y_hp, eps_hp] = predict_t_garch_noS(theta, y_T, h_T, hp, eps)
     [N ,~] = size(theta);
     omega = theta(:,1);
     alpha = theta(:,2);
@@ -8,7 +8,7 @@ function [y_hp, eps_hp] = predict_t_garch_noS(theta, y_T, S, h_T, hp, eps)
       
     rho = (nu-2)./nu;
     
-    if (nargin == 5)
+    if (nargin == 4)
 %         fprintf('hp = %i \n',hp);
         eps_hp = trnd(repmat(nu,1,hp));
     else %(with given eps)
@@ -26,4 +26,5 @@ function [y_hp, eps_hp] = predict_t_garch_noS(theta, y_T, S, h_T, hp, eps)
          y_hp(:,jj) = mu(:,1) + sqrt(rho(:,1).*h(:,jj)).*eps_hp(:,jj-1);
     end
     y_hp = y_hp(:,2:hp+1);
+%     y_hp = predict_t_garch_noS_mex(theta, y_T, h_T, eps_hp);
 end

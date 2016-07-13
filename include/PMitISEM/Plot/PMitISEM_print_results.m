@@ -1,11 +1,14 @@
 clear all 
 close all
+addpath(genpath('include/'));
 
-
-M = 10000;
+save_on = 1;
+% H = 100;
+M = 10000; BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
-model = 't_gas';
+
+% model = 't_gas';
 % model = 't_garch2_noS';
 % model = 'arch';
 % model = 'WN';
@@ -20,7 +23,7 @@ switch model
     case 'WN'
         model_tex = 'White Noise';
 end
-horizons = {'10','20','40','100','250'} ;
+horizons = [10,20,40,100,250] ;
 algos = {'Direct','Prelim','MitISEM','PMitISEM'};
 
 VaR_mat_prelim = zeros(2,5);
@@ -28,8 +31,22 @@ VaR_mat_pmit = zeros(2,5);
 ES_mat_prelim = zeros(2,5);
 ES_mat_pmit = zeros(2,5);
 
+%% Boxplot Combine
+for h = horizons
+    Boxplot_Combine(model, h, N_sim, p_bar, save_on)
+end
+ Boxplot_Combine(model, H, N_sim, p_bar, save_on)
+
+for h = horizons
+    name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    load(name,'VaR_prelim','ES_prelim')
+    name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    load(name,'VaR_pmit','ES_pmit')
+    Boxplot_PMitISEM(VaR_prelim,VaR_pmit,ES_prelim,ES_pmit,model,'PMitISEM',h,N_sim,true);
+end
+
 %% VaR results PMitISEM all H
-fname = ['results/PMitISEM/results_PMitISEM_',model,'.tex'];
+fname = ['results/PMitISEM/results_',model,'_pmitisem_comp.tex'];
 FID = fopen(fname, 'w+');
 fprintf(FID, '\\begin{table}[h] \n');
 fprintf(FID, '\\centering \n');
@@ -51,10 +68,10 @@ for h = horizons
     VaR_pmit = NaN;
     ES_prelim = NaN;
     ES_pmit = NaN;
-    fprintf(FID, '$%s$ & & ',char(h));
-    name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',char(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    fprintf(FID, '$%s$ & & ',num2str(h));
+    name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     load(name,'VaR_prelim','ES_prelim')
-        name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',char(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     try
         load(name,'VaR_pmit','ES_pmit')
     catch
@@ -70,75 +87,16 @@ for h = horizons
     fprintf(FID, '(%6.4f) & & ',std(VaR_pmit)); VaR_mat_pmit(2,ii) = std(VaR_pmit);
     fprintf(FID, '(%6.4f) & ' ,std(ES_prelim)); ES_mat_prelim(2,ii) = std(ES_prelim);
     fprintf(FID, '(%6.4f)   \\\\ [1ex] \n',std(ES_pmit));  ES_mat_pmit(2,ii) = std(ES_pmit);
+    
 end 
 fprintf(FID, '\\hline \n');
 fprintf(FID, '\\end{tabular} \n');
 fprintf(FID, '\\end{table} \n');
 fclose(FID);
 
-
-%% 
-ii = 0;
-for h = horizons
-    ii = ii+1;
-    
-    VaR_prelim = NaN;
-    VaR_pmit = NaN;
-    ES_prelim = NaN;
-    ES_pmit = NaN;   
-    
-    name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',char(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    load(name,'VaR_prelim','ES_prelim')
-    try
-        name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',char(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-        load(name,'VaR_pmit','ES_pmit')
-    catch
-
-    end
- 
-    VaR_mat_prelim(1,ii) = mean(VaR_prelim);
-    VaR_mat_pmit(1,ii) = mean(VaR_pmit);
-    ES_mat_prelim(1,ii) = mean(ES_prelim);
-    ES_mat_pmit(1,ii) = mean(ES_pmit);
-
-    VaR_mat_prelim(2,ii) = std(VaR_prelim);
-    VaR_mat_pmit(2,ii) = std(VaR_pmit);
-    ES_mat_prelim(2,ii) = std(ES_prelim);
-    ES_mat_pmit(2,ii) = std(ES_pmit);
-end 
-
-hor = [10,20,40,100,250];
-figure(90)
-plot(hor, VaR_mat_pmit(1,:),'-or')
-hold on
-plot(hor, VaR_mat_pmit(1,:) + VaR_mat_pmit(2,:),'--r')
-plot(hor, VaR_mat_pmit(1,:) - VaR_mat_pmit(2,:),'--r')
-% hold off
-
-plot(hor, VaR_mat_prelim(1,:),'-ob')
-% hold on
-plot(hor, VaR_mat_prelim(1,:) + VaR_mat_prelim(2,:),'--b')
-plot(hor, VaR_mat_prelim(1,:) - VaR_mat_prelim(2,:),'--b')
-hold off
-
-
-figure(91)
-plot(hor, ES_mat_pmit(1,:),'-or')
-hold on
-plot(hor, ES_mat_pmit(1,:) + ES_mat_pmit(2,:),'--r')
-plot(hor, ES_mat_pmit(1,:) - ES_mat_pmit(2,:),'--r')
-% hold off
-
-plot(hor, ES_mat_prelim(1,:),'-ob')
-% hold on
-plot(hor, ES_mat_prelim(1,:) + ES_mat_prelim(2,:),'--b')
-plot(hor, ES_mat_prelim(1,:) - ES_mat_prelim(2,:),'--b')
-hold off
-
-
 %% VaR results diff algo 
 
-fname = ['results/PMitISEM/results_algos_',model,'.tex'];
+fname = ['results/PMitISEM/results_',model,'_alg_comp.tex'];
 FID = fopen(fname, 'w+');
 fprintf(FID, '\\begin{table}[h] \n');
 fprintf(FID, '\\centering \n');
@@ -163,10 +121,10 @@ for h = horizons
     ES_mit = NaN;
     ES_pmit = NaN;
     
-    fprintf(FID, '%s & & ',char(h));
+    fprintf(FID, '%s & & ',num2str(h));
     for algo = algos
         try
-            name = ['results/PMitISEM/',model,'_',char(algo),'_',num2str(p_bar),'_H',char(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+            name = ['results/PMitISEM/',model,'_',char(algo),'_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
             load(name)
         catch
 
@@ -200,16 +158,13 @@ fprintf(FID, '\\end{table} \n');
 fclose(FID);
 
 %% Pmit print
-fname = ['results/PMitISEM/pmit_',model,'.tex'];
-switch model
-    case 'WN'
-        param = '\sigma^{2}';
-    case 'arch'
-        param = '\alpha';
-    case 't_garch'
-        param = '\theta';
-    case 't_gas'
-        param = '\theta';
+fname = ['results/PMitISEM/results_',model,'_pmit.tex'];
+if strcmp(model,'WN')
+    param = '\sigma^{2}';
+elseif strcmp(model,'arch')
+    param = '\alpha';
+else %'t_garch','t_gas'
+    param = '\theta';
 end
 h='10';
 name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -250,35 +205,63 @@ save_on = true;
 H = 10;
 Plot_time_precision(model, save_on, H, p_bar, N_sim, M)
 
-%% Box Plots
-for ii=1:3
-    h = char(horizons(ii));
-    load(['results/PMitISEM/',model,'_0.01_H',h,'_VaR_results_Nsim20.mat'])
+%% Horizons
+H = 10;
+% model = 't_gas';
+% model = 't_garch2_noS';
+model = 'arch';
 
-    figure(ii*6) 
-    set(gcf,'units','normalized','outerposition',[0 0 0.3 0.4]);   
-    set(gcf,'defaulttextinterpreter','latex');
-    boxplot([VaR_prelim,VaR_IS],'labels',{'VaR prelim','VaR PMitISEM'})
-    lab = findobj(gca, 'type', 'text');
-    set(lab, 'Interpreter', 'latex');
-    plotTickLatex2D;
-    set(gca,'position',[0 0 1 1],'units','normalized')
-    name = ['figures/PMitISEM/',model,'_',num2str(p_bar),'_H', h,'_VaR_box_Nsim',num2str(N_sim),'.png'];
-    fig = gcf;
-    fig.PaperPositionMode = 'auto';
-    print(name,'-dpng','-r0')
- 
-    
-    figure(ii*7) 
-    set(gcf,'units','normalized','outerposition',[0 0 0.3 0.4]);   
-    set(gcf,'defaulttextinterpreter','latex');
-    boxplot([ES_prelim,ES_IS],'labels',{'ES prelim','ES PMitISEM'})
-    lab = findobj(gca, 'type', 'text');
-    set(lab, 'Interpreter', 'latex');
-    plotTickLatex2D;
-    set(gca,'position',[0 0 1 1],'units','normalized')
-    name = ['figures/PMitISEM/',model,'_',num2str(p_bar),'_H', h,'_ES_box_Nsim',num2str(N_sim),'.png'];
-    fig = gcf;
-    fig.PaperPositionMode = 'auto';
-    print(name,'-dpng','-r0')
-end
+x_gam = (0:0.00001:100)'+0.00001;
+GamMat = gamma(x_gam);
+switch model
+    case 't_gas'
+        y = csvread('GSPC_ret_tgarch.csv');
+        y = 100*y;
+        S = var(y); 
+        y_T = y(end);
+        hyper = 0.1;
+        fn_vol = @(xx) volatility_t_gas_mex(xx, y);
+        fn_predict = @(xx, vv) predict_t_gas(xx, y_T, vv, H);
+        fn_predict2 = @(xx, vv, zz) predict_t_gas(xx, y_T, vv, H, zz);
+
+        fn_const_X = @(xx) t_gas_hyper_const_X2(xx, y);
+        fn_input_X = @(xx) t_gas_hyper_input_X(xx, y);
+        kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
+        DD = 5;
+    case 't_garch2_noS'         
+        y = csvread('GSPC_ret_tgarch.csv');
+        y = 100*y;
+        S = var(y); 
+        y_T = y(end);
+        hyper = 0.1; 
+        fn_vol = @(xx) volatility_t_garch_noS_mex(xx, y, S);
+        fn_predict = @(xx,vv) predict_t_garch_noS(xx, y_T, S, vv, H);
+        fn_predict2 = @(xx,vv,zz) predict_t_garch_noS(xx, y_T, S, vv, H, zz);
+        fn_const_X = @(xx) t_garch_noS_const_X2(xx, y, S);
+        fn_input_X = @(xx) t_garch_noS_input_X(xx, y, S);          
+        kernel = @(xx) posterior_t_garch_noS_hyper_mex(xx, y, S, GamMat, hyper);
+        DD = 5;
+    case 'arch'
+        y = csvread('GSPC_ret.csv');
+        y = 100*y;
+        ind_arch = find(y<=-5.5, 1, 'last' );
+        y = y(1:ind_arch,1);
+        y = y - mean(y);
+        S = var(y);
+        y_T = y(end);
+        fn_vol = @(xx) randn(M,H); 
+        fn_predict = @(xx,vv) predict_arch(xx, y_T, S, H, vv);
+        fn_predict2 = @(xx,aa,zz) predict_arch(xx, y_T, S, H, zz);
+
+        fn_const_X = @(xx) arch_const_X(xx, y_T, S);
+        fn_input_X = @(xx) xx;
+        kernel = @(xx) posterior_arch(xx, y, S, true);
+        DD = 1;
+    case 'WN'          
+        fn_vol = @(xx) randn(M,H); 
+        fn_predict = @(xx,aa,zz) bsxfun(@times,vv,sqrt(zz)); 
+        DD = 1;
+end 
+
+partition = [1,DD+2:H+DD];
+Plot_hor(y, model, DD, H, p_bar, N_sim, M, BurnIn, save_on, kernel, fn_vol, fn_predict, fn_predict2, partition, fn_const_X, fn_input_X, GamMat)

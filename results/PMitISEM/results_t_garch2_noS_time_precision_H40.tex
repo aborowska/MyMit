@@ -1,0 +1,30 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Computation time-precision trade-off for the 40-days ahead  $99\%$ VaR and ES evaluation in GARCH(1,1)-$t$ model.} 
+\label{tab:time_precision_t_garch2_noS} 
+\begin{tabular}{lcccc}  
+  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}  \\ \cline{2-5} 
+  & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
+Total time & 22.63 s & 85.76 s &  NaN s & 570.07 s \\ 
+Time construction candidate & 2.70 s & 74.39 s &  NaN s & 555.17 s \\ 
+ (including $q_{1}$) &   &  (74.39 s) & (74.39 s) & (74.39 s) \\ 
+ (including $q_{2}$) &   &  & ( NaN s) & (480.78 s) \\ 
+$[$Initialisation for $q_{2}$$]$&   &   & $[$1549.91 s$]$ & $[$1549.91 s$]$ \\ 
+Time sampling & 19.93 s & 11.37 s &  NaN s & 14.90 s  \\  
+Number of draws used & 10000 & 10000 & 10000 & 10000 \\ 
+Time per draw & 0.02 ms & 0.01 ms &  NaN ms & 0.01 ms \\ \hline 
+\multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
+Time: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 1500.01 s & 1449.01 s &  NaN s & 832.93 s \\ 
+\hspace{1cm} for $ES$ & 1500.01 s & 1500.01 s &  NaN s & 1431.64 s \\ 
+Draws: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 751,301 & 1,209,228  & NaN  & 186,465  \\ 
+\hspace{1cm} for $ES$ & 751,301 & 1,254,092  & NaN   & 588,392  \\ 
+\hline 
+Slope: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 0.28 & 1.12  &  NaN  & 5.53  \\ 
+\hspace{1cm} for $ES$ & 0.20 & 0.38  &  NaN   & 1.75  \\  \hline 
+\end{tabular} 
+\end{table} 
+} 
