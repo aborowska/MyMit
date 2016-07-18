@@ -2,7 +2,7 @@
 % clc
 clear all
 close all
-s = RandStream('mt19937ar','Seed',1);
+s = RandStream('mt19937ar','Seed',1); % for 250 set '0'
 RandStream.setGlobalStream(s); 
 addpath(genpath('include/'));
 
@@ -31,7 +31,7 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 10; % forecast horizon
+H = 100; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 

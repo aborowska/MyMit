@@ -8,17 +8,23 @@
   & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
 Total time & 14.96 s & 101.64 s & 172.27 s & 221.10 s \\ 
 Time construction candidate & 1.23 s & 87.67 s & 159.64 s & 207.84 s \\ 
+ (including $q_{1}$) &   &  (87.67 s) & (87.67 s) & (87.67 s) \\ 
  (including $q_{2}$) &   &  & (71.98 s) & (120.17 s) \\ 
+$[$Initialisation for $q_{2}$$]$&   &   & $[$1274.41 s$]$ & $[$1274.41 s$]$ \\ 
 Time sampling & 13.73 s & 13.97 s & 12.62 s & 13.26 s  \\  
-Number of draws used & 10000 & 10000 & 10000 & 10000 \\ \hline 
+Number of draws used & 10000 & 10000 & 10000 & 10000 \\ 
+Time per draw & 0.01 ms & 0.01 ms & 0.01 ms & 0.01 ms \\ \hline 
 \multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
 Time: &  &  &   &  \\ 
-\hspace{1cm} for $VaR$ & 700.01 s & 700.01 s & 232.58 s & 222.37 s \\ 
-\hspace{1cm} for $ES$ & 700.01 s & 700.01 s & 620.50 s & 350.90 s \\ 
+\hspace{1cm} for $VaR$ & 741.52 s & 743.74 s & 232.58 s & 222.37 s \\ 
+\hspace{1cm} for $ES$ & 1552.15 s & 880.42 s & 620.50 s & 350.90 s \\ 
 Draws: &  &  &   &  \\ 
-\hspace{1cm} for $VaR$ & 509022 & 438287  &  57780  &  10961  \\ 
-\hspace{1cm} for $ES$ & 509022 & 438287  & 365089   & 107924  \\ 
+\hspace{1cm} for $VaR$ & 539,259 & 469,586  & 57,780  & 10,961  \\ 
+\hspace{1cm} for $ES$ & 1,129,761 & 567,415  & 365,089   & 107,923  \\ 
 \hline 
+Slope: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 2.08 & 2.34  & 21.07  & 105.78  \\ 
+\hspace{1cm} for $ES$ & 0.99 & 1.94  & 3.33   & 10.74  \\  \hline 
 \end{tabular} 
 \end{table} 
 } 

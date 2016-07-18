@@ -34,11 +34,11 @@ plot_on = true;
 save_on = false;
 
 p_bar = 0.01;
-H = 10;     % prediction horizon 
+H = 250;     % prediction horizon 
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont_direct = MitISEM_Control;
-cont_direct.mit.dfnc = 5;
+cont_direct.mit.dfnc = 4;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);
@@ -60,29 +60,32 @@ time_direct(1,1) = toc;
 
 tic
 for sim = 1:N_sim
-    fprintf('\nDirect sim = %i.\n', sim);
-%     kernel = @(a) posterior_t_garch_noS_mex(a, data, S, GamMat);
-    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data , S, GamMat, hyper);
-    [theta_direct, accept_direct(sim,1)] = Mit_MH(M+BurnIn, kernel, mit_direct, GamMat);
-%     [theta_direct, accept_direct(sim,1), lnw_direct, lnk_direct, lnd_diredct] = Mit_MH_new(M+BurnIn, kernel, mit_direct, GamMat);
-    fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept_direct(sim,1), model, algo);
-    theta_direct = theta_direct(BurnIn+1:M+BurnIn,:);
+%     M_real = 0;
+%     while (M_real ~= M)
+        fprintf('\nDirect sim = %i.\n', sim);
+    %     kernel = @(a) posterior_t_garch_noS_mex(a, data, S, GamMat);
+        kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data , S, GamMat, hyper);
+        [theta_direct, accept_direct(sim,1)] = Mit_MH(M+BurnIn, kernel, mit_direct, GamMat);
+    %     [theta_direct, accept_direct(sim,1), lnw_direct, lnk_direct, lnd_diredct] = Mit_MH_new(M+BurnIn, kernel, mit_direct, GamMat);
+        fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept_direct(sim,1), model, algo);
+        theta_direct = theta_direct(BurnIn+1:M+BurnIn,:);
 
-    h_direct = volatility_t_garch_noS_mex(theta_direct, data, S);
-    [y_direct, eps_direct] = predict_t_garch_noS(theta_direct, y_T, h_direct, H);
+        h_direct = volatility_t_garch_noS_mex(theta_direct, data, S);
+        [y_direct, eps_direct] = predict_t_garch_noS(theta_direct, y_T, h_direct, H);
 
-    ind_real = find(sum(imag(y_direct),2)==0);
-    M_real = length(ind_real); 
-    fprintf('M_real = %i.\n',M_real)
-    y_direct = y_direct(ind_real,:);
-    theta_direct = theta_direct(ind_real,:);  
-    eps_direct = eps_direct(ind_real,:);
+        ind_real = find(sum(imag(y_direct),2)==0);
+        M_real = length(ind_real); 
+        fprintf('M_real = %i.\n',M_real)
+        y_direct = y_direct(ind_real,:);
+        theta_direct = theta_direct(ind_real,:);  
+        eps_direct = eps_direct(ind_real,:);
 
-    [PL_direct, ind] = sort(fn_PL(y_direct));
-    VaR_direct(sim,1) = PL_direct(round(p_bar*M_real));
-    ES_direct(sim,1) = mean(PL_direct(round(1:p_bar*M)));   
-     
-    fprintf('Direct 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_direct(sim,1), model, algo);
+        [PL_direct, ind] = sort(fn_PL(y_direct));
+        VaR_direct(sim,1) = PL_direct(round(p_bar*M_real));
+        ES_direct(sim,1) = mean(PL_direct(round(1:p_bar*M)));   
+
+        fprintf('Direct 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_direct(sim,1), model, algo);
+%     end
 end
 time_direct(2,1) = toc/N_sim;
 

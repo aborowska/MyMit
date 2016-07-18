@@ -1,6 +1,6 @@
 function lnd = fn_dpmit(theta, pmit, partition, fn_const_X, L, GamMat)
 % density evaluation of theta on the Partial MitISEM structure
-% in L == true then in logs
+% if L == true than in logs
 % theta is partitioned according to partition
 
     d = size(theta,2);

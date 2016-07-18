@@ -2,6 +2,9 @@ function cont =  MitISEM_Control
     cont.mit.N = 10000; %1e5;
     cont.mit.Hmax = 10;
 
+    cont.mit.Hmax1 = 10;  
+    cont.mit.Hmax2 = 1;      
+    
     cont.mit.CV_tol = 0.1; %0.1
     cont.mit.CV_old = 100;
 

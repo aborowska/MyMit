@@ -81,12 +81,12 @@ lnk0 = lnk_hl; %kernel(draw0);
 if (H == 250)
 %     cont2.mit.Hmax = 3; % <===== !!!
     cont2.mit.Hmax1 = 5;  
-    cont2.mit.Hmax2 = 2;  
+    cont2.mit.Hmax2 = 1;  
 else
     cont2.mit.Hmax = 10; % <===== !!!
 end
 cont2.mit.iter_max = 2; % <===== !!!
-cont2.df.range = [5,15];
+cont2.df.range = [5,8];
 cont = cont2;
 
 % [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);

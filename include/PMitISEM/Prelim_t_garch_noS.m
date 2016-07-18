@@ -113,7 +113,8 @@ kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
 y_predict = @(draw) predict_t_garch_new_noS(draw(:,1:d), data, S, draw(:,d+1:end));
 
 tic
-[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
+% [draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
+[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N/10, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
 time_bigdraw = toc;
 
 if save_on

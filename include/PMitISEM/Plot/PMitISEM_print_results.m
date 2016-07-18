@@ -3,7 +3,7 @@ close all
 addpath(genpath('include/'));
 
 save_on = 1;
-% H = 100;
+H = 250;
 M = 10000; BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
@@ -131,24 +131,35 @@ for h = horizons
         end
     end
     
-    fprintf(FID, '%6.4f & ' ,mean(VaR_direct));
-    fprintf(FID, '%6.4f & ',mean(VaR_prelim));
-    fprintf(FID, '%6.4f & ' ,mean(VaR_mit));
-    fprintf(FID, '%6.4f & & ',mean(VaR_pmit));
-    fprintf(FID, '%6.4f & ' ,mean(ES_direct));
-    fprintf(FID, '%6.4f & ' ,mean(ES_prelim));
-    fprintf(FID, '%6.4f & ' ,mean(ES_mit));
-    fprintf(FID, '%6.4f  \\\\ \n',mean(ES_pmit));
+    fprintf(FID, '%6.4f & ' , mean(VaR_direct));
+    fprintf(FID, '%6.4f & ', mean(VaR_prelim));
+    fprintf(FID, '%6.4f & ' , mean(VaR_mit));
+    fprintf(FID, '%6.4f & & ', mean(VaR_pmit));
+    fprintf(FID, '%6.4f & ' , mean(ES_direct));
+    fprintf(FID, '%6.4f & ' , mean(ES_prelim));
+    fprintf(FID, '%6.4f & ' , mean(ES_mit));
+    fprintf(FID, '%6.4f  \\\\ \n', mean(ES_pmit));
 
     fprintf(FID, ' & & ');
-    fprintf(FID, '(%6.4f) & ' ,std(VaR_direct));
-    fprintf(FID, '(%6.4f) & ' ,std(VaR_prelim));
-    fprintf(FID, '(%6.4f) & ' ,std(VaR_mit));
-    fprintf(FID, '(%6.4f) & & ',std(VaR_pmit));
-    fprintf(FID, '(%6.4f) & ' ,std(ES_direct));
-    fprintf(FID, '(%6.4f) & ' ,std(ES_prelim));
-    fprintf(FID, '(%6.4f) & ' ,std(ES_mit));
-    fprintf(FID, '(%6.4f)   \\\\ [1ex] \n',std(ES_pmit));
+    fprintf(FID, '(%6.4f) & ' , std(VaR_direct));
+    fprintf(FID, '(%6.4f) & ' , std(VaR_prelim));
+    fprintf(FID, '(%6.4f) & ' , std(VaR_mit));
+    fprintf(FID, '(%6.4f) & & ', std(VaR_pmit));
+    fprintf(FID, '(%6.4f) & ' , std(ES_direct));
+    fprintf(FID, '(%6.4f) & ' , std(ES_prelim));
+    fprintf(FID, '(%6.4f) & ' , std(ES_mit));
+%     fprintf(FID, '(%6.4f)   \\\\ [1ex] \n', std(ES_pmit));
+    fprintf(FID, '(%6.4f)   \\\\ \n', std(ES_pmit));
+    
+    fprintf(FID, ' & & ');
+    fprintf(FID, '$[$%6.4f$]$ & ' , iqr(VaR_direct));
+    fprintf(FID, '$[$%6.4f$]$ & ' , iqr(VaR_prelim));
+    fprintf(FID, '$[$%6.4f$]$ & ' , iqr(VaR_mit));
+    fprintf(FID, '$[$%6.4f$]$ & & ', iqr(VaR_pmit));
+    fprintf(FID, '$[$%6.4f$]$ & ' , iqr(ES_direct));
+    fprintf(FID, '$[$%6.4f$]$ & ' , iqr(ES_prelim));
+    fprintf(FID, '$[$%6.4f$]$ & ' , iqr(ES_mit));
+    fprintf(FID, '$[$%6.4f$]$  \\\\ [1ex] \n', iqr(ES_pmit));
 end 
 fprintf(FID, '\\hline \n');
 fprintf(FID, '\\end{tabular} \n');
@@ -202,7 +213,7 @@ fclose(FID);
 
 %% Time-Precision
 save_on = true;
-H = 10;
+H = 20;
 Plot_time_precision(model, save_on, H, p_bar, N_sim, M)
 
 %% Horizons

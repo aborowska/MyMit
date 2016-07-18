@@ -32,9 +32,9 @@ BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
 
-H = 10; % forecast horizon
+H = 1; % forecast horizon
 plot_on = true;
-save_on = false;
+save_on = true;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont1 = MitISEM_Control;
@@ -66,10 +66,15 @@ for sim = 1:N_sim
     eps1 = randn(M,H);
     y_H = predict_arch(alpha1, y_T, S, H, eps1);
     % get the preliminary VaR estimate as the 100th of the ascendingly sorted percentage loss values
-    [PL_H, ind] = sort(fn_PL(y_H));
-    VaR_prelim(sim,1) = PL_H(p_bar*M);
-    ES_prelim(sim,1) = mean(PL_H(1:p_bar*M));    
+    PL_H = fn_PL(y_H);
+    [PL_H_sort, ~] = sort(PL_H);
+    VaR_prelim(sim,1) = PL_H_sort(p_bar*M);
+    ES_prelim(sim,1) = mean(PL_H_sort(1:p_bar*M));    
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
+%     ind = (PL_H <= VaR_prelim(sim,1));
+%     OLS_std = std(ind);
+%     NW_std = sqrt(NeweyWest(ind,8));
+%     RNE = (OLS_std/NW_std)^2;
 end
 time_prelim(2,1) = toc/N_sim;
 

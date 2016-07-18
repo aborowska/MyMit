@@ -32,11 +32,11 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 10; % forecast horizon
+H = 1; % forecast horizon
 % d = H+1; % dimension of theta
 
 plot_on = true;
-save_on = false;
+save_on = true;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont2 = MitISEM_Control;

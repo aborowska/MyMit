@@ -170,7 +170,7 @@
     pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
     if save_on
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'_step2_up.mat'];
         save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff')
     end
 
