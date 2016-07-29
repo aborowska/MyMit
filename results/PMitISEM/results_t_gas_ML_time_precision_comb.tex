@@ -1,0 +1,67 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in GAS(1,1)-$t$ model for different horizons.} 
+\label{tab:time_precision_t_gas_ML} 
+\begin{tabular}{rr rrrr r rrrr}  
+ & & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-6} \cline{8-11} 
+ H & & Naive & Adapted & MitISEM & PMitISEM & & Naive & Adapted & MitISEM & PMitISEM \\ \hline 
+ & & \multicolumn{4}{c}{Total time}  \\ \cline{3-6} 
+10 & & 0.78 s & 0.00 s & 2.06 s & 3.50 s \\ 
+20 & & 0.90 s & 0.00 s & 3.19 s & 10.56 s \\ 
+40 & & 0.82 s & 0.00 s & 0.67 s & 42.66 s \\ 
+100 & & 0.91 s & 0.00 s &  NaN s & 344.57 s \\ 
+250 & & 1.15 s & 0.00 s &  NaN s & 3976.05 s \\ 
+\hline 
+ & & \multicolumn{4}{c}{Construction time} & & \multicolumn{4}{c}{ Sampling time} \\ \cline{3-6}  \cline{8-11}
+10 & & 0.76 s & 0.00 s & 2.02 s & 3.29 s && 0.02 s & 0.00 s & 0.04 s & 0.20 s \\ 
+20 & & 0.86 s & 0.00 s & 3.09 s & 10.07 s && 0.04 s & 0.00 s & 0.09 s & 0.49 s \\ 
+40 & & 0.76 s & 0.00 s & 0.56 s & 41.37 s && 0.06 s & 0.00 s & 0.11 s & 1.29 s \\ 
+100 & & 0.76 s & 0.00 s &  NaN s & 338.83 s && 0.15 s & 0.00 s &  NaN s & 5.74 s \\ 
+250 & & 0.77 s & 0.00 s &  NaN s & 3947.54 s && 0.38 s & 0.00 s &  NaN s & 28.50 s \\ 
+\hline 
+ & & \multicolumn{4}{c}{VaR NSE} &&  \multicolumn{4}{c}{ES NSE} \\ \cline{3-6}  \cline{8-11}
+10 && 0.1728  &    NaN  & 0.0191 & 0.0153 && 0.2125  &    NaN  & 0.0367 & 0.0469 \\ 
+20 && 0.2090  &    NaN  & 0.0439 & 0.0255 && 0.3516  &    NaN  & 0.0635 & 0.0577 \\ 
+40 && 0.3308  &    NaN  & 0.1836 & 0.0468 && 0.3790  &    NaN  & 0.1908 & 0.0656 \\ 
+100 && 0.5929  &    NaN  &    NaN & 0.0829 && 1.0284  &    NaN  &    NaN & 0.1396 \\ 
+250 && 0.9432  &    NaN  &    NaN & 0.3087 && 1.2791  &    NaN  &    NaN & 0.2736 \\ 
+\hline 
+ & & \multicolumn{4}{c}{VaR precision} &&  \multicolumn{4}{c}{ES precision} \\ \cline{3-6}  \cline{8-11}
+10 && 33.5022  &    NaN  & 2750.5967 & 4281.7533 & & 22.1530  &    NaN  & 742.8895 & 454.8110 \\ 
+20 && 22.9004  &    NaN  & 518.2384 & 1533.1263 & & 8.0912  &    NaN  & 247.8998 & 300.4368 \\ 
+40 && 9.1378  &    NaN  & 29.6559 & 457.3440 & & 6.9603  &    NaN  & 27.4732 & 232.0469 \\ 
+100 && 2.8445  &    NaN  &    NaN & 145.5536 & & 0.9455  &    NaN  &    NaN & 51.2920 \\ 
+250 && 1.1241  &    NaN  &    NaN & 10.4959 & & 0.6112  &    NaN  &    NaN & 13.3556 \\ 
+\hline 
+ & & \multicolumn{4}{c}{ VaR slope} &&  \multicolumn{4}{c}{ES slope} \\ \cline{3-6}  \cline{8-11}
+10 && 1759.96  &  NaN  & 67266.20 & 21188.78 && 1163.75  &  NaN  & 18167.46 & 2250.69 \\ 
+20 && 532.18  &  NaN  & 5673.06 & 3120.45 && 188.03  &  NaN  & 2713.72 & 611.49 \\ 
+40 && 142.40  &  NaN  & 266.71 & 355.36 && 108.47  &  NaN  & 247.08 & 180.30 \\ 
+100 && 18.43  &  NaN  &  NaN & 25.35 && 6.13  &  NaN  &  NaN & 8.93 \\ 
+250 && 2.99  &  NaN  &  NaN & 0.37 && 1.62  &  NaN  &  NaN & 0.47 \\ 
+\hline 
+ & & \multicolumn{4}{c}{ VaR intercept} &&  \multicolumn{4}{c}{ES intercept} \\ \cline{3-6}  \cline{8-11}
+10 && -1346.11  &  NaN  & -135994.69 & -69795.70 && -890.10  &  NaN  & -36729.86 & -7413.75 \\ 
+20 && -456.59  &  NaN  & -17557.19 & -31431.44 && -161.32  &  NaN  & -8398.50 & -6159.41 \\ 
+40 && -108.24  &  NaN  & -150.04 & -14702.50 && -82.45  &  NaN  & -139.00 & -7459.74 \\ 
+100 && -14.02  &  NaN  &  NaN & -8588.33 && -4.66  &  NaN  &  NaN & -3026.46 \\ 
+250 && -2.29  &  NaN  &  NaN & -1453.67 && -1.25  &  NaN  &  NaN & -1849.72 \\ 
+\hline 
+ & & \multicolumn{4}{c}{VaR time required} && \multicolumn{4}{c}{ES time required} \\ \cline{3-6}  \cline{8-11}
+10 & & 1.64 s &  NaN s & 2.04 s & 3.37 s && 2.09 s &  NaN s & 2.11 s & 3.98 s \\ 
+20 & & 3.75 s &  NaN s & 3.37 s & 10.57 s && 9.03 s &  NaN s & 3.66 s & 12.59 s \\ 
+40 & & 11.55 s &  NaN s & 6.32 s & 45.70 s && 14.93 s &  NaN s & 6.78 s & 49.90 s \\ 
+100 & & 84.12 s &  NaN s &  NaN s & 399.45 s && 251.53 s &  NaN s &  NaN s & 510.86 s \\ 
+250 & & 515.50 s &  NaN s &  NaN s & 8120.40 s && 947.47 s &  NaN s &  NaN s & 7226.93 s \\ 
+\hline 
+ && \multicolumn{4 }{c}{VaR draws required} &&   \multicolumn{4}{c}{ES draws required} \\  \cline{3-6}  \cline{8-11} 
+10 & & 458669 & NaN & 5587 & & 3589 & 693650 & NaN & 20685  & 33786 \\ 
+20 & & 671011 & NaN & 29651 & & 10023 & 1899160 & NaN & 61986  & 51147 \\ 
+40 & & 1681635 & NaN & 518157 & & 33599 & 2207705 & NaN & 559323  & 66221 \\ 
+100 & & 5402121 & NaN & NaN & & 105572 & 16251791 & NaN & NaN  & 299586 \\ 
+250 & & 13670267 & NaN & NaN & & 1464032 & 25142631 & NaN & NaN  & 1150561 \\ 
+\hline 
+\end{tabular} 
+\end{table} 
+} 

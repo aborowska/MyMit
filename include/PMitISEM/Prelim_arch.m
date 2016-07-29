@@ -32,18 +32,20 @@ BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
 
-H = 1; % forecast horizon
+H = 10; % forecast horizon
 plot_on = true;
 save_on = true;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont1 = MitISEM_Control;
-cont1.mit.dfnc = 5;
+% cont1.mit.dfnc = 5;
+cont1.mit.dfnc = 10;
 cont1.mit.N = 10000;
 
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
+RNE_prelim = zeros(N_sim,1);
 accept = zeros(N_sim,1);
 time_prelim = zeros(2,1);
 
@@ -66,15 +68,15 @@ for sim = 1:N_sim
     eps1 = randn(M,H);
     y_H = predict_arch(alpha1, y_T, S, H, eps1);
     % get the preliminary VaR estimate as the 100th of the ascendingly sorted percentage loss values
-    PL_H = fn_PL(y_H);
-    [PL_H_sort, ~] = sort(PL_H);
-    VaR_prelim(sim,1) = PL_H_sort(p_bar*M);
-    ES_prelim(sim,1) = mean(PL_H_sort(1:p_bar*M));    
+    
+    PL_H_ind = fn_PL(y_H);
+    PL_H = sort(PL_H_ind);
+    VaR_prelim(sim,1) = PL_H(p_bar*M);
+    ES_prelim(sim,1) = mean(PL_H(1:p_bar*M)); 
+ 
+    ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
+    RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
-%     ind = (PL_H <= VaR_prelim(sim,1));
-%     OLS_std = std(ind);
-%     NW_std = sqrt(NeweyWest(ind,8));
-%     RNE = (OLS_std/NW_std)^2;
 end
 time_prelim(2,1) = toc/N_sim;
 
@@ -84,7 +86,7 @@ end
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim')
+    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','RNE_prelim')
 end
 
 %% Choose the starting point (mu_hl) for the constuction of the approximaton
@@ -98,5 +100,5 @@ time_bigdraw = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','draw_hl','VaR_est','time_bigdraw')
+    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','draw_hl','VaR_est','time_bigdraw','RNE_prelim')
 end

@@ -25,7 +25,7 @@ sigma_init = 0.9;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
+% cont2.mit.dfnc = 5;
 cont2.mit.N = 10000;
 cont2.mit.iter_max = 5;
 cont2.df.range = [1,10];
@@ -44,7 +44,7 @@ N_sim = 20;
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 10; % forecast horizon
+H = 100; % forecast horizon
 p_bar = 0.01;
 % d = H+1; % dimension of theta
 
@@ -89,8 +89,13 @@ lnk0 = lnk_hl; %kernel(draw0);
 % clear draw_hl w_hl lnk_hl lnd_hl
 
 cont2.mit.iter_max = 3;
-cont2.df.range = [1,20];
-cont2.mit.Hmax = 10;
+cont2.df.range = [5,20];
+cont2.mit.dfnc = 10; % <---------
+if (H == 250)
+    cont2.mit.Hmax = 1;
+else
+    cont2.mit.Hmax = 1;
+end
 cont = cont2;
 
 tic
@@ -105,6 +110,16 @@ time_pmit(1,1) = time_pmit(1,1) + toc;
 % load(name);
 
 %% VaR with PMit
+
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step2;
+
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step2_up;
+
+
 tic
 for sim = 1:N_sim 
     fprintf('\nVaR IS iter: %d\n',sim)
@@ -147,6 +162,17 @@ for sim = 1:N_sim
 end
 time_pmit(2,1) = toc/N_sim;
 
+VaR_step2 = VaR_pmit;
+ES_step2 = ES_pmit;
+
+% VaR_pmit = VaR_step2;
+% ES_pmit = ES_step2;
+
+VaR_step2_up = VaR_pmit;
+ES_step2_up = ES_pmit;
+
+% time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
+
 y_pmit = bsxfun(@times,draw_pmit(:,2:d),sqrt(draw_pmit(:,1)));  
 PL_pmit = fn_PL(y_pmit);
 pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
@@ -157,7 +183,7 @@ if save_on
 end
 
 if plot_on
-    Boxplot_PMitISEM(VaR_prelim,VaR_pmit,ES_prelim,ES_pmit,model,algo,H,N_sim,save_on);
+    Boxplot_PMitISEM(VaR_prelim,VaR_pmit,ES_prelim,ES_pmit,model,algo,H,N_sim,true);
 
     y_pmit = bsxfun(@times,draw_pmit(:,2:d),sqrt(draw_pmit(:,1)));  
     Plot_hor_pmit(y_pmit, y(end), mean(VaR_prelim),model,algo,save_on)

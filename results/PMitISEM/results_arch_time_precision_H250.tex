@@ -1,0 +1,30 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Computation time-precision trade-off for the 250-days ahead  $99\%$ VaR and ES evaluation in ARCH(1,1) model.} 
+\label{tab:time_precision_arch} 
+\begin{tabular}{lcccc}  
+  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}  \\ \cline{2-5} 
+  & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
+Total time & 1.01 s & 4.89 s &  NaN s & 2391.18 s \\ 
+Time construction candidate & 0.22 s & 4.11 s &  NaN s & 2371.61 s \\ 
+ (including $q_{1}$) &   &  (4.11 s) & (4.11 s) & (4.11 s) \\ 
+ (including $q_{2}$) &   &  & ( NaN s) & (2367.50 s) \\ 
+$[$Initialisation for $q_{2}$$]$&   &   & $[$75.11 s$]$ & $[$75.11 s$]$ \\ 
+Time sampling & 0.79 s & 0.78 s &  NaN s & 19.58 s  \\  
+Number of draws used & 10000 & 10000 & 10000 & 10000 \\ 
+Time per draw & 0.00 ms & 0.00 ms &  NaN ms & 0.02 ms \\ \hline 
+\multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
+Time: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 175.47 s & 235.11 s &  NaN s & 3067.57 s \\ 
+\hspace{1cm} for $ES$ & 242.19 s & 180.01 s &  NaN s & 3037.65 s \\ 
+Draws: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 2,204,959 & 2,952,599  & NaN  & 355,477  \\ 
+\hspace{1cm} for $ES$ & 3,044,395 & 2,248,327  & NaN   & 340,194  \\ 
+\hline 
+Slope: &  &  &   &  \\ 
+\hspace{1cm} for $VaR$ & 8.77 & 6.65  &  NaN  & 2.21  \\ 
+\hspace{1cm} for $ES$ & 6.35 & 8.74  &  NaN   & 2.31  \\  \hline 
+\end{tabular} 
+\end{table} 
+} 

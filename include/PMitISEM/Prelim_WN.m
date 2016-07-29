@@ -6,8 +6,8 @@ s = RandStream('mt19937ar','Seed',0);
 RandStream.setGlobalStream(s); 
 
 addpath(genpath('include/'));
-plot_on = true;
-save_on = false;
+plot_on = false;
+save_on = true;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -25,7 +25,8 @@ sigma_init = 0.9;
 
 % Control parameters for MitISEM
 cont1 = MitISEM_Control;
-cont1.mit.dfnc = 5;
+% cont1.mit.dfnc = 5;
+cont1.mit.dfnc = 10;
 cont1.mit.N = 10000;
  
 % hyper parameters for the prior for sigma2(inv. gamma)
@@ -42,12 +43,13 @@ N_sim = 20;
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 10; % forecast horizon
+H = 20; % forecast horizon
 p_bar = 0.01;
 % d = H+1; % dimension of theta
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
+RNE_prelim = zeros(N_sim,1);
 accept = zeros(N_sim,1);
 time_prelim = zeros(2,1);
 
@@ -75,9 +77,13 @@ for sim = 1:N_sim
     y_H = bsxfun(@times,eps_H,sqrt(sigma1)); 
 
     % preliminary VaR
-    [PL, ind] = sort(fn_PL(y_H));
-    VaR_prelim(sim,1) = PL(p_bar*M);  
-    ES_prelim(sim,1) = mean(PL(1:p_bar*M));    
+    PL_H_ind = fn_PL(y_H);
+    PL_H = sort(PL_H_ind);
+    VaR_prelim(sim,1) = PL_H(p_bar*M);  
+    ES_prelim(sim,1) = mean(PL_H(1:p_bar*M));   
+    
+    ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
+    RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end
 time_prelim(2,1) = toc/N_sim;
@@ -88,7 +94,7 @@ end
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim')
+    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','RNE_prelim')
 end
 
 %% Generate many high loss draws to initialise the HL density approximation
@@ -102,5 +108,5 @@ time_bigdraw = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','draw_hl','VaR_est','time_bigdraw')
+    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','draw_hl','VaR_est','time_bigdraw','RNE_prelim')
 end

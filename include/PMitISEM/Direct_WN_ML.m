@@ -1,3 +1,6 @@
+% horizon=[10,20,40,100,250];
+% 
+% for H = horizon
 clear all
 close all
 
@@ -6,8 +9,8 @@ s = RandStream('mt19937ar','Seed',0);
 RandStream.setGlobalStream(s); 
 
 addpath(genpath('include/'));
-plot_on = true;
-save_on = true;
+plot_on = false;
+save_on = false;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -15,7 +18,7 @@ GamMat = gamma(x_gam);
 model = 'WN_ML';
 algo = 'Direct';
 
-estimation = 'true'; % 'true' or 'mle'
+estimation = 'mle'; % 'true' or 'mle'
 
 % Artificial, white noise data 
 T = 10000;
@@ -39,7 +42,7 @@ time_direct = zeros(2,1);
 
 M = 10000; % number of draws for preliminary and IS computations
 
-H = 1; % forecast horizon
+H = 10; % forecast horizon
 p_bar = 0.01;
 
 % loglik = @(ss,yy) - 0.5*sum(log(2*pi) + log(ss) + (y.^2)./ss);
@@ -93,3 +96,5 @@ if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',estimation,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_direct','ES_direct','sigma2_used','time_direct','draw_hl','VaR_est','time_bigdraw','estimation')
 end
+
+% end

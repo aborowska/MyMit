@@ -9,7 +9,7 @@ RandStream.setGlobalStream(s);
 x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x_gam);
 
-model = 't_gas';
+model = 't_gas_ML';
 algo = 'MitISEM';
 
 y = csvread('GSPC_ret_tgarch.csv');
@@ -30,12 +30,14 @@ mu_init = [0, 0.01, 0.1, 0.89, 8];
 d = size(mu_init,2);
 
 plot_on = true;
-save_on = false;
+save_on = true;
 
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
+% cont2.mit.dfnc = 5;
+cont2.mit.dfnc = 10; % <--!!
+
 cont2.mit.Hmax = 10;
-cont2.df.range = [1, 10];
+cont2.df.range = [5, 15];
 
 p_bar = 0.01;
 H = 10;     % prediction horizon 
@@ -66,7 +68,7 @@ mit_hl.df = cont2.mit.dfnc;
 mit_hl.p = 1;
 % mu_init = mu_hl;
 
-if (H < 250)
+if (H < 40)
     cont2.mit.Hmax = 10;
 else
     cont2.mit.Hmax = 1;  % <<<<<< !!
@@ -79,7 +81,7 @@ kernel_init = @(xx) - MLtarget_t_gas_hl(xx, theta_mle, f_mle, y_T, mean(VaR_dire
 kernel = @(xx) MLtarget_t_gas_hl(xx, theta_mle, f_mle, y_T, mean(VaR_direct));
 
 tic
-if (H < 40)
+if (H < 20)
     [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
 else
     [mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_hl, cont2, GamMat);
@@ -120,15 +122,14 @@ if save_on
     save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit')
 end
 
-f2 = volatility_t_gas_mex(draw2(:,1:d), y);
-y2 = predict_t_gas(draw2(:,1:d), y_T, f2, H, draw2(:,d+1:H+d));
+y2 = predict_t_gas(theta_mat, y_T, f_mat, H, draw_mit);
 PL2 = fn_PL(y2);
-mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
+mit_eff = sum(PL2 <= mean(VaR_direct))/M;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff')
 end
 
-labels_in = {'Direct','MitISEM'};
+labels_in = {'naive','mit'};
 Boxplot_PMitISEM(VaR_direct, VaR_mit, ES_direct, ES_mit, model, algo, H, N_sim, true, labels_in);

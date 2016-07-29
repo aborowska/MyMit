@@ -20,7 +20,7 @@ algo = 'Prelim';
 
 
 plot_on = true;
-save_on = false;
+save_on = true;
 
 % Control parameters for MitISEM
 cont1 = MitISEM_Control;
@@ -35,7 +35,7 @@ M = 10000;
 BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
-H = 250;
+H = 10;
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);

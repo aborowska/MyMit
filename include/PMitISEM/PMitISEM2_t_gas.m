@@ -75,9 +75,13 @@ lnk0 = lnk_hl; %kernel(draw0);
 % if (H > 10)
 %     cont2.mit.iter_max = 1;
 % else
-    cont2.mit.iter_max = 3;%6;%8;
+    cont2.mit.iter_max = 1;%6;%8;
 % end
 cont2.df.range = [1,10];
+cont2.mit.Hmax = 1;
+if (H >= 40)
+    cont2.mit.dfnc = 10;
+end
 if (H==250)
     cont2.mit.Hmax = 1;
 end

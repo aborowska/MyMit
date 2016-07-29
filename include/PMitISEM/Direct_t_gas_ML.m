@@ -27,7 +27,7 @@ plot_on = true;
 save_on = true;
 
 p_bar = 0.01;
-H = 10;     % prediction horizon 
+H = 20;     % prediction horizon 
 
 % Control parameters for MitISEM  
 cont_direct = MitISEM_Control;
@@ -86,7 +86,7 @@ end
 DD = 5;
 y_predict = @(draw) predict_t_gas_new(draw(:,1:DD), y, H, draw(:,DD+1:end));
 tic
-[draw_hl, VaR_est, ~, ~] = BigDraw(10000, H, [], p_bar, theta_mle, [], y_predict, GamMat);
+[draw_hl, VaR_est, ~, ~] = BigDraw(10000, H, [], p_bar, theta_mle, [], y_predict, GamMat, 5);
 time_bigdraw = toc;
 
 if save_on

@@ -31,16 +31,18 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 100; % forecast horizon
+H = 10; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 
 plot_on = true;
-save_on = false;
+save_on = true;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);
+RNE_direct = zeros(N_sim,1);
 accept_direct = zeros(N_sim,1);
+time_direct = zeros(2,1);
 
 kernel_init = @(a) - posterior_arch(a, data, S, true);
 % kernel_init = @(a) - posterior_arch_noS(a, data, true);
@@ -66,16 +68,18 @@ for sim = 1:N_sim
     y_direct = predict_arch(alpha_direct, y_T, S, H, eps_direct);
 %     y_direct = predict_arch_noS(alpha_direct, y_T, S, H, eps_direct);
 
-    PL_direct = sort(fn_PL(y_direct));
+    PL_direct_ind = fn_PL(y_direct);
+    PL_direct = sort(PL_direct_ind);
     VaR_direct(sim,1) = PL_direct(p_bar*M);
     ES_direct(sim,1) = mean(PL_direct(1:p_bar*M));
     
+    ind_direct = double((PL_direct_ind < VaR_direct(sim,1)));
+    RNE_direct(sim,1) = fn_RNE(ind_direct, 'MH',[],'Q');
     fprintf('Direct 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_direct(sim,1), model, algo);
 end
 time_direct(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_direct','ES_direct','mit_direct','accept_direct','time_direct')
+    save(name,'VaR_direct','ES_direct','mit_direct','accept_direct','time_direct','RNE_direct')
 end
-

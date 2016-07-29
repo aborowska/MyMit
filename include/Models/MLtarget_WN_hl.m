@@ -2,7 +2,8 @@ function [d, prior] = MLtarget_WN_hl(eps, sigma2_used, VaR_prelim)
     H = size(eps,2);
     
     prior =  prior_WN_hl(eps, sigma2_used, VaR_prelim); 
-    d = prior(:,2) - 0.5*(H*log(2*pi) + H*log(sigma2_used) + sum((eps.^2)./sigma2_used,2));
+%     d = prior(:,2) - 0.5*(H*log(2*pi) + H*log(sigma2_used) + sum((eps.^2)./sigma2_used,2));
+    d = prior(:,2) - 0.5*(H*log(2*pi) + H*log(1) + sum((eps.^2)./1,2));
 end
 
 function R = prior_WN_hl(eps, sigma2_used, VaR_prelim)

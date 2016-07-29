@@ -1,10 +1,10 @@
 function Plot_time_precision(model, save_on, H, p_bar, N_sim, M, estimation)
-    close all
-    if (nargin == 2)
-        H = 10;
-        p_bar = 0.01;
-        N_sim = 20;
-        M = 10000;
+
+    
+    if isempty(strfind(model,'_ML'))
+        ML = false;
+    else
+        ML = true;
     end
     
     if (nargin < 7)
@@ -15,7 +15,11 @@ function Plot_time_precision(model, save_on, H, p_bar, N_sim, M, estimation)
     
     % load results
     name = ['results/PMitISEM/',model,'_Direct_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    load(name,'VaR_direct','ES_direct','time_direct')
+    if ~ML
+        load(name,'VaR_direct','ES_direct','time_direct')
+    else
+        load(name,'VaR_direct','ES_direct','time_direct','time_bigdraw')
+    end
     try
         name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'VaR_prelim','ES_prelim','time_prelim','time_bigdraw') 
@@ -157,7 +161,7 @@ function Plot_time_precision(model, save_on, H, p_bar, N_sim, M, estimation)
     draws_es_pmit = M*(required_es_pmit - time_prelim(1,1) - time_pmit(1,1))/time_pmit(2,1);
     
     % figures
-    if (required < 100)
+    if (required < 150)
         XTmax = 100;
         Xt = 10;
     elseif (required < 500)
@@ -231,7 +235,7 @@ function Plot_time_precision(model, save_on, H, p_bar, N_sim, M, estimation)
 
         if save_on
 %             name = ['figures/PMitISEM/',model,'_time_precision_VaR_H', num2str(H),'.png'];
-              name = ['figures/PMitISEM/',model,'_',estimation,time_precision_VaR_H', num2str(H),'.eps'];
+              name = ['figures/PMitISEM/',model,'_',estimation,'time_precision_VaR_H', num2str(H),'.eps'];
             set(gcf,'PaperPositionMode','auto');
             print_fail = 1;
             while print_fail 
@@ -318,69 +322,74 @@ function Plot_time_precision(model, save_on, H, p_bar, N_sim, M, estimation)
 % slope = PrPaper/5.3;
 % slope2 = PrPaper2/5.4;
 
-    %% create a tex table
-    switch model
-    case 't_gas'
-        model_tex = 'GAS(1,1)-$t$';        
-    case 't_garch2_noS'
-        model_tex = 'GARCH(1,1)-$t$';
-    case 'arch'
-        model_tex = 'ARCH(1,1)';
-    case 'WN'
-        model_tex = 'White Noise';
+    %     %% create a tex table
+    if (~ML)
+        switch model
+        case 't_gas'
+            model_tex = 'GAS(1,1)-$t$';  
+        case 't_gas_ML'
+            model_tex = 'GAS(1,1)-$t$';        
+        case 't_garch2_noS'
+            model_tex = 'GARCH(1,1)-$t$';
+        case 'arch'
+            model_tex = 'ARCH(1)';
+        case 'WN'
+            model_tex = 'White Noise';
+        case 'WN_ML'
+            model_tex = 'White Noise';
+        end
+
+        fname = ['results/PMitISEM/results_',model,'_',estimation,'time_precision_H',num2str(H),'.tex'];
+        FID = fopen(fname, 'w+');
+
+        fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
+        fprintf(FID, '\\begin{table}[h] \n');
+        fprintf(FID, '\\centering \n');
+
+        caption = ['\\caption{Computation time-precision trade-off for the ',num2str(H),'-days ahead  $99\\%%$ VaR and ES evaluation in ', model_tex,' model.} \n'];
+        fprintf(FID, caption);
+
+        label = ['\\label{tab:time_precision_',model,'} \n'];
+        fprintf(FID, label);
+        fprintf(FID, '\\begin{tabular}{lcccc}  \n');
+        fprintf(FID, '  & \\multicolumn{2}{c}{Direct} & \\multicolumn{2}{c}{QERMit}  \\\\ \\cline{2-5} \n');   
+        fprintf(FID, '  & Naive & Adapted & MitISEM & PMitISEM  \\\\ \\hline \n');
+
+        fprintf(FID, 'Total time & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', ...
+            time_direct_total, time_prelim_total, time_mit_total, time_pmit_total);
+        fprintf(FID, 'Time construction candidate & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', ...
+            time_direct(1,1), time_prelim(1,1), time_prelim(1,1) + time_mit(1,1), time_prelim(1,1)+time_pmit(1,1));
+        fprintf(FID, ' (including $q_{1}$) &   &  (%4.2f s) & (%4.2f s) & (%4.2f s) \\\\ \n',  time_prelim(1,1),  time_prelim(1,1), time_prelim(1,1));
+        fprintf(FID, ' (including $q_{2}$) &   &  & (%4.2f s) & (%4.2f s) \\\\ \n',  time_mit(1,1), time_pmit(1,1));
+        fprintf(FID, '$[$Initialisation for $q_{2}$$]$&   &   & $[$%4.2f s$]$ & $[$%4.2f s$]$ \\\\ \n',  time_bigdraw, time_bigdraw);
+        fprintf(FID, 'Time sampling & %4.2f s & %4.2f s & %4.2f s & %4.2f s  \\\\  \n', ...
+            time_direct(2,1), time_prelim(2,1), time_mit(2,1), time_pmit(2,1));
+        fprintf(FID, 'Number of draws used & %d & %d & %d & %d \\\\ \n', M, M, M, M);
+        fprintf(FID, 'Time per draw & %4.2f ms & %4.2f ms & %4.2f ms & %4.2f ms \\\\ \\hline \n',...
+              10*time_direct(2,1)/M, 10*time_prelim(2,1)/M, 10*time_mit(2,1)/M, 10*time_pmit(2,1)/M);
+
+        fprintf(FID,'\\multicolumn{5}{c}{Required for \\%% estimate with 1 digit precision} \\\\ \\hline \n');
+        fprintf(FID, 'Time: &  &  &   &  \\\\ \n');
+        fprintf(FID, '\\hspace{1cm} for $VaR$ & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', required_var_direct, required_var_prelim, required_var_mit, required_var_pmit);
+        fprintf(FID, '\\hspace{1cm} for $ES$ & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', required_es_direct, required_es_prelim, required_es_mit, required_es_pmit);
+        fprintf(FID, 'Draws: &  &  &   &  \\\\ \n');
+        fprintf(FID, '\\hspace{1cm} for $VaR$ & %s & %s  & %s  & %s  \\\\ \n',...
+           num2bank(draws_var_direct), num2bank(draws_var_prelim), num2bank(draws_var_mit), num2bank(draws_var_pmit));
+        fprintf(FID, '\\hspace{1cm} for $ES$ & %s & %s  & %s   & %s  \\\\ \n', ...
+           num2bank(draws_es_direct), num2bank(draws_es_prelim), num2bank(draws_es_mit), num2bank(draws_es_pmit));
+
+        fprintf(FID, '\\hline \n');
+
+    %     fprintf(FID, 'Investment: &  &  &   &  \\\\ \n');
+        fprintf(FID, 'Slope: &  &  &   &  \\\\ \n');
+       fprintf(FID, '\\hspace{1cm} for $VaR$ & %4.2f & %4.2f  & %4.2f  & %4.2f  \\\\ \n',...
+           slope_var_direct, slope_var_prelim, slope_var_mit, slope_var_pmit);
+        fprintf(FID, '\\hspace{1cm} for $ES$ & %4.2f & %4.2f  & %4.2f   & %4.2f  \\\\  \\hline \n', ...
+           slope_es_direct, slope_es_prelim, slope_es_mit, slope_es_pmit);
+
+        fprintf(FID, '\\end{tabular} \n');
+        fprintf(FID, '\\end{table} \n');
+        fprintf(FID, '} \n');
+        fclose(FID);
     end
-
-    fname = ['results/PMitISEM/results_',model,'_',estimation,time_precision_H',num2str(H),'.tex'];
-    FID = fopen(fname, 'w+');
-
-    fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
-    fprintf(FID, '\\begin{table}[h] \n');
-    fprintf(FID, '\\centering \n');
-
-    caption = ['\\caption{Computation time-precision trade-off for the ',num2str(H),'-days ahead  $99\\%%$ VaR and ES evaluation in ', model_tex,' model.} \n'];
-    fprintf(FID, caption);
-
-    label = ['\\label{tab:time_precision_',model,'} \n'];
-    fprintf(FID, label);
-    fprintf(FID, '\\begin{tabular}{lcccc}  \n');
-    fprintf(FID, '  & \\multicolumn{2}{c}{Direct} & \\multicolumn{2}{c}{QERMit}  \\\\ \\cline{2-5} \n');   
-    fprintf(FID, '  & Naive & Adapted & MitISEM & PMitISEM  \\\\ \\hline \n');
- 
-    fprintf(FID, 'Total time & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', ...
-        time_direct_total, time_prelim_total, time_mit_total, time_pmit_total);
-    fprintf(FID, 'Time construction candidate & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', ...
-        time_direct(1,1), time_prelim(1,1), time_prelim(1,1) + time_mit(1,1), time_prelim(1,1)+time_pmit(1,1));
-    fprintf(FID, ' (including $q_{1}$) &   &  (%4.2f s) & (%4.2f s) & (%4.2f s) \\\\ \n',  time_prelim(1,1),  time_prelim(1,1), time_prelim(1,1));
-    fprintf(FID, ' (including $q_{2}$) &   &  & (%4.2f s) & (%4.2f s) \\\\ \n',  time_mit(1,1), time_pmit(1,1));
-    fprintf(FID, '$[$Initialisation for $q_{2}$$]$&   &   & $[$%4.2f s$]$ & $[$%4.2f s$]$ \\\\ \n',  time_bigdraw, time_bigdraw);
-    fprintf(FID, 'Time sampling & %4.2f s & %4.2f s & %4.2f s & %4.2f s  \\\\  \n', ...
-        time_direct(2,1), time_prelim(2,1), time_mit(2,1), time_pmit(2,1));
-    fprintf(FID, 'Number of draws used & %d & %d & %d & %d \\\\ \n', M, M, M, M);
-    fprintf(FID, 'Time per draw & %4.2f ms & %4.2f ms & %4.2f ms & %4.2f ms \\\\ \\hline \n',...
-          10*time_direct(2,1)/M, 10*time_prelim(2,1)/M, 10*time_mit(2,1)/M, 10*time_pmit(2,1)/M);
-    
-    fprintf(FID,'\\multicolumn{5}{c}{Required for \\%% estimate with 1 digit precision} \\\\ \\hline \n');
-    fprintf(FID, 'Time: &  &  &   &  \\\\ \n');
-    fprintf(FID, '\\hspace{1cm} for $VaR$ & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', required_var_direct, required_var_prelim, required_var_mit, required_var_pmit);
-    fprintf(FID, '\\hspace{1cm} for $ES$ & %4.2f s & %4.2f s & %4.2f s & %4.2f s \\\\ \n', required_es_direct, required_es_prelim, required_es_mit, required_es_pmit);
-    fprintf(FID, 'Draws: &  &  &   &  \\\\ \n');
-    fprintf(FID, '\\hspace{1cm} for $VaR$ & %s & %s  & %s  & %s  \\\\ \n',...
-       num2bank(draws_var_direct), num2bank(draws_var_prelim), num2bank(draws_var_mit), num2bank(draws_var_pmit));
-    fprintf(FID, '\\hspace{1cm} for $ES$ & %s & %s  & %s   & %s  \\\\ \n', ...
-       num2bank(draws_es_direct), num2bank(draws_es_prelim), num2bank(draws_es_mit), num2bank(draws_es_pmit));
-    
-    fprintf(FID, '\\hline \n');
-    
-%     fprintf(FID, 'Investment: &  &  &   &  \\\\ \n');
-    fprintf(FID, 'Slope: &  &  &   &  \\\\ \n');
-   fprintf(FID, '\\hspace{1cm} for $VaR$ & %4.2f & %4.2f  & %4.2f  & %4.2f  \\\\ \n',...
-       slope_var_direct, slope_var_prelim, slope_var_mit, slope_var_pmit);
-    fprintf(FID, '\\hspace{1cm} for $ES$ & %4.2f & %4.2f  & %4.2f   & %4.2f  \\\\  \\hline \n', ...
-       slope_es_direct, slope_es_prelim, slope_es_mit, slope_es_pmit);
- 
-    fprintf(FID, '\\end{tabular} \n');
-    fprintf(FID, '\\end{table} \n');
-    fprintf(FID, '} \n');
-    fclose(FID);
-
 end

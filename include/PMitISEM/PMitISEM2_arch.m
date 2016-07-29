@@ -30,7 +30,7 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 250; % forecast horizon
+H = 10; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 
@@ -79,14 +79,16 @@ lnk0 = lnk_hl; %kernel(draw0);
 % clear draw_hl w_hl lnk_hl lnd_hl
 
 if (H == 250)
-%     cont2.mit.Hmax = 3; % <===== !!!
-    cont2.mit.Hmax1 = 5;  
-    cont2.mit.Hmax2 = 2;  
+    cont2.mit.Hmax = 1; % <===== !!!
+%     cont2.mit.Hmax1 = 5;  
+%     cont2.mit.Hmax2 = 2;  
 else
     cont2.mit.Hmax = 10; % <===== !!!
 end
 cont2.mit.iter_max = 2; % <===== !!!
-cont2.df.range = [5,15];
+cont2.df.range = [5,20];
+cont2.mit.dfnc = 10;
+
 cont = cont2;
 
 % [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
@@ -115,7 +117,7 @@ s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step3;
 
-% tic
+tic
 for sim = 1:N_sim   
     fprintf('\nVaR IS iter: %d\n',sim)
      
@@ -150,10 +152,13 @@ for sim = 1:N_sim
   
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
 end      
-% time_pmit(2,1) = toc/N_sim;
+time_pmit(2,1) = toc/N_sim;
 
 VaR_step2 = VaR_pmit;
 ES_step2 = ES_pmit;
+
+% VaR_pmit = VaR_step2;
+% ES_pmit = ES_step2;
 
 VaR_step2_up = VaR_pmit;
 ES_step2_up = ES_pmit;
@@ -179,7 +184,7 @@ if save_on
 end
 
 if plot_on
-    [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim,VaR_pmit,ES_prelim,ES_pmit,model,algo,H,N_sim,save_on);
+    [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim,VaR_pmit,ES_prelim,ES_pmit,model,algo,H,N_sim,true);
     
     y_pmit = predict_arch(draw_pmit(:,1), y_T, S, H, draw_pmit(:,2:H+1));  
     Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,algo,save_on)

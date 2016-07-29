@@ -47,6 +47,7 @@ H = 10;     % prediction horizon
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
+RNE_prelim = zeros(N_sim,1);
 accept = zeros(N_sim,1);
 time_prelim = zeros(2,1);
 
@@ -88,9 +89,13 @@ for sim = 1:N_sim
     theta1 = theta1(ind_real,:);  
     eps_H = eps_H(ind_real,:);
 
-    [PL_H, ind] = sort(fn_PL(y_H));
+    PL_H_ind = fn_PL(y_H);
+    PL_H = sort(PL_H_ind);
     VaR_prelim(sim,1) = PL_H(round(p_bar*M_real));
-    ES_prelim(sim,1) = mean(PL_H(round(1:p_bar*M)));   
+    ES_prelim(sim,1) = mean(PL_H(round(1:p_bar*M)));
+    
+    ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
+    RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end    
 time_prelim(2,1) = toc/N_sim;
@@ -102,7 +107,7 @@ end
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim')
+    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','RNE_prelim')
 end
 
 % If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
@@ -119,5 +124,5 @@ time_bigdraw = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','draw_hl','VaR_est','time_bigdraw')
+    save(name,'VaR_prelim','ES_prelim','mit1','cont1','summary1','accept','time_prelim','draw_hl','VaR_est','time_bigdraw','RNE_prelim')
 end

@@ -1,6 +1,12 @@
 clear all
 close all
 
+horizon = [10,20,40];
+
+
+for H = horizon
+
+close all
 %% Initialization
 s = RandStream('mt19937ar','Seed',0);
 RandStream.setGlobalStream(s); 
@@ -38,7 +44,7 @@ time_mit = zeros(2,1);
 
 M = 10000; % number of draws for preliminary and IS computations
 
-H = 1; % forecast horizon
+% H = 40; % forecast horizon
 p_bar = 0.01;
 tail_shift = 1;
 
@@ -95,7 +101,8 @@ for sim = 1:N_sim
     draw_opt = rmvgt2(M, mit2.mu, mit2.Sigma, mit2.df, mit2.p); 
     y_opt = sqrt(sigma2_used).*draw_opt;  
     PL = fn_PL(y_opt);
-    kernel = @(xx) - 0.5*(log(2*pi) + log(sigma2_used)+ (xx.^2)/sigma2_used);
+%     kernel = @(xx) - 0.5*(log(2*pi) + log(sigma2_used) + (xx.^2)/sigma2_used);
+    kernel = @(xx) - 0.5*(log(2*pi) + log(1) + (xx.^2)/1);
 
     lnk_opt = sum(kernel(draw_opt),2);
     lnd_opt = dmvgt(draw_opt, mit2, true, GamMat);
@@ -123,4 +130,7 @@ end
 
 labels_in = {'Direct','MitISEM'};
 algo = [algo,'_',estimation];  
-Boxplot_PMitISEM(VaR_direct, VaR_mit, ES_direct, ES_mit, model, algo, H, N_sim, true, labels_in);
+Boxplot_PMitISEM(VaR_direct, VaR_mit, ES_direct, ES_mit, model, algo, H, N_sim, save_on, labels_in);
+
+
+end
