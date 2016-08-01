@@ -40,7 +40,7 @@ DD = size(mu_init,2);
 plot_on = true;
 save_on = false;
 
-% Control parameters for MitISEM (cont) and PMitiISEM (cont2)
+% Control parameters for PMitiISEM
 cont2 = MitISEM_Control;
 cont2.mit.dfnc = 5;
 
@@ -71,11 +71,9 @@ w_hl = exp(w_hl - max(w_hl));
 %% PMitISEM
 partition = [1,DD+2:H+DD];
 d = H+DD;
-% S = var(data);
 
-fn_const_X = @(xx) t_garch_noS_const_X2(xx, data, S);
-fn_input_X = @(xx) t_garch_noS_input_X(xx, data, S);
-% kernel = @(xx) posterior_t_garch_hl_noS_mex(xx, data, S, mean(VaR_prelim), GamMat);
+fn_const_X = @(xx) t_garch_noS_const_X3(xx);
+fn_input_X = @(xx) t_garch_noS_input_X3(xx, data, S);
 kernel = @(a) posterior_t_garch_hl_noS_hyper_mex(a, data, S, mean(VaR_prelim), GamMat, hyper);
 
 CV_old = cont2.mit.CV_old;
@@ -93,8 +91,7 @@ cont2.df.range = [1,10]; %<<<==== was: [1;10]
 cont = cont2;
 
 tic
-% [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
-[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM2(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
+[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM3(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
 time_pmit(1,1) = toc;
 
 if save_on
@@ -115,32 +112,28 @@ for sim = 1:N_sim
     draw1 = [theta1, eps1];
     clear theta1 eps1
     input_X_1 = fn_input_X(draw1);
-
-%         draw_pmit  = fn_p_rmvgt(M/2, pmit, d, partition, [], fn_const_X);  
-    [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt2(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
+    
+    [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt3(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
 
     draw_opt = [draw1; draw_pmit];
-
     input_X.theta = draw_opt;
-    input_X.h_T = [input_X_1.h_T; input_X_pmit.h_T];
+    input_X.h_last = [input_X_1.h_last; input_X_pmit.h_last];
+    input_X.y_last = [input_X_1.y_last; input_X_pmit.y_last];
+    input_X.y_cum = [input_X_1.y_cum; input_X_pmit.y_cum];
+
     clear draw1 %draw_pmit
     clear input_X_1 input_X_pmit
 
-%     kernel = @(xx) posterior_t_garch_noS_mex(xx, data ,S, GamMat);
     kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
     lnk_opt = kernel(draw_opt(:,1:5)); 
 
-%     eps_pdf = zeros(M, 1);
-%     for hh = 1:H
-%         eps_pdf = eps_pdf + log(tpdf(draw_opt(:,DD+hh),draw_opt(:,DD)));
-%     end
     eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
     lnk_opt = lnk_opt + eps_pdf;
 
     % optimal weights
     exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:DD), mit1, true, GamMat));
 %         exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
-    exp_lnd2 = fn_dpmit2(input_X, pmit, partition, fn_const_X, true, GamMat);        
+    exp_lnd2 = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
 
     exp_lnd2 = 0.5*exp(exp_lnd2);
     exp_lnd = exp_lnd1 + exp_lnd2;
@@ -148,8 +141,7 @@ for sim = 1:N_sim
     w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
 
     % IS VaR estimation
-%         h_T = volatility_t_garch_noS_mex(draw_opt(:,1:DD), data, S);
-    h_T = input_X.h_T;     
+    h_T = input_X.h_last;     
     y_opt = predict_t_garch_noS(draw_opt(:,1:DD), y_T, h_T, H, draw_opt(:,DD+1:H+DD));   
 %     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
 %     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     

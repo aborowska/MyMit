@@ -50,6 +50,7 @@ p_bar = 0.01;
 
 VaR_pmit = zeros(N_sim,1);
 ES_pmit = zeros(N_sim,1);
+RNE_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 % PRELIM & BIG DRAW
@@ -152,7 +153,9 @@ for sim = 1:N_sim
     w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
 
     % IS VaR estimation
-    y_opt = bsxfun(@times,draw_opt(:,2:d),sqrt(draw_opt(:,1)));  
+    y_opt = bsxfun(@times,draw_opt(:,2:d),sqrt(draw_opt(:,1))); 
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);
@@ -179,7 +182,7 @@ pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff')
+    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 
 if plot_on

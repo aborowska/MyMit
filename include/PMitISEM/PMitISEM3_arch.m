@@ -64,8 +64,9 @@ w_hl = exp(w_hl - max(w_hl));
 partition = [1,3:H+1];
 d = H+1;
 
-fn_const_X = @(a) arch_const_X(a, y_T, S);
-fn_input_X = @(xx) xx;
+fn_input_X = @(xx) arch_input_X3(xx, data);
+fn_const_X = @(xx) arch_const_X3(xx, S);
+ 
 kernel = @(xx) posterior_arch_hl(xx, data, S, mean(VaR_prelim), true);
 
 CV_old = cont2.mit.CV_old;
@@ -74,10 +75,9 @@ CV_tol = cont2.mit.CV_tol;
 draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
-% clear draw_hl w_hl lnk_hl lnd_hl
-
+ 
 % if (H == 250)
-    cont2.mit.Hmax = 1; % <===== !!!
+    cont2.mit.Hmax = 2; % <===== !!!
 %     cont2.mit.Hmax1 = 5;  
 %     cont2.mit.Hmax2 = 2;  
 % else
@@ -90,7 +90,7 @@ cont2.mit.dfnc = 10;
 cont = cont2;
 
 tic
-[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM2(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
+[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM3(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
 time_pmit(1,1) =  toc;
 
 if save_on
@@ -108,6 +108,10 @@ s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2_up;
 
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step3;
+
 tic
 for sim = 1:N_sim   
     fprintf('\nVaR IS iter: %d\n',sim)
@@ -115,9 +119,15 @@ for sim = 1:N_sim
     alpha1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
     eps1 = randn(M/2,H); 
     draw1 = [alpha1, eps1];
+    clear alpha1 eps1
+    input_X_1 = fn_input_X(draw1);
+      
+    [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt3(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
     
-    draw_pmit  = fn_p_rmvgt(M/2, pmit, d, partition, [], fn_const_X);  
     draw_opt = [draw1; draw_pmit];
+    input_X.theta = draw_opt;
+    input_X.y_last = [input_X_1.y_last; input_X_pmit.y_last];
+    input_X.y_cum = [input_X_1.y_cum; input_X_pmit.y_cum];
 
     kernel = @(xx) posterior_arch(xx, data, S, true);
     lnk_opt = kernel(draw_opt(:,1));
@@ -128,7 +138,7 @@ for sim = 1:N_sim
 
     % optimal weights
     exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1), mit1, true, GamMat));
-    exp_lnd2 = fn_dpmit(draw_opt, pmit, partition, fn_const_X, true, GamMat);
+    exp_lnd2 = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
     exp_lnd2 = 0.5*exp(exp_lnd2);
     exp_lnd = exp_lnd1 + exp_lnd2;
     lnd_opt = log(exp_lnd);
@@ -136,8 +146,8 @@ for sim = 1:N_sim
 
     % IS VaR estimation
     y_opt = predict_arch(draw_opt(:,1), y_T, S, H, draw_opt(:,2:H+1));  
-    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
-    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);   
+%     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+%     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);   
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);
@@ -155,6 +165,9 @@ ES_step2 = ES_pmit;
 
 VaR_step2_up = VaR_pmit;
 ES_step2_up = ES_pmit;
+
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
 
 % time_pmit(1,1) = time_pmit(1,1) + time_step2_up
 if save_on

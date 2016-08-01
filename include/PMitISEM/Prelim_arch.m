@@ -32,7 +32,7 @@ BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
 
-H = 10; % forecast horizon
+H = 250; % forecast horizon
 plot_on = true;
 save_on = true;
 

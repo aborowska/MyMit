@@ -1,4 +1,4 @@
-function [y_hp, eps_hp] = predict_t_gas(theta, y_T, f_T, hp, eps)
+function [y_hp, eps_hp, f] = predict_t_gas(theta, y_T, f_T, hp, eps)
     [N ,~] = size(theta);
     mu = theta(:,1);
     omega = theta(:,2);
@@ -11,14 +11,13 @@ function [y_hp, eps_hp] = predict_t_gas(theta, y_T, f_T, hp, eps)
     A = A.*((nu+3)./nu);
     
     if (nargin == 4)
-%         fprintf('hp = %i \n',hp);
-        eps_hp = trnd(repmat(nu,1,hp));
+         eps_hp = trnd(repmat(nu,1,hp));
     else %(with given eps)
         eps_hp = eps;
     end
     
     y_hp = zeros(N,hp+1);    
-    y_hp(:,1) = y_T*ones(N,1);
+    y_hp(:,1) = y_T.*ones(N,1);
 
     f = zeros(N,hp+1); 
     f(:,1) = f_T;
@@ -30,4 +29,5 @@ function [y_hp, eps_hp] = predict_t_gas(theta, y_T, f_T, hp, eps)
          y_hp(:,jj) = mu(:,1) + sqrt(rho(:,1).*f(:,jj)).*eps_hp(:,jj-1);
     end
     y_hp = y_hp(:,2:hp+1);
+    f = f(:,2:hp+1);
 end

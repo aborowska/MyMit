@@ -41,6 +41,7 @@ N_sim = 20;
 
 VaR_mit = zeros(N_sim,1);
 ES_mit = zeros(N_sim,1);
+RNE_mit = zeros(N_sim,1);
 time_mit = zeros(2,1);
 
 % Metropolis-Hastings for the parameters
@@ -132,6 +133,8 @@ for sim = 1:N_sim
 
     % IS VaR estimation
     y_opt = bsxfun(@times,draw_opt(:,2:d),sqrt(draw_opt(:,1)));  
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_mit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_mit(sim,1) = IS_estim(1,1);
@@ -144,7 +147,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_mit','ES_mit','mit2','summary2','time_mit')
+    save(name,'VaR_mit','ES_mit','mit2','summary2','time_mit','RNE_mit')
 end
 
 

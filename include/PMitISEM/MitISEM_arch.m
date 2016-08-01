@@ -32,22 +32,23 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 1; % forecast horizon
+H = 40; % forecast horizon
 % d = H+1; % dimension of theta
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
+cont2.mit.dfnc = 10;
 cont2.mit.N = 10000;
 cont2.resmpl_on = false;
-cont2.df.range = [1,10];
+cont2.df.range = [5,20];
 
 
 VaR_mit = zeros(N_sim,1);
 ES_mit = zeros(N_sim,1);
+RNE_mit = zeros(N_sim,1);
 time_mit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
@@ -73,9 +74,6 @@ w_hl = exp(w_hl - max(w_hl));
 [mu_hl, Sigma_hl] = fn_muSigma(draw_hl, w_hl);
 d = size(draw_hl,2);
 
-% cont2.mit.N = 10000;
-cont2.mit.Hmax = 1;
-cont2.mit.CV_tol = 0.15;
 mit_hl.mu = mu_hl;
 mit_hl.Sigma = Sigma_hl;
 mit_hl.df = cont2.mit.dfnc;
@@ -89,7 +87,6 @@ tic
 if (H < 40)
     [mit2, summary2] = MitISEM_new(kernel_init, kernel, mu_hl, cont2, GamMat);
 else
-%     cont2.mit.Hmax = 10;
     [mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_hl, cont2, GamMat);
 end
 time_mit(1,1) = toc;
@@ -129,6 +126,8 @@ for sim = 1:N_sim
 
     % VaR and ES IS estimates
     y_opt = predict_arch(draw_opt(:,1), y_T, S, H, draw_opt(:,2:H+1));  
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_mit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_mit(sim,1) = IS_estim(1,1);
@@ -146,7 +145,7 @@ mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_mit','ES_mit','mit2','summary2','mit_eff','time_mit')
+    save(name,'VaR_mit','ES_mit','mit2','summary2','mit_eff','time_mit','RNE_mit')
 end
 
 

@@ -42,6 +42,7 @@ H = 20;     % prediction horizon
 
 VaR_mit = zeros(N_sim,1);
 ES_mit = zeros(N_sim,1);
+RNE_mit = zeros(N_sim,1);
 time_mit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
@@ -129,7 +130,9 @@ for sim = 1:N_sim
 
     %VaR and ES IS estimates 
     f_T = volatility_t_gas_mex(draw_opt(:,1:d), y);
-    [y_opt, ~] = predict_t_gas(draw_opt(:,1:d), y_T, f_T, H, draw_opt(:,d+1:H+d));
+    y_opt = predict_t_gas(draw_opt(:,1:d), y_T, f_T, H, draw_opt(:,d+1:H+d));
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_mit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);    
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_mit(sim,1) = IS_estim(1,1);
@@ -141,7 +144,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit')
+    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
 end
 
 f2 = volatility_t_gas_mex(draw2(:,1:d), y);
@@ -151,7 +154,7 @@ mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff')
+    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff','RNE_mit')
 end
 
 labels_in = {'prelim','mitisem'};

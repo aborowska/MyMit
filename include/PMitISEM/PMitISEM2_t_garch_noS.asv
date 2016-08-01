@@ -23,7 +23,7 @@ y_T = data(T);
 S = var(data);
 
 p_bar = 0.01;
-H = 100; % forecast horizon
+H = 10; % forecast horizon
 
 M = 10000;
 BurnIn = 1000;
@@ -151,8 +151,8 @@ for sim = 1:N_sim
 %         h_T = volatility_t_garch_noS_mex(draw_opt(:,1:DD), data, S);
     h_T = input_X.h_T;     
     y_opt = predict_t_garch_noS(draw_opt(:,1:DD), y_T, h_T, H, draw_opt(:,DD+1:H+DD));   
-%     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
-%     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);

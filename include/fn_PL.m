@@ -1,4 +1,4 @@
-function [val_return] = fn_PL(vars, L, normal)
+function [val_return] = fn_PL(vars, L)
 % profit loss function value at c 
 % if nargin>1
 % if L == 1 ==> VaR esimtation via IS
@@ -16,11 +16,7 @@ function [val_return] = fn_PL(vars, L, normal)
         PL(imag(PL)~=0) = -Inf;
         [PL, ind] = sort(PL); 
         w = w(ind,:);
-        if ((nargin == 2) || (normal == true))
-            w = w/sum(w);
-        else
-            w = w/length(w);
-        end
+        w = w/sum(w);      
         cum_w = cumsum(w);
         
         if (L == 1) % compute VaR_IS and ES_IS

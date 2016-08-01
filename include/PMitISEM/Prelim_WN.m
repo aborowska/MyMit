@@ -43,7 +43,7 @@ N_sim = 20;
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 20; % forecast horizon
+H = 10; % forecast horizon
 p_bar = 0.01;
 % d = H+1; % dimension of theta
 

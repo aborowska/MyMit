@@ -18,11 +18,11 @@ T = size(y,1);
 y_T = y(T,1);
 
 p_bar = 0.01;
-H = 250;
+H = 100;
 
 M = 10000;
 BurnIn = 1000;
-N_sim = 80;
+N_sim = 20;
 sim = 1;
 
 % theta = [mu, omega, A, B, nu]
@@ -30,7 +30,7 @@ mu_init = [0, 0.01, 0.1, 0.89, 8];
 DD = size(mu_init,2);
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for PMitISEM
 cont2 = MitISEM_Control;
@@ -38,6 +38,7 @@ cont2.mit.dfnc = 5;
 
 VaR_pmit = zeros(N_sim,1);
 ES_pmit = zeros(N_sim,1);
+RNE_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
@@ -77,11 +78,11 @@ lnk0 = lnk_hl; %kernel(draw0);
 % else
     cont2.mit.iter_max = 1;%6;%8;
 % end
-cont2.df.range = [1,10];
+cont2.df.range = [5,15];
 cont2.mit.Hmax = 1;
-if (H >= 40)
+% if (H >= 40)
     cont2.mit.dfnc = 10;
-end
+% end
 if (H==250)
     cont2.mit.Hmax = 1;
 end
@@ -101,17 +102,16 @@ end
 
 %% VaR with PMit
 
-% pmit = pmit_adapt;
-% 
-% pmit = pmit_step2;
-% 
-% pmit = pmit_step2_up;
-% 
-% pmit = pmit_step3;
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step2;
+
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step2_up;
 
 tic
 for sim = 1:N_sim  
-%     profile on
     fprintf('\nVaR IS iter: %d\n',sim)
 
     theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
@@ -152,34 +152,29 @@ for sim = 1:N_sim
     % IS VaR estimation
 %     f_T = volatility_t_gas_mex(draw_opt(:,1:DD), y);
     f_T = input_X.f_T;
-    [y_opt, ~] = predict_t_gas(draw_opt(:,1:DD), y_T, f_T, H, draw_opt(:,DD+1:H+DD));
+    y_opt = predict_t_gas(draw_opt(:,1:DD), y_T, f_T, H, draw_opt(:,DD+1:H+DD));
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt); 
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);
     ES_pmit(sim,1) = IS_estim(1,2);   
 
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
-%     profile off
-%     profile viewer
 end
 time_pmit(2,1) = toc/N_sim;
 
-% VaR_adapt = VaR_pmit;
-% ES_adapt = ES_pmit;
-% 
-% VaR_step2 = VaR_pmit;
-% ES_step2 = ES_pmit;
-% 
-% VaR_step2_up = VaR_pmit;
-% ES_step2_up = ES_pmit;
-% 
-% VaR_step3 = VaR_pmit;
-% ES_step3 = ES_pmit;
+VaR_step2 = VaR_pmit;
+ES_step2 = ES_pmit;
 
+VaR_step2_up = VaR_pmit;
+ES_step2_up = ES_pmit;
+
+% time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit')
+    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
 end
 
 
@@ -190,7 +185,7 @@ pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff')
+    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 
 if plot_on

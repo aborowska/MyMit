@@ -35,7 +35,7 @@ function RNE = fn_RNE(theta, algo, input, weighting,p)
             w = ones(N,1);
         end
         w = w/sum(w);
-        tmp_w = repat(w,1,d);
+        tmp_w = repmat(w,1,d);
         theta_mean = sum(tmp_w.*theta,1);
         theta_demeaned = theta - repmat(theta_mean,N,1);
         var_direct = (sum(tmp_w.*(theta.^2),1) - theta_mean.^2)/N;

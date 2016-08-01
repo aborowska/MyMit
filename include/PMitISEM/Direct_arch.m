@@ -2,7 +2,7 @@
 % clc
 clear all
 close all
-s = RandStream('mt19937ar','Seed',1); % for 250 set '0'
+s = RandStream('mt19937ar','Seed',1); % or: 0
 RandStream.setGlobalStream(s); 
 addpath(genpath('include/'));
 
@@ -31,12 +31,12 @@ BurnIn = 1000;
 
 N_sim = 20;
 p_bar = 0.01;
-H = 10; % forecast horizon
+H = 100; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);
@@ -71,8 +71,7 @@ for sim = 1:N_sim
     PL_direct_ind = fn_PL(y_direct);
     PL_direct = sort(PL_direct_ind);
     VaR_direct(sim,1) = PL_direct(p_bar*M);
-    ES_direct(sim,1) = mean(PL_direct(1:p_bar*M));
-    
+    ES_direct(sim,1) = mean(PL_direct(1:p_bar*M));  
     ind_direct = double((PL_direct_ind < VaR_direct(sim,1)));
     RNE_direct(sim,1) = fn_RNE(ind_direct, 'MH',[],'Q');
     fprintf('Direct 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_direct(sim,1), model, algo);

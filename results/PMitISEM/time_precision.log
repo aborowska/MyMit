@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9) (preloaded format=pdflatex 2016.5.1)  29 JUL 2016 15:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9) (preloaded format=pdflatex 2016.5.1)  30 JUL 2016 20:14
 entering extended mode
 **./time_precision.tex
 (time_precision.tex
@@ -1159,12 +1159,12 @@ LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) [1{H:/Desktop/miktex-portable-2.9.5857/pdftex/config/pdftex.map}]
 (results_arch_time_precision_comb.tex
-Overfull \hbox (14.36795pt too wide) in paragraph at lines 6--66
+Overfull \hbox (44.36806pt too wide) in paragraph at lines 6--66
  [][] 
  []
 
 
-LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
+LaTeX Warning: Float too large for page by 114.81793pt on input line 66.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
@@ -1181,43 +1181,31 @@ LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) [3] (results_t_gas_time_precision_comb.tex
-Overfull \hbox (49.47916pt too wide) in paragraph at lines 6--66
+Overfull \hbox (49.47916pt too wide) in paragraph at lines 6--59
  [][] 
  []
 
 
-LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
+LaTeX Warning: Float too large for page by 20.81781pt on input line 59.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) [4] (results_WN_ML_true_time_precision_comb.tex
-Overfull \hbox (32.9792pt too wide) in paragraph at lines 6--66
- [][] 
- []
 
-
-LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
+LaTeX Warning: Float too large for page by 114.81793pt on input line 66.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) [5] (results_WN_ML_mle_time_precision_comb.tex
-Overfull \hbox (25.09032pt too wide) in paragraph at lines 6--66
- [][] 
- []
 
-
-LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
+LaTeX Warning: Float too large for page by 114.81793pt on input line 66.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) [6] (results_t_gas_ML_time_precision_comb.tex
-Overfull \hbox (20.70134pt too wide) in paragraph at lines 6--66
- [][] 
- []
-
 
 LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
 
@@ -1242,7 +1230,7 @@ Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 24.
 Here is how much of TeX's memory you used:
  29344 strings out of 493634
  546946 string characters out of 3140549
- 632254 words of memory out of 3000000
+ 635254 words of memory out of 3000000
  32274 multiletter control sequences out of 15000+200000
  5445 words of font info for 23 fonts, out of 3000000 for 9000
  1025 hyphenation exceptions out of 8191
@@ -1250,7 +1238,7 @@ Here is how much of TeX's memory you used:
 <H:/Desktop/miktex-portable-2.9.5857/fonts/type1/public/amsfonts/cm/cmmi10.pf
 b><H:/Desktop/miktex-portable-2.9.5857/fonts/type1/public/amsfonts/cm/cmr10.pfb
 >
-Output written on time_precision.pdf (7 pages, 48866 bytes).
+Output written on time_precision.pdf (7 pages, 49744 bytes).
 PDF statistics:
  57 PDF objects out of 1000 (max. 8388607)
  14 named destinations out of 1000 (max. 500000)

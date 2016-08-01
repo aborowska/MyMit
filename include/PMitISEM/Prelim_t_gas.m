@@ -20,22 +20,20 @@ algo = 'Prelim';
 
 
 plot_on = true;
-save_on = false;
+save_on = true;
 
 % Control parameters for MitISEM
 cont1 = MitISEM_Control;
 cont1.mit.dfnc = 5;
 cont1.mit.N = 10000;
 cont1.resmpl_on = false;
+cont1.mit.Hmax = 2;
  
-cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
-    
 M = 10000;
 BurnIn = 1000;
 N_sim = 20;
 p_bar = 0.01;
-H = 250;
+H = 40;
 
 VaR_prelim = zeros(N_sim,1);
 ES_prelim = zeros(N_sim,1);
@@ -83,9 +81,9 @@ for sim = 1:N_sim
     PL_H = sort(PL_H_ind);
     VaR_prelim(sim,1) = PL_H(round(p_bar*M_real));
     ES_prelim(sim,1) = mean(PL_H(round(1:p_bar*M_real)));   
-    
-    ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
-    RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
+%     
+%     ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
+%     RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end    
 time_prelim(2,1) = toc/N_sim;

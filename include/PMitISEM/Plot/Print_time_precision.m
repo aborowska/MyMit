@@ -286,19 +286,19 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     end
     fprintf(FID, '\\hline \n');
     
-    if ML
-        fprintf(FID, ' && \\multicolumn{3}{c}{VaR draws required} &&   \\multicolumn{3}{c}{ES draws required} \\\\  \\cline{3-5}  \\cline{7-9} \n');     
-    else
-        fprintf(FID, ' && \\multicolumn{4}{c}{VaR draws required} &&   \\multicolumn{4}{c}{ES draws required} \\\\  \\cline{3-6}  \\cline{8-11} \n');     
-    end
-    for h = 1:Hno
-        if ML
-            fprintf(FID, '%i & & %i & %i & & %i & %i & %i & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
-        else
-            fprintf(FID, '%i & & %i & %i & %i & & %i & %i & %i & %i  & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
-        end
-    end
-    fprintf(FID, '\\hline \n');
+%     if ML
+%         fprintf(FID, ' && \\multicolumn{3}{c}{VaR draws required} &&   \\multicolumn{3}{c}{ES draws required} \\\\  \\cline{3-5}  \\cline{7-9} \n');     
+%     else
+%         fprintf(FID, ' && \\multicolumn{4}{c}{VaR draws required} &&   \\multicolumn{4}{c}{ES draws required} \\\\  \\cline{3-6}  \\cline{8-11} \n');     
+%     end
+%     for h = 1:Hno
+%         if ML
+%             fprintf(FID, '%i & & %i & %i & & %i & %i & %i & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
+%         else
+%             fprintf(FID, '%i & & %i & %i & %i & & %i & %i & %i & %i  & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
+%         end
+%     end
+%     fprintf(FID, '\\hline \n');
   
         
     fprintf(FID, '\\end{tabular} \n');

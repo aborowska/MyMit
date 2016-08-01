@@ -43,10 +43,6 @@ if ML
 else
     algos = {'Direct','Prelim','MitISEM','PMitISEM'};
 end
-VaR_mat_prelim = zeros(2,5);
-VaR_mat_pmit = zeros(2,5);
-ES_mat_prelim = zeros(2,5);
-ES_mat_pmit = zeros(2,5);
 
 %% Boxplot Combine
 for h = horizons
@@ -79,55 +75,6 @@ for h = horizons
     end
     Boxplot_PMitISEM(VaR_direct,VaR_pmit,ES_direct,ES_pmit,model,algo_est,h,N_sim,save_on, labels_in);
 end
-
-%% VaR results PMitISEM all H
-fname = ['results/PMitISEM/results_',model,'_pmitisem_comp.tex'];
-FID = fopen(fname, 'w+');
-fprintf(FID, '\\begin{table}[h] \n');
-fprintf(FID, '\\centering \n');
-
-caption = ['\\caption{Results for the $99\\%%$ VaR and ES, in the ',...
-    model_tex,' model, based on $N=',int2str(M),'$ candidate draws and $',...
-    int2str(N_sim),'$ replications to obtain NSEs.} \n'];
-fprintf(FID, caption);
-
-label = ['\\label{tab:res_pmit_',model,'} \n'];
-fprintf(FID, label);
-fprintf(FID, '\\begin{tabular}{ccccccc}  \n');
-fprintf(FID, ' Horizon & & $VaR_{adapt}$ & $VaR_{pmit}$ & & $ES_{adapt}$ & $ES_{pmit}$ \\\\ \\hline \n');
-
-ii = 0;
-for h = horizons
-    ii = ii+1;
-    VaR_prelim = NaN;
-    VaR_pmit = NaN;
-    ES_prelim = NaN;
-    ES_pmit = NaN;
-    fprintf(FID, '$%s$ & & ',num2str(h));
-    name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    load(name,'VaR_prelim','ES_prelim')
-    name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    try
-        load(name,'VaR_pmit','ES_pmit')
-    catch
-        
-    end
-    fprintf(FID, '%6.4f & ' ,mean(VaR_prelim)); VaR_mat_prelim(1,ii) = mean(VaR_prelim);
-    fprintf(FID, '%6.4f & & ',mean(VaR_pmit));  VaR_mat_pmit(1,ii) = mean(VaR_pmit);
-    fprintf(FID, '%6.4f & ' ,mean(ES_prelim));  ES_mat_prelim(1,ii) = mean(ES_prelim);
-    fprintf(FID, '%6.4f  \\\\ \n',mean(ES_pmit));  ES_mat_pmit(1,ii) = mean(ES_pmit);
-
-    fprintf(FID, ' & & ');
-    fprintf(FID, '(%6.4f) & ' ,std(VaR_prelim)); VaR_mat_prelim(2,ii) = std(VaR_prelim);
-    fprintf(FID, '(%6.4f) & & ',std(VaR_pmit)); VaR_mat_pmit(2,ii) = std(VaR_pmit);
-    fprintf(FID, '(%6.4f) & ' ,std(ES_prelim)); ES_mat_prelim(2,ii) = std(ES_prelim);
-    fprintf(FID, '(%6.4f)   \\\\ [1ex] \n',std(ES_pmit));  ES_mat_pmit(2,ii) = std(ES_pmit);
-    
-end 
-fprintf(FID, '\\hline \n');
-fprintf(FID, '\\end{tabular} \n');
-fprintf(FID, '\\end{table} \n');
-fclose(FID);
 
 %% VaR results diff algo 
 Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
