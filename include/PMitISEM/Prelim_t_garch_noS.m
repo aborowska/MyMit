@@ -39,6 +39,7 @@ save_on = false;
 % Control parameters for MitISEM
 cont1 = MitISEM_Control;
 cont1.mit.dfnc = 5;
+cont1.mit.Hmax = 1;
 cont1.mit.N = 10000;
 cont1.resmpl_on = false;
  
@@ -73,7 +74,6 @@ end
 tic
 for sim = 1:N_sim  
     fprintf('\nPrelim sim = %i.\n', sim);
-%     kernel = @(a) posterior_t_garch_noS_mex(a, data, S, GamMat);
     kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
     [theta1, accept(sim,1)] = Mit_MH(M+BurnIn, kernel, mit1, GamMat);
     fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept(sim,1), model, algo);
@@ -94,8 +94,8 @@ for sim = 1:N_sim
     VaR_prelim(sim,1) = PL_H(round(p_bar*M_real));
     ES_prelim(sim,1) = mean(PL_H(round(1:p_bar*M)));
     
-    ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
-    RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
+%     ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
+%     RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end    
 time_prelim(2,1) = toc/N_sim;
@@ -119,7 +119,7 @@ y_predict = @(draw) predict_t_garch_new_noS(draw(:,1:d), data, S, draw(:,d+1:end
 
 tic
 % [draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
-[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N/10, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
+[draw_hl, VaR_est, ~, ~] = BigDraw(cont1.mit.N, H, BurnIn, p_bar, mit1, kernel, y_predict, GamMat, d);
 time_bigdraw = toc;
 
 if save_on

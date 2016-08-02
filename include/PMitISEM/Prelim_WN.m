@@ -7,7 +7,7 @@ RandStream.setGlobalStream(s);
 
 addpath(genpath('include/'));
 plot_on = false;
-save_on = true;
+save_on = false;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -25,8 +25,8 @@ sigma_init = 0.9;
 
 % Control parameters for MitISEM
 cont1 = MitISEM_Control;
-% cont1.mit.dfnc = 5;
-cont1.mit.dfnc = 10;
+cont1.mit.dfnc = 5;
+cont1.mit.Hmax = 2;
 cont1.mit.N = 10000;
  
 % hyper parameters for the prior for sigma2(inv. gamma)
@@ -43,7 +43,7 @@ N_sim = 20;
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 10; % forecast horizon
+H = 100; % forecast horizon
 p_bar = 0.01;
 % d = H+1; % dimension of theta
 

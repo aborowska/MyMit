@@ -11,9 +11,9 @@ function d = posterior_debug(sigma2, y, a, b, L)
     pdf(ind) = -0.5*(T*log(2*pi) + T*log(sigma2(ind,:)) + sum(y.^2)./sigma2(ind,:));
 
     d = prior(:,2) + pdf;
-    if (~L)
-        d = exp(d-max(d));
-    end
+%     if (~L)
+%         d = exp(d-max(d));
+%     end
 end
 
 function R = prior_debug(sigma2, a, b)

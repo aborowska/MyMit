@@ -5,6 +5,8 @@ function dens = p_dmvgt(theta, mit, L, GamMat, X)
 % where beta = reshape(mit.mu,r,d) 
 % with: r = size(X,2)
 %       d = size(theta,2) 
-    L = double(L);
-    dens = p_dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, X, GamMat, L);    
+%     L = double(L);
+    dens = p_dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, X, GamMat, 1);  
+    %     L = double(L);
+    %     dens = p_dmvgt_mex(theta, mit.mu, mit.Sigma, mit.df, mit.p, X, GamMat, L);    
 end

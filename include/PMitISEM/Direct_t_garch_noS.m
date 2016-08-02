@@ -34,11 +34,11 @@ plot_on = true;
 save_on = false;
 
 p_bar = 0.01;
-H = 250;     % prediction horizon 
+H = 10;     % prediction horizon 
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont_direct = MitISEM_Control;
-cont_direct.mit.dfnc = 4;
+cont_direct.mit.dfnc = 3;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);
@@ -48,10 +48,10 @@ time_direct = zeros(2,1);
 
 % kernel_init = @(a) - posterior_t_garch_noS_mex(a, data, S, GamMat);
 
-        hyper = 0.1; 
-        kernel_init = @(a) - posterior_t_garch_noS_hyper_mex(a, data , S, GamMat, hyper);
-        kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
-        mu_init = [0.009, 0.07, 0.9, 0.05, 11];
+hyper = 0.1; 
+kernel_init = @(a) - posterior_t_garch_noS_hyper_mex(a, data , S, GamMat, hyper);
+kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+mu_init = [0.009, 0.07, 0.9, 0.05, 11];
 
 
 tic

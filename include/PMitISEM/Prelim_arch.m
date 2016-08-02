@@ -34,12 +34,12 @@ p_bar = 0.01;
 
 H = 250; % forecast horizon
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for MitISEM (cont) and PMitiISEM (cont2)
 cont1 = MitISEM_Control;
 % cont1.mit.dfnc = 5;
-cont1.mit.dfnc = 10;
+cont1.mit.dfnc = 5;
 cont1.mit.N = 10000;
 
 
@@ -74,8 +74,8 @@ for sim = 1:N_sim
     VaR_prelim(sim,1) = PL_H(p_bar*M);
     ES_prelim(sim,1) = mean(PL_H(1:p_bar*M)); 
  
-    ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
-    RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
+%     ind_prelim = double((PL_H_ind < VaR_prelim(sim,1)));
+%     RNE_prelim(sim,1) = fn_RNE(ind_prelim, 'MH',[],'Q');
     fprintf('Preliminary 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_prelim(sim,1), model, algo);
 end
 time_prelim(2,1) = toc/N_sim;

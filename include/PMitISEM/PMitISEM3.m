@@ -73,14 +73,8 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
         pmit_adapt(s).p = 1;
     end
 
-    if ~isstruct(input_X)
-        input_X = draw0;
-    else
-        input_X_old.theta = draw0;
-%         input_X.theta = draw0;
-        input_X = input_X0; %reset the input
-    end   
-    lnk_adapt = kernel(draw0); 
+    input_X = input_X0; %reset the input
+    lnk_adapt = kernel(draw0);
     lnd_adapt = fn_dpmit3(input_X, pmit_adapt, partition, fn_const_X, true, GamMat);        
     w_adapt = fn_ISwgts(lnk_adapt, lnd_adapt, false); 
     CV_adapt = fn_CVstop(w_adapt, [], []);

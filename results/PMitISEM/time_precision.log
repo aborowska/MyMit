@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9) (preloaded format=pdflatex 2016.5.1)  30 JUL 2016 20:14
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9) (preloaded format=pdflatex 2016.5.1)  2 AUG 2016 15:00
 entering extended mode
 **./time_precision.tex
 (time_precision.tex
@@ -1147,24 +1147,24 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 4.
 (H:\Desktop\miktex-portable-2.9.5857\tex\latex\amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-Overfull \hbox (26.75693pt too wide) in paragraph at lines 6--66
+Overfull \hbox (16.75694pt too wide) in paragraph at lines 6--59
  [][] 
  []
 
 
-LaTeX Warning: Float too large for page by 20.81781pt on input line 66.
+LaTeX Warning: Float too large for page by 20.81781pt on input line 59.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 ) [1{H:/Desktop/miktex-portable-2.9.5857/pdftex/config/pdftex.map}]
 (results_arch_time_precision_comb.tex
-Overfull \hbox (44.36806pt too wide) in paragraph at lines 6--66
+Overfull \hbox (14.36795pt too wide) in paragraph at lines 6--59
  [][] 
  []
 
 
-LaTeX Warning: Float too large for page by 114.81793pt on input line 66.
+LaTeX Warning: Float too large for page by 20.81781pt on input line 59.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
@@ -1230,7 +1230,7 @@ Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 24.
 Here is how much of TeX's memory you used:
  29344 strings out of 493634
  546946 string characters out of 3140549
- 635254 words of memory out of 3000000
+ 632254 words of memory out of 3000000
  32274 multiletter control sequences out of 15000+200000
  5445 words of font info for 23 fonts, out of 3000000 for 9000
  1025 hyphenation exceptions out of 8191
@@ -1238,7 +1238,7 @@ Here is how much of TeX's memory you used:
 <H:/Desktop/miktex-portable-2.9.5857/fonts/type1/public/amsfonts/cm/cmmi10.pf
 b><H:/Desktop/miktex-portable-2.9.5857/fonts/type1/public/amsfonts/cm/cmr10.pfb
 >
-Output written on time_precision.pdf (7 pages, 49744 bytes).
+Output written on time_precision.pdf (7 pages, 49398 bytes).
 PDF statistics:
  57 PDF objects out of 1000 (max. 8388607)
  14 named destinations out of 1000 (max. 500000)

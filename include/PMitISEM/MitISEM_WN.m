@@ -27,8 +27,8 @@ sigma_init = 0.9;
 cont2 = MitISEM_Control;
 cont2.mit.dfnc = 5;
 cont2.mit.N = 10000;
-cont2.mit.iter_max = 5;
 cont2.df.range = [1,10];
+
 % hyper parameters for the prior for sigma2(inv. gamma)
 a = 1; % if a == 0, then the flat prior is used; if a == 1, then the conjugate prior (inv. gamma)
 b = 1; 
@@ -48,7 +48,7 @@ time_mit = zeros(2,1);
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 10; % forecast horizon
+H = 20; % forecast horizon
 p_bar = 0.01;
 
 %% PRELIM & BIG DRAW
@@ -72,7 +72,11 @@ w_hl = exp(w_hl - max(w_hl));
 d = size(draw_hl,2);
 
 % cont2.mit.N = 10000;
-cont2.mit.Hmax = 10;
+% if ((H == 40) || (H == 10)) 
+    cont2.mit.Hmax = 2;
+% else
+%     cont2.mit.Hmax = 1;
+% end
 cont = cont2;
 
 mit_hl.mu = mu_hl;
@@ -90,7 +94,7 @@ if (H <= 100)
 else
     [mit2, summary2] = MitISEM_new(mit_hl, kernel, mu_hl, cont2, GamMat);
 end
-time_mit(1,1) = time_mit(1,1) + toc;
+time_mit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
