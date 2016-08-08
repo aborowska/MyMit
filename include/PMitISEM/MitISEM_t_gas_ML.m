@@ -30,7 +30,7 @@ mu_init = [0, 0.01, 0.1, 0.89, 8];
 d = size(mu_init,2);
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 cont2 = MitISEM_Control;
 % cont2.mit.dfnc = 5;
@@ -40,7 +40,7 @@ cont2.mit.Hmax = 10;
 cont2.df.range = [5, 15];
 
 p_bar = 0.01;
-H = 10;     % prediction horizon 
+H = 40;     % prediction horizon 
 
 VaR_mit = zeros(N_sim,1);
 ES_mit = zeros(N_sim,1);
@@ -90,7 +90,7 @@ time_mit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2')
+    save(name,'cont2','mit2','summary2')
 end
 
 
@@ -119,7 +119,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit')
+    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit')
 end
 
 y2 = predict_t_gas(theta_mat, y_T, f_mat, H, draw_mit);
@@ -128,7 +128,7 @@ mit_eff = sum(PL2 <= mean(VaR_direct))/M;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff')
+    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff')
 end
 
 labels_in = {'naive','mit'};

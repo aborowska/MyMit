@@ -1,0 +1,21 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Efficiency of the high-loss space approximations in \textbf{White Noise} model: basic MitISEM vs. PMitISEM.} 
+\label{tab:effWN} 
+\begin{tabular}{cc cc c cc}  
+ && \multicolumn{2}{c}{MitISEM} && \multicolumn{2}{c}{PMitISEM} \\ \cline{3-4} \cline{6-7} 
+ $H$ && Eff  & RNE && Eff & RNE  \\ \cline{3-4} \cline{6-7} 
+10 & -- &  17.7619 && 0.8764 &  17.0372 \ [1ex] 
+20 & -- &  13.6048 && 0.8562 &  16.9163 \ [1ex] 
+40 & -- &  9.6795 && 0.8584 &  16.0978 \ [1ex] 
+100 & -- & -- && 0.8614 &  12.6709 \ [1ex] 
+250 & -- & -- && 0.8756 &  8.7343 \ [1ex] 
+\hline 
+\end{tabular} 
+\raggedright 
+
+\vspace{5pt}\footnotesize{Eff: the fraction of draws generated from an approximation that result in high-losses.} \\ 
+\vspace{5pt}\footnotesize{RNE: for Bayesian $VaR$ estimation.} 
+\end{table} 
+} 

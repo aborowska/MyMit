@@ -25,5 +25,5 @@ function cont =  MitISEM_Control
     cont.df.tol = eps^(0.25);
 
     cont.resmpl_on = false;
-    cont.mit.iter_max = 5;
+    cont.mit.iter_max = 2;
 end

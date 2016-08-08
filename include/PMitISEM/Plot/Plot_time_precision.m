@@ -1,6 +1,6 @@
 function Plot_time_precision(model, save_on, H, p_bar, N_sim, M, estimation)
 
-    
+    close all
     if isempty(strfind(model,'_ML'))
         ML = false;
     else

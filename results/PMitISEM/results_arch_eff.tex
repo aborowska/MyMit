@@ -1,0 +1,21 @@
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{table}[h] 
+\centering 
+\caption{Efficiency of the high-loss space approximations in \textbf{ARCH(1)} model: basic MitISEM vs. PMitISEM.} 
+\label{tab:effarch} 
+\begin{tabular}{cc cc c cc}  
+ && \multicolumn{2}{c}{MitISEM} && \multicolumn{2}{c}{PMitISEM} \\ \cline{3-4} \cline{6-7} 
+ $H$ && Eff  & RNE && Eff & RNE  \\ \cline{3-4} \cline{6-7} 
+10 & 0.7978 &  14.2518 && 0.8384 &  16.2465 \ [1ex] 
+20 & 0.8034 &  13.6366 && 0.8476 &  14.2116 \ [1ex] 
+40 & 0.8090 &  8.8647 && 0.8634 &  15.3445 \ [1ex] 
+100 & -- & -- && 0.8604 &  11.6748 \ [1ex] 
+250 & -- & -- && 0.8710 &  8.1528 \ [1ex] 
+\hline 
+\end{tabular} 
+\raggedright 
+
+\vspace{5pt}\footnotesize{Eff: the fraction of draws generated from an approximation that result in high-losses.} \\ 
+\vspace{5pt}\footnotesize{RNE: for Bayesian $VaR$ estimation.} 
+\end{table} 
+} 

@@ -120,8 +120,11 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 %% Step 3: Iterate on the number of mixture components
     % add more mixture components until convergence
     hstop = false;
-    while ((H < Hmax) && (hstop == false))
-        H = H+1;
+    iter = 0;
+%     while ((H < Hmax) && (hstop == false))
+    while ((iter < cont.mit.iter_max) && (hstop == false))
+        iter = iter + 1;
+        H = H + 1;
         fprintf('H = %d\n',H);
         % select the largest weights and corresponding draws
         ind_w = fn_select(w, cont.mit.ISpc);

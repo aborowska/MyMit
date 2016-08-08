@@ -31,12 +31,12 @@ N_sim = 20;
 % mu_init = [0.065 0.93 0.048 8.4];
  
 plot_on = true;
-save_on = false;
+save_on = true;
 
 p_bar = 0.01;
 H = 10;     % prediction horizon 
 
-% Control parameters for MitISEM (cont) and PMitiISEM (cont2)
+% Control parameters 
 cont_direct = MitISEM_Control;
 cont_direct.mit.dfnc = 3;
 
@@ -83,7 +83,7 @@ for sim = 1:N_sim
     PL_direct = sort(PL_direct_ind);
     VaR_direct(sim,1) = PL_direct(round(p_bar*M_real));
     ES_direct(sim,1) = mean(PL_direct(round(1:p_bar*M)));   
-
+% 
     ind_direct = double((PL_direct_ind < VaR_direct(sim,1)));
     RNE_direct(sim,1) = fn_RNE(ind_direct, 'MH',[],'Q');
     fprintf('Direct 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_direct(sim,1), model, algo);

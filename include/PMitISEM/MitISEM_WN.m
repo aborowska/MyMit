@@ -98,7 +98,7 @@ time_mit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2')
+    save(name,'cont2','mit2','summary2')
 end
 
 % kernel_init = @(x) - posterior_WN(x, y, a, b, true);
@@ -151,7 +151,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_mit','ES_mit','mit2','summary2','time_mit','RNE_mit')
+    save(name,'cont2','VaR_mit','ES_mit','mit2','summary2','time_mit','RNE_mit')
 end
 
 

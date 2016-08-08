@@ -18,7 +18,7 @@ T = size(y,1);
 y_T = y(T,1);
 
 p_bar = 0.01;
-H = 100;
+H = 10;
 
 M = 10000;
 BurnIn = 1000;
@@ -34,7 +34,6 @@ save_on = false;
 
 % Control parameters for PMitISEM
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
 
 VaR_pmit = zeros(N_sim,1);
 ES_pmit = zeros(N_sim,1);
@@ -61,9 +60,8 @@ partition = [1,DD+2:H+DD];
 SS = length(partition);
 d = H+DD;
 
-fn_const_X = @(xx) t_gas_hyper_const_X2(xx, y);
-fn_input_X = @(xx) t_gas_hyper_input_X(xx, y);
-% kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
+fn_const_X = @(xx) t_gas_hyper_const_X3(xx);
+fn_input_X = @(xx) t_gas_hyper_input_X3(xx, y);
 kernel = @(a) posterior_t_gas_hl_hyper_mex(a, y, hyper, mean(VaR_prelim), GamMat);
 
 
@@ -79,19 +77,23 @@ lnk0 = lnk_hl; %kernel(draw0);
 % else
     cont2.mit.iter_max = 1;%6;%8;
 % end
-cont2.df.range = [5,15];
-cont2.mit.Hmax = 1;
-% if (H >= 40)
+cont2.mit.Hmax = 10;
+if ((H == 250) || (H == 40))
+    cont2.mit.dfnc = 15;
+    cont2.df.range = [5,20];
+else
     cont2.mit.dfnc = 10;
-% end
-if (H==250)
+    cont2.df.range = [5,15];    
+end
+if (H > 20)
     cont2.mit.Hmax = 1;
+else
+    cont2.mit.Hmax = 2;    
 end
 cont = cont2;
 
 tic
-% [pmit, CV_mix, CV, iter, pmit_pre, pmit_pre2, pmit_adapt]  = PMitISEM(draw0, lnk0, w0, kernel, fn_const_X, partition, d, cont2, GamMat);
-[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM2(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
+[pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM3(draw0, lnk0, w0, kernel, fn_const_X, fn_input_X, partition, d, cont2, GamMat);
 time_pmit(1,1) = toc;
 
 if save_on
@@ -110,6 +112,10 @@ pmit = pmit_step2;
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2_up;
+
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step3;
 
 tic
 for sim = 1:N_sim  
@@ -150,8 +156,8 @@ for sim = 1:N_sim
 %     f_T = input_X.f_T;
 %     y_opt = predict_t_gas(draw_opt(:,1:DD), y_T, f_T, H, draw_opt(:,DD+1:H+DD));
     y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
-%     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
-%     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt); 
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt); 
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);
@@ -167,11 +173,14 @@ ES_step2 = ES_pmit;
 VaR_step2_up = VaR_pmit;
 ES_step2_up = ES_pmit;
 
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
 % time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
+% time_pmit(1,1) = time_pmit(1,1) + time_step3;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
+    save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
 end
 
 
@@ -182,7 +191,7 @@ pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
+    save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 
 if plot_on

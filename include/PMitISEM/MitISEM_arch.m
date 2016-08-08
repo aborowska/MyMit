@@ -93,7 +93,7 @@ time_mit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2')
+    save(name,'cont2','mit2','summary2')
 end
 
 
@@ -145,7 +145,7 @@ mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_mit','ES_mit','mit2','summary2','mit_eff','time_mit','RNE_mit')
+    save(name,'cont2','VaR_mit','ES_mit','mit2','summary2','mit_eff','time_mit','RNE_mit')
 end
 
 

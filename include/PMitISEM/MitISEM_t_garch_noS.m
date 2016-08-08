@@ -37,12 +37,9 @@ plot_on = true;
 save_on = false;
 
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
-cont2.mit.Hmax = 10;
-cont2.df.range = [1, 10];
 
 p_bar = 0.01;
-H = 10;     % prediction horizon 
+H = 20;     % prediction horizon 
 
 VaR_mit = zeros(N_sim,1);
 ES_mit = zeros(N_sim,1);
@@ -72,8 +69,7 @@ w_hl = exp(w_hl - max(w_hl));
 Sigma_hl = reshape(Sigma_hl,d+H,d+H);
 Sigma_hl(d+1:d+H,d+1:d+H) = eye(H);
 Sigma_hl = reshape(Sigma_hl,1,(d+H)^2);
-% cont2.mit.N = 10000;
-% cont2.mit.Hmax = 1;
+
 
 mit_hl.mu = mu_hl;
 mit_hl.Sigma = Sigma_hl;
@@ -81,8 +77,18 @@ mit_hl.df = cont2.mit.dfnc;
 mit_hl.p = 1;
 % mu_init = mu_hl;
 % mit_init = mit_hl;
+
+
+cont2.mit.dfnc = 5;
+cont2.df.range = [5,15];
+if (H == 20)
+    cont2.mit.Hmax = 2;
+    cont2.mit.iter_max = 7;
+elseif (H == 10)
+    cont2.mit.Hmax = 1;
+    cont2.mit.iter_max = 0;
+end
 cont = cont2;
-% cont2.mit.CV_tol = 0.12;
 
 % kernel = @(a) posterior_t_garch_hl_noS_mex(a, data, S, mean(VaR_prelim), GamMat);
 kernel_init = @(a) - posterior_t_garch_hl_noS_hyper_mex(a, data, S, mean(VaR_prelim), GamMat, hyper);
@@ -104,6 +110,10 @@ end
 %% QERMit 2:  MONTE CARLO VaR_mit and ES_mit (and their NSEs) ESTIMATION 
 % use the mixture 0.5*mit1 + 0.5*mit2 as the importance density
 % to estiamte VaR and ES for theta and y (or alpha in eps)
+
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+
 tic    
 for sim = 1:N_sim
     resampl_on = false;
@@ -147,7 +157,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
+    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
 end
 
 h2 = volatility_t_garch_noS_mex(draw2(:,1:d), data, S);
@@ -157,8 +167,8 @@ mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff','RNE_mit')
+    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff','RNE_mit')
 end
 
 labels_in = {'prelim','mitisem'};
-Boxplot_PMitISEM(VaR_prelim, VaR_mit, ES_prelim, ES_mit, model, algo, H, N_sim, true, labels_in);
+Boxplot_PMitISEM(VaR_psrelim, VaR_mit, ES_prelim, ES_mit, model, algo, H, N_sim, true, labels_in);

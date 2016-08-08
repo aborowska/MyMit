@@ -86,7 +86,7 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
     hstop_mix = false;
     iter = 0;
 
-%     while ((iter < iter_max) && (hstop_mix == false))
+%     while ((iter < iter_max) )%&& (hstop_mix == false))
         iter = iter + 1;
         
         pmit_old = pmit;
@@ -175,7 +175,8 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
             end
         end
         pmit_step2 = pmit;
-time_pmit(1,1) = toc         
+time_pmit(1,1) =  toc 
+ 
 tic
         input_X = input_X0;
 %         Step 2 up
@@ -198,9 +199,9 @@ tic
         pmit_step2_up = pmit;
 time_step2_up =  toc 
 
-% tic
         %% STEP 3: sample from pmit and check convergence
-        [draw_pmit, lnk_pmit, input_X_pmit] = fn_p_rmvgt3(size(draw0,1), pmit, d, partition, kernel, fn_const_X, fn_input_X);         
+ tic
+        [draw_pmit, lnk_pmit, input_X_pmit] = fn_p_rmvgt3(size(draw0,1), pmit_step2, d, partition, kernel, fn_const_X, fn_input_X);         
         input_X = input_X_pmit;
 
         lnd_pmit = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
@@ -241,9 +242,7 @@ time_step2_up =  toc
         input_X0 = input_X_pmit;
         input_X = input_X0;
         
-        profile off 
-        profile viewer
-%  time_step3 = toc; 
+ time_step3 = toc; 
 %     end
 %     if (CV_mix(end,2) > CV_mix(end-1,2))
 %         pmit = pmit_old;

@@ -1,4 +1,4 @@
-function y_hp = predict_t_garch_new_noS(theta, y, S, eps)
+function y_hp = predict_t_garch_new_noS(theta, y, S, hp, eps)
     [N ,~] = size(theta);
     omega = theta(:,1);
     alpha = theta(:,2);

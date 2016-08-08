@@ -30,11 +30,10 @@ mu_init = [0, 0.01, 0.1, 0.89, 8];
 d = size(mu_init,2);
 
 plot_on = true;
-save_on = false;
+save_on = true;
 
 cont2 = MitISEM_Control;
 cont2.mit.dfnc = 5;
-cont2.mit.Hmax = 10;
 cont2.df.range = [1, 10];
 
 p_bar = 0.01;
@@ -80,7 +79,9 @@ mit_hl.p = 1;
 % mit_init = mit_hl;
 cont = cont2;
 % cont2.mit.Hmax = 10;
-cont2.mit.Hmax = 1;  % <<<<<< !!
+if (H > 10)
+    cont2.mit.Hmax = 1;  % <<<<<< !!
+end
 kernel_init = @(a) - posterior_t_gas_hl_hyper_mex(a, y, hyper, mean(VaR_prelim), GamMat);
 kernel = @(a) posterior_t_gas_hl_hyper_mex(a, y, hyper, mean(VaR_prelim), GamMat);
 
@@ -94,13 +95,17 @@ time_mit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2')
+    save(name,'cont2','mit2','summary2')
 end
 
 
 %% QERMit 2:  MONTE CARLO VaR_mit and ES_mit (and their NSEs) ESTIMATION 
 % use the mixture 0.5*mit1 + 0.5*mit2 as the importance density
 % to estiamte VaR and ES for theta and y (or alpha in eps)
+
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+
 tic    
 for sim = 1:N_sim
     resampl_on = false;
@@ -144,7 +149,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
+    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
 end
 
 f2 = volatility_t_gas_mex(draw2(:,1:d), y);
@@ -154,7 +159,7 @@ mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff','RNE_mit')
+    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff','RNE_mit')
 end
 
 labels_in = {'prelim','mitisem'};

@@ -1,10 +1,10 @@
 clear all
-close all
-
-horizon = [10,20,40];
-
-
-for H = horizon
+% close all
+% 
+% horizon = [10,20,40];
+% 
+% 
+% for H = horizon
 
 close all
 %% Initialization
@@ -44,7 +44,7 @@ time_mit = zeros(2,1);
 
 M = 10000; % number of draws for preliminary and IS computations
 
-% H = 40; % forecast horizon
+H = 10; % forecast horizon
 p_bar = 0.01;
 tail_shift = 1;
 
@@ -90,7 +90,7 @@ end
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'mit2','summary2')
+    save(name,'cont2','mit2','summary2')
 end
 
 %% VaR with standard MitISEM
@@ -124,7 +124,7 @@ time_mit(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',estimation,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_mit','ES_mit','mit2','summary2','time_mit')
+    save(name,'cont2','VaR_mit','ES_mit','mit2','summary2','time_mit')
 end
 
 
@@ -133,4 +133,4 @@ algo = [algo,'_',estimation];
 Boxplot_PMitISEM(VaR_direct, VaR_mit, ES_direct, ES_mit, model, algo, H, N_sim, save_on, labels_in);
 
 
-end
+% end

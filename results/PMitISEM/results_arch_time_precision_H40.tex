@@ -1,30 +1,30 @@
 { \renewcommand{\arraystretch}{1.3} 
 \begin{table}[h] 
 \centering 
-\caption{Computation time-precision trade-off for the 40-days ahead  $99\%$ VaR and ES evaluation in ARCH(1,1) model.} 
+\caption{Computation time-precision trade-off for the 40-days ahead  $99\%$ VaR and ES evaluation in ARCH(1) model.} 
 \label{tab:time_precision_arch} 
 \begin{tabular}{lcccc}  
   & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}  \\ \cline{2-5} 
   & Naive & Adapted & MitISEM & PMitISEM  \\ \hline 
-Total time & 0.96 s & 4.31 s & 23.19 s & 85.96 s \\ 
-Time construction candidate & 0.22 s & 3.59 s & 20.40 s & 83.99 s \\ 
- (including $q_{1}$) &   &  (3.59 s) & (3.59 s) & (3.59 s) \\ 
- (including $q_{2}$) &   &  & (16.81 s) & (80.41 s) \\ 
-$[$Initialisation for $q_{2}$$]$&   &   & $[$64.65 s$]$ & $[$64.65 s$]$ \\ 
-Time sampling & 0.74 s & 0.72 s & 2.79 s & 1.96 s  \\  
+Total time & 0.86 s & 4.12 s & 9.97 s & 28.44 s \\ 
+Time construction candidate & 0.23 s & 3.46 s & 9.31 s & 27.23 s \\ 
+ (including $q_{1}$) &   &  (3.46 s) & (3.46 s) & (3.46 s) \\ 
+ (including $q_{2}$) &   &  & (5.85 s) & (23.78 s) \\ 
+$[$Initialisation for $q_{2}$$]$&   &   & $[$59.05 s$]$ & $[$59.05 s$]$ \\ 
+Time sampling & 0.62 s & 0.66 s & 0.66 s & 1.20 s  \\  
 Number of draws used & 10000 & 10000 & 10000 & 10000 \\ 
 Time per draw & 0.00 ms & 0.00 ms & 0.00 ms & 0.00 ms \\ \hline 
 \multicolumn{5}{c}{Required for \% estimate with 1 digit precision} \\ \hline 
 Time: &  &  &   &  \\ 
-\hspace{1cm} for $VaR$ & 88.46 s & 74.34 s & 58.16 s & 88.77 s \\ 
-\hspace{1cm} for $ES$ & 85.16 s & 100.51 s & 78.52 s & 99.26 s \\ 
+\hspace{1cm} for $VaR$ & 98.44 s & 68.66 s & 12.40 s & 29.69 s \\ 
+\hspace{1cm} for $ES$ & 104.78 s & 92.77 s & 27.16 s & 37.99 s \\ 
 Draws: &  &  &   &  \\ 
-\hspace{1cm} for $VaR$ & 1,193,131 & 983,247  & 135,281  & 24,310  \\ 
-\hspace{1cm} for $ES$ & 1,148,51 & 1,346,937  & 208,222   & 77,701  \\ 
+\hspace{1cm} for $VaR$ & 1,572,494 & 983,357  & 46,89  & 20,416  \\ 
+\hspace{1cm} for $ES$ & 1,674,009 & 1,346,979  & 270,573   & 89,413  \\ 
 \hline 
 Slope: &  &  &   &  \\ 
-\hspace{1cm} for $VaR$ & 17.41 & 21.72  & 40.70  & 322.30  \\ 
-\hspace{1cm} for $ES$ & 18.09 & 15.86  & 26.44   & 100.72  \\  \hline 
+\hspace{1cm} for $VaR$ & 15.65 & 23.57  & 496.74  & 627.56  \\ 
+\hspace{1cm} for $ES$ & 14.70 & 17.21  & 86.11   & 142.89  \\  \hline 
 \end{tabular} 
 \end{table} 
 } 

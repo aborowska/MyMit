@@ -163,21 +163,22 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     %% create a tex table
     fname = ['results/PMitISEM/results_',model,'_',estimation,'time_precision_comb.tex'];
     FID = fopen(fname, 'w+');
+    fprintf(FID, '\\footnotesize{  \n');
     fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
-    fprintf(FID, '\\begin{table}[h] \n');
-    fprintf(FID, '\\centering \n');
-
+    if ML 
+        fprintf(FID, '\\begin{longtable}{rr rrr r rrr}  \n');
+    else
+        fprintf(FID, '\\begin{longtable}{rr rrrr r rrrr}  \n');
+    end
     caption = ['\\caption{Computation time-precision trade-off for the  $99\\%%$ VaR and ES evaluation in ', model_tex,' model for different horizons.} \n'];
     fprintf(FID, caption);
 
-    label = ['\\label{tab:time_precision_',model,'} \n'];
+    label = ['\\label{tab:time_precision_',model,'} \\\\ \n'];
     fprintf(FID, label);
     if ML 
-        fprintf(FID, '\\begin{tabular}{rr rrr r rrr}  \n');
         fprintf(FID, ' & & \\multicolumn{1}{c}{Direct} & \\multicolumn{2}{c}{QERMit}&  & \\multicolumn{1}{c}{Direct} & \\multicolumn{2}{c}{QERMit} \\\\ \\cline{3-5} \\cline{7-9} \n');   
         fprintf(FID, ' H & & Naive & MitISEM & PMitISEM & & Naive & MitISEM & PMitISEM \\\\ \\hline \n');       
     else
-        fprintf(FID, '\\begin{tabular}{rr rrrr r rrrr}  \n');
         fprintf(FID, ' & & \\multicolumn{2}{c}{Direct} & \\multicolumn{2}{c}{QERMit}&  & \\multicolumn{2}{c}{Direct} & \\multicolumn{2}{c}{QERMit} \\\\ \\cline{3-6} \\cline{8-11} \n');   
         fprintf(FID, ' H & & Naive & Adapted & MitISEM & PMitISEM & & Naive & Adapted & MitISEM & PMitISEM \\\\ \\hline \n');
     end
@@ -286,23 +287,23 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     end
     fprintf(FID, '\\hline \n');
     
-%     if ML
-%         fprintf(FID, ' && \\multicolumn{3}{c}{VaR draws required} &&   \\multicolumn{3}{c}{ES draws required} \\\\  \\cline{3-5}  \\cline{7-9} \n');     
-%     else
-%         fprintf(FID, ' && \\multicolumn{4}{c}{VaR draws required} &&   \\multicolumn{4}{c}{ES draws required} \\\\  \\cline{3-6}  \\cline{8-11} \n');     
-%     end
-%     for h = 1:Hno
-%         if ML
-%             fprintf(FID, '%i & & %i & %i & & %i & %i & %i & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
-%         else
-%             fprintf(FID, '%i & & %i & %i & %i & & %i & %i & %i & %i  & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
-%         end
-%     end
-%     fprintf(FID, '\\hline \n');
+    if ML
+        fprintf(FID, ' && \\multicolumn{3}{c}{VaR draws required} &&   \\multicolumn{3}{c}{ES draws required} \\\\  \\cline{3-5}  \\cline{7-9} \n');     
+    else
+        fprintf(FID, ' && \\multicolumn{4}{c}{VaR draws required} &&   \\multicolumn{4}{c}{ES draws required} \\\\  \\cline{3-6}  \\cline{8-11} \n');     
+    end
+    for h = 1:Hno
+        if ML
+            fprintf(FID, '%i & & %i & %i & & %i & %i & %i & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
+        else
+            fprintf(FID, '%i & & %i & %i & %i & & %i & %i & %i & %i  & %i \\\\ \n',horizons(1,h),  round(VaR_draws_required(h,:)), round(ES_draws_required(h,:)));
+        end
+    end
+    fprintf(FID, '\\hline \n');
   
         
-    fprintf(FID, '\\end{tabular} \n');
-    fprintf(FID, '\\end{table} \n');
+    fprintf(FID, '\\end{longtable} \n');
+    fprintf(FID, '} \n');
     fprintf(FID, '} \n');
     fclose(FID);
     

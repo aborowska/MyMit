@@ -1,6 +1,7 @@
 %% Initialisation
 clear all
 close all
+ 
 addpath(genpath('include/'));
 
 s = RandStream('mt19937ar','Seed',1);
@@ -23,7 +24,7 @@ y_T = data(T);
 S = var(data);
 
 p_bar = 0.01;
-H = 100; % forecast horizon
+H = 20; % forecast horizon
 
 M = 10000;
 BurnIn = 1000;
@@ -49,7 +50,7 @@ RNE_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  ['results/PMitISEM/t_garch_prelim/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 % WEIGHTS to initialise PMitISEM
@@ -83,13 +84,28 @@ draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
 
-cont2.mit.iter_max = 1;
-% if (H==250)
-cont2.mit.Hmax = 1;
-% end
-if ((H == 250) || (H == 100))
+if (H == 10)
+    cont2.mit.iter_max = 2;%3;
+elseif (H == 40)
+    cont2.mit.iter_max = 2; % <=== actually 1.5
+else
+    cont2.mit.iter_max = 1;%3;
+end
+
+if (H == 250)
+	cont2.mit.Hmax = 1;
+elseif (H == 100)
+    cont2.mit.Hmax = 2; 
+else
+    cont2.mit.Hmax = 10; 
+end
+
+if ((H == 250))
     cont2.mit.dfnc = 10;
     cont2.df.range = [5,15]; %<<<==== was: [1;10]
+elseif (H == 100)
+    cont2.mit.dfnc = 5; %???
+    cont2.df.range = [3,10];
 else
     cont2.mit.dfnc = 5;
     cont2.df.range = [3,10]; %<<<==== was: [1;10]    
@@ -102,18 +118,14 @@ time_pmit(1,1) = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter')
+    save(name,'cont2','pmit','CV_mix','CV','iter')
 end
-
+% load(name)
 %% VaR with PMit
 
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2;
-
-s = RandStream('mt19937ar','Seed',1);
-RandStream.setGlobalStream(s); 
-pmit = pmit_step2_up;
 
 tic
 for sim = 1:N_sim   
@@ -162,26 +174,144 @@ for sim = 1:N_sim
 
     fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
 end
-time_pmit(2,1) = toc/N_sim;
+time_pmit(2,1) = toc/N_sim
 
 VaR_step2 = VaR_pmit;
 ES_step2 = ES_pmit;
 
-% VaR_pmit = VaR_step2;
-% ES_pmit = ES_step2;
+%%%
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step2_up;
+
+tic
+for sim = 1:N_sim   
+    fprintf('\nVaR IS iter: %d\n',sim)
+
+    theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
+    eps1 = zeros(M/2, H);
+    for hh = 1:H
+        eps1(:,hh) = trnd(theta1(:,DD)); % ERRORS ARE iid T!!
+    end
+    draw1 = [theta1, eps1];
+    input_X_1 = fn_input_X(draw1);
+    [lnd1, input_X_1] = fn_dpmit3(input_X_1, pmit, partition, fn_const_X, true, GamMat);        
+
+%     [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt3(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
+    [draw_pmit, lnd_pmit, input_X_pmit] = fn_p_rmvgt_dpmit3(M/2, pmit,  d, SS, partition, fn_const_X, fn_input_X, GamMat);
+
+    draw_opt = [draw1; draw_pmit];
+
+    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+    lnk_opt = kernel(draw_opt(:,1:5)); 
+
+    eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
+    lnk_opt = lnk_opt + eps_pdf;
+
+    % optimal weights
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:DD), mit1, true, GamMat));
+ %     exp_lnd2 = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
+    exp_lnd2 = [lnd1; lnd_pmit];   
+    
+    exp_lnd2 = 0.5*exp(exp_lnd2);
+    exp_lnd = exp_lnd1 + exp_lnd2;
+    lnd_opt = log(exp_lnd);
+    w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
+
+    % IS VaR estimation
+%     h_T = input_X.h_last;     
+%     y_opt = predict_t_garch_noS(draw_opt(:,1:DD), y_T, h_T, H, draw_opt(:,DD+1:H+DD));
+    y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
+    dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
+    IS_estim = fn_PL(dens, 1);
+    VaR_pmit(sim,1) = IS_estim(1,1);
+    ES_pmit(sim,1) = IS_estim(1,2);   
+
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
+end
+time_pmit(2,1) = toc/N_sim
 
 VaR_step2_up = VaR_pmit;
 ES_step2_up = ES_pmit;
 
+%%%
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step3;
+
+tic
+for sim = 1:N_sim   
+    fprintf('\nVaR IS iter: %d\n',sim)
+
+    theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
+    eps1 = zeros(M/2, H);
+    for hh = 1:H
+        eps1(:,hh) = trnd(theta1(:,DD)); % ERRORS ARE iid T!!
+    end
+    draw1 = [theta1, eps1];
+    input_X_1 = fn_input_X(draw1);
+    [lnd1, input_X_1] = fn_dpmit3(input_X_1, pmit, partition, fn_const_X, true, GamMat);        
+
+%     [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt3(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
+    [draw_pmit, lnd_pmit, input_X_pmit] = fn_p_rmvgt_dpmit3(M/2, pmit,  d, SS, partition, fn_const_X, fn_input_X, GamMat);
+
+    draw_opt = [draw1; draw_pmit];
+
+    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+    lnk_opt = kernel(draw_opt(:,1:5)); 
+
+    eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
+    lnk_opt = lnk_opt + eps_pdf;
+
+    % optimal weights
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:DD), mit1, true, GamMat));
+ %     exp_lnd2 = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
+    exp_lnd2 = [lnd1; lnd_pmit];   
+    
+    exp_lnd2 = 0.5*exp(exp_lnd2);
+    exp_lnd = exp_lnd1 + exp_lnd2;
+    lnd_opt = log(exp_lnd);
+    w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
+
+    % IS VaR estimation
+%     h_T = input_X.h_last;     
+%     y_opt = predict_t_garch_noS(draw_opt(:,1:DD), y_T, h_T, H, draw_opt(:,DD+1:H+DD));
+    y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
+%     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+%     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
+    dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
+    IS_estim = fn_PL(dens, 1);
+    VaR_pmit(sim,1) = IS_estim(1,1);
+    ES_pmit(sim,1) = IS_estim(1,2);   
+
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
+end
+time_pmit(2,1) = toc/N_sim
+
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
+
+%%%
+
+% VaR_pmit = VaR_step2;
+% ES_pmit = ES_step2;
+
+
 % VaR_pmit = VaR_step2_up;
 % ES_pmit = ES_step2_up;
 
+% VaR_pmit = VaR_step3;
+% ES_pmit = ES_step3;
+
 % time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
+% time_pmit(1,1) = time_pmit(1,1) + time_step3;
 
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
+    save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
 end
 
 h_pmit = volatility_t_garch_noS_mex(draw_pmit(:,1:DD), data, S);
@@ -190,8 +320,8 @@ PL_pmit = fn_PL(y_pmit);
 pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'_step2_up.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
+    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 
 if plot_on

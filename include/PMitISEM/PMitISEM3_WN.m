@@ -41,7 +41,7 @@ N_sim = 20;
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 20; % forecast horizon
+H = 250; % forecast horizon
 p_bar = 0.01;
 % d = H+1; % dimension of theta
 
@@ -96,7 +96,11 @@ else
     cont2.df.range = [10,20];
     cont2.mit.dfnc = 15; % <---------
 end
-cont2.mit.Hmax = 1;
+if (H == 250)
+    cont2.mit.Hmax = 1;
+else
+    cont2.mit.Hmax = 1;
+end
 cont = cont2;
 
 tic
@@ -114,10 +118,14 @@ time_pmit(1,1) = toc;
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2;
-
+% 
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
-pmit = pmit_step2_up;
+pmit = pmit_step3;
+
+% s = RandStream('mt19937ar','Seed',1);
+% RandStream.setGlobalStream(s); 
+% pmit = pmit_step2_up;
 
 tic
 for sim = 1:N_sim 
@@ -167,11 +175,14 @@ time_pmit(2,1) = toc/N_sim;
 VaR_step2 = VaR_pmit;
 ES_step2 = ES_pmit;
 
-% VaR_pmit = VaR_step2;
-% ES_pmit = ES_step2;
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
 
-VaR_step2_up = VaR_pmit;
-ES_step2_up = ES_pmit;
+% VaR_pmit = VaR_step3;
+% ES_pmit = ES_step3;
+
+% VaR_step2_up = VaR_pmit;
+% ES_step2_up = ES_pmit;
 
 % time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
 
@@ -181,7 +192,7 @@ pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
+    save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 
 if plot_on

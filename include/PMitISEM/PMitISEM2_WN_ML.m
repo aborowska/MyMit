@@ -107,7 +107,7 @@ time_pmit(1,1) = toc;
 
  if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',estimation,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter')
+    save(name,'cont2','pmit','CV_mix','CV','iter')
  end
 % load(name);
 
@@ -161,7 +161,7 @@ ES_ste3 = ES_pmit;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',estimation,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit')
+    save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit')
 end
 
 if plot_on

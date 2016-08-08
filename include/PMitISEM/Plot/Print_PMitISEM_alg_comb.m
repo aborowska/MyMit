@@ -29,6 +29,9 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
     for est = estimation       
         fname = ['results/PMitISEM/results_',model,char(est),'_alg_comp.tex'];
         FID = fopen(fname, 'w+');
+        
+        fprintf(FID, '\\footnotesize{  \n');
+        fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
         fprintf(FID, '\\begin{table}[h] \n');
         fprintf(FID, '\\centering \n');
 
@@ -162,6 +165,8 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
         fprintf(FID, '\\vspace{5pt}\\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.} \\\\ \n');
         fprintf(FID, '\\vspace{5pt}\\footnotesize{IQR: interquantile range.} \n');
         fprintf(FID, '\\end{table} \n');
+        fprintf(FID, '} \n');
+        fprintf(FID, '} \n');
         fclose(FID);
     end
 end

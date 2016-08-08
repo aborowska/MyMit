@@ -27,11 +27,8 @@ plot_on = true;
 save_on = true;
 
 p_bar = 0.01;
-H = 20;     % prediction horizon 
+H = 10;     % prediction horizon 
 
-% Control parameters for MitISEM  
-cont_direct = MitISEM_Control;
-cont_direct.mit.dfnc = 5;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);

@@ -10,7 +10,7 @@ RandStream.setGlobalStream(s);
 
 addpath(genpath('include/'));
 plot_on = false;
-save_on = false;
+save_on = true;
 
 x_gam = (0:0.00001:50)' + 0.00001; 
 GamMat = gamma(x_gam);
@@ -29,10 +29,6 @@ y = y - mean(y);
 % sigma2 is the VARIANCE of the error term, i.e. y_t ~ NID(0, sigma2)
 sigma2_init = 0.9;
 
-% Control parameters for MitISEM (cont) and PMitiISEM (cont2)
-cont_direct = MitISEM_Control;
-cont_direct.mit.dfnc = 1;
-
 sim = 1;
 N_sim = 20;
 
@@ -42,7 +38,7 @@ time_direct = zeros(2,1);
 
 M = 10000; % number of draws for preliminary and IS computations
 
-H = 10; % forecast horizon
+H = 250; % forecast horizon
 p_bar = 0.01;
 
 % loglik = @(ss,yy) - 0.5*sum(log(2*pi) + log(ss) + (y.^2)./ss);

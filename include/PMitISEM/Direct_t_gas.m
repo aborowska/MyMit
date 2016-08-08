@@ -32,7 +32,7 @@ H = 250;     % prediction horizon
 
 % Control parameters for MitISEM  
 cont_direct = MitISEM_Control;
-cont_direct.mit.dfnc = 5;
+cont_direct.mit.dfnc = 3;
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);

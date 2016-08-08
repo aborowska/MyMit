@@ -1,4 +1,4 @@
-function X = t_gas_hyper_const_X3(input_X)
+function [X, input_X] = t_gas_hyper_const_X3(input_X)
 % theta: 1st col = alpha, 2+ cols = eps 
     theta = input_X.theta;    
     [N, h] = size(theta);
