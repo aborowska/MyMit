@@ -5,12 +5,12 @@
 \label{tab:time_precision_WN_ML} \\ 
  & & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-5} \cline{7-9} 
  H & & Naive & MitISEM & PMitISEM & & Naive & MitISEM & PMitISEM \\ \hline 
- & & \multicolumn{3}{c}{Total time}  \\ \cline{3-5} 
-10 & & 0.28 s & 1.47 s & 11.55 s  \\ 
-20 & & 0.25 s & 0.89 s & 29.53 s  \\ 
-40 & & 0.37 s & 3.09 s & 82.31 s  \\ 
-100 & & 0.53 s &  NaN s & 425.83 s  \\ 
-250 & & 1.70 s &  NaN s & 2703.36 s  \\ 
+ & & \multicolumn{3}{c}{Total time} & & & \multicolumn{2}{c}{(Time initialisation)}  \\ \cline{3-5} \cline{8-9}
+10 & & 0.28 s & 1.47 s & 11.55 s &&& \multicolumn{2}{c}{(0.50 s)} \\ 
+20 & & 0.25 s & 0.89 s & 29.53 s &&& \multicolumn{2}{c}{(0.79 s)} \\ 
+40 & & 0.37 s & 3.09 s & 82.31 s &&& \multicolumn{2}{c}{(1.40 s)} \\ 
+100 & & 0.53 s &  NaN s & 425.83 s &&& \multicolumn{2}{c}{(3.18 s)} \\ 
+250 & & 1.70 s &  NaN s & 2703.36 s &&& \multicolumn{2}{c}{(7.36 s)} \\ 
 \hline 
  & & \multicolumn{3}{c}{Construction time} & & \multicolumn{3}{c}{ Sampling time} \\ \cline{3-5}  \cline{7-9}
 10 & & 0.00 s & 1.43 s & 11.23 s &&  0.28 s & 0.04 s & 0.32 s \\ 
@@ -55,11 +55,11 @@
 250 & & 435.91 s &  NaN s & 2778.01 s && 488.72 s &  NaN s & 3016.50 s \\ 
 \hline 
  && \multicolumn{3}{c}{VaR draws required} &&   \multicolumn{3}{c}{ES draws required} \\  \cline{3-5}  \cline{7-9} 
-10 & & 185239 & 807 & & 990 & 221974 & 1722 & 4038 \\ 
-20 & & 355991 & 5268 & & 5826 & 373986 & 48095 & 49250 \\ 
-40 & & 671255 & 24234 & & 10752 & 960377 & 153482 & 38835 \\ 
-100 & & 992823 & NaN & & 32869 & 2128282 & NaN & 41618 \\ 
-250 & & 2558345 & NaN & & 111387 & 2868279 & NaN & 435318 \\ 
+10 & & 185239 & 807 & 990 && 221974 & 1722 & 4038 \\ 
+20 & & 355991 & 5268 & 5826 && 373986 & 48095 & 49250 \\ 
+40 & & 671255 & 24234 & 10752 && 960377 & 153482 & 38835 \\ 
+100 & & 992823 & NaN & 32869 && 2128282 & NaN & 41618 \\ 
+250 & & 2558345 & NaN & 111387 && 2868279 & NaN & 435318 \\ 
 \hline 
 \end{longtable} 
 } 

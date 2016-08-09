@@ -140,6 +140,8 @@ for h = horizons
 end
 
 results_WN = Print_time_precision('WN',horizons,p_bar,N_sim,M);
+Plot_time_precision2(results_WN, 'WN', save_on, horizons) %, p_bar, N_sim, M)
+
 results_arch = Print_time_precision('arch',horizons,p_bar,N_sim,M);
 Plot_time_precision2(results_arch, 'arch', save_on, horizons) %, p_bar, N_sim, M)
 
@@ -159,7 +161,7 @@ results_WN_ML_true = Print_time_precision('WN_ML',horizons,p_bar,N_sim,M,'true')
 Plot_time_precision2(results_WN_ML_true,'WN_ML_true', save_on, horizons,'true') %, p_bar, N_sim, M)
 
 results_WN_ML_mle = Print_time_precision('WN_ML',horizons,p_bar,N_sim,M,'mle');
-Plot_time_precision2(results_t_gas_ML,'WN_ML', save_on, horizons,'mle') %, p_bar, N_sim, M)
+Plot_time_precision2(results_WN_ML_mle,'WN_ML', save_on, horizons,'mle') %, p_bar, N_sim, M)
 
 
 % Efficiency

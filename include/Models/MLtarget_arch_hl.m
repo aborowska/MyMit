@@ -1,6 +1,6 @@
-function d = MLtarget_arch_hl(alpha, eps, y_T, S, VaR, L)
+function d = MLtarget_arch_hl(eps, alpha_mle, y_T, S, VaR)
     [N,H] = size(eps);
-    alpha = repmat(alpha,N,1);
+    alpha = repmat(alpha_mle, N, 1);
     
     if (H == 1)
         h = S*(1-alpha) + (y_T^2)*alpha;
@@ -15,10 +15,6 @@ function d = MLtarget_arch_hl(alpha, eps, y_T, S, VaR, L)
         if c1(ii,1)
             d(ii,1) = - sum(0.5*(log(2*pi) + eps(ii,:).^2),2);
         end
-    end
-    
-    if (~L)
-        d = exp(d - max(d));
     end
 end
  

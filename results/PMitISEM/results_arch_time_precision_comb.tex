@@ -5,12 +5,12 @@
 \label{tab:time_precision_arch} \\ 
  & & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-6} \cline{8-11} 
  H & & Naive & Adapted & MitISEM & PMitISEM & & Naive & Adapted & MitISEM & PMitISEM \\ \hline 
- & & \multicolumn{4}{c}{Total time}  \\ \cline{3-6} 
-10 & & 0.89 s & 4.11 s & 7.68 s & 7.00 s \\ 
-20 & & 0.85 s & 3.59 s & 8.24 s & 10.83 s \\ 
-40 & & 0.86 s & 4.12 s & 9.97 s & 28.44 s \\ 
-100 & & 0.87 s & 4.12 s &  NaN s & 151.48 s \\ 
-250 & & 0.91 s & 5.75 s &  NaN s & 998.63 s \\ 
+ & & \multicolumn{4}{c}{Total time} & & && \multicolumn{2}{c}{(Time initialisation)} \\ \cline{3-6} \cline{10-11}
+10 & & 0.89 s & 4.11 s & 7.68 s & 7.00 s &&&& \multicolumn{2}{c}{(57.48 s)} \\ 
+20 & & 0.85 s & 3.59 s & 8.24 s & 10.83 s &&&& \multicolumn{2}{c}{(57.47 s)} \\ 
+40 & & 0.86 s & 4.12 s & 9.97 s & 28.44 s &&&& \multicolumn{2}{c}{(59.05 s)} \\ 
+100 & & 0.87 s & 4.12 s &  NaN s & 151.48 s &&&& \multicolumn{2}{c}{(63.03 s)} \\ 
+250 & & 0.91 s & 5.75 s &  NaN s & 998.63 s &&&& \multicolumn{2}{c}{(71.95 s)} \\ 
 \hline 
  & & \multicolumn{4}{c}{Construction time} & & \multicolumn{4}{c}{ Sampling time} \\ \cline{3-6}  \cline{8-11}
 10 & & 0.24 s & 3.47 s & 7.08 s & 6.25 s && 0.65 s & 0.63 s & 0.60 s & 0.75 s \\ 
@@ -55,11 +55,11 @@
 250 & & 188.62 s & 231.45 s &  NaN s & 1114.57 s && 461.16 s & 266.95 s &  NaN s & 1197.16 s \\ 
 \hline 
  && \multicolumn{4}{c}{VaR draws required} &&   \multicolumn{4}{c}{ES draws required} \\  \cline{3-6}  \cline{8-11} 
-10 & & 331922 & 493407 & 23097 & & 11298 & 851229 & 834580 & 53948  & 86332 \\ 
-20 & & 1010706 & 673729 & 35639 & & 17393 & 1990135 & 1186038 & 74107  & 99978 \\ 
-40 & & 1572495 & 983240 & 46878 & & 20355 & 1673986 & 1346835 & 270425  & 89394 \\ 
-100 & & 2097029 & 2233439 & NaN & & 48568 & 2980723 & 3124087 & NaN  & 281281 \\ 
-250 & & 2761386 & 2970109 & NaN & & 222286 & 6756257 & 3435790 & NaN  & 373518 \\ 
+10 & & 331922 & 493407 & 23097 & 11298 && 851229 & 834580 & 53948  & 86332 \\ 
+20 & & 1010706 & 673729 & 35639 & 17393 && 1990135 & 1186038 & 74107  & 99978 \\ 
+40 & & 1572495 & 983240 & 46878 & 20355 && 1673986 & 1346835 & 270425  & 89394 \\ 
+100 & & 2097029 & 2233439 & NaN & 48568 && 2980723 & 3124087 & NaN  & 281281 \\ 
+250 & & 2761386 & 2970109 & NaN & 222286 && 6756257 & 3435790 & NaN  & 373518 \\ 
 \hline 
 \end{longtable} 
 } 

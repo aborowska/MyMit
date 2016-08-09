@@ -21,7 +21,7 @@ GamMat = gamma(x_gam);
 
 model = 'WN_ML';
 algo = 'PMitISEM';
-estimation = 'true'; % 'true' or 'mle'
+estimation = 'mle'; % 'true' or 'mle'
 
 % Artificial, white noise data 
 T = 10000;
@@ -37,7 +37,7 @@ N_sim = 20;
 
 M = 10000; % number of draws for IS computations
 
-H = 100; % forecast horizon
+H = 10; % forecast horizon
 p_bar = 0.01;
 tail_shift = 1;
 

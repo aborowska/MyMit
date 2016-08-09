@@ -5,12 +5,12 @@
 \label{tab:time_precision_t_gas_ML} \\ 
  & & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-5} \cline{7-9} 
  H & & Naive & MitISEM & PMitISEM & & Naive & MitISEM & PMitISEM \\ \hline 
- & & \multicolumn{3}{c}{Total time}  \\ \cline{3-5} 
-10 & & 0.80 s & 1.62 s & 3.50 s  \\ 
-20 & & 0.82 s & 2.08 s & 10.56 s  \\ 
-40 & & 0.85 s & 0.53 s & 42.66 s  \\ 
-100 & & 0.94 s &  NaN s & 147.75 s  \\ 
-250 & & 1.16 s &  NaN s & 984.19 s  \\ 
+ & & \multicolumn{3}{c}{Total time} & & & \multicolumn{2}{c}{(Time initialisation)}  \\ \cline{3-5} \cline{8-9}
+10 & & 0.80 s & 1.62 s & 3.50 s &&& \multicolumn{2}{c}{(143.22 s)} \\ 
+20 & & 0.82 s & 2.08 s & 10.56 s &&& \multicolumn{2}{c}{(142.81 s)} \\ 
+40 & & 0.85 s & 0.53 s & 42.66 s &&& \multicolumn{2}{c}{(146.46 s)} \\ 
+100 & & 0.94 s &  NaN s & 147.75 s &&& \multicolumn{2}{c}{(156.86 s)} \\ 
+250 & & 1.16 s &  NaN s & 984.19 s &&& \multicolumn{2}{c}{(182.75 s)} \\ 
 \hline 
  & & \multicolumn{3}{c}{Construction time} & & \multicolumn{3}{c}{ Sampling time} \\ \cline{3-5}  \cline{7-9}
 10 & & 0.78 s & 1.57 s & 3.29 s &&  0.02 s & 0.04 s & 0.20 s \\ 
@@ -55,11 +55,11 @@
 250 & & 526.94 s &  NaN s & 1202.25 s && 968.52 s &  NaN s & 1505.48 s \\ 
 \hline 
  && \multicolumn{3}{c}{VaR draws required} &&   \multicolumn{3}{c}{ES draws required} \\  \cline{3-5}  \cline{7-9} 
-10 & & 458669 & 6074 & & 3589 & 693650 & 9303 & 33786 \\ 
-20 & & 671011 & 33513 & & 10023 & 1899160 & 31662 & 51147 \\ 
-40 & & 1681635 & 136803 & & 33599 & 2207705 & 138315 & 66221 \\ 
-100 & & 5402121 & NaN & & 105572 & 16251791 & NaN & 299586 \\ 
-250 & & 13670267 & NaN & & 492602 & 25142631 & NaN & 1163696 \\ 
+10 & & 458669 & 6074 & 3589 && 693650 & 9303 & 33786 \\ 
+20 & & 671011 & 33513 & 10023 && 1899160 & 31662 & 51147 \\ 
+40 & & 1681635 & 136803 & 33599 && 2207705 & 138315 & 66221 \\ 
+100 & & 5402121 & NaN & 105572 && 16251791 & NaN & 299586 \\ 
+250 & & 13670267 & NaN & 492602 && 25142631 & NaN & 1163696 \\ 
 \hline 
 \end{longtable} 
 } 

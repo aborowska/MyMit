@@ -1,62 +1,62 @@
 %% Initialisation
+% clc
 clear all
 close all
+s = RandStream('mt19937ar','Seed',1); % or: 0
+RandStream.setGlobalStream(s); 
 addpath(genpath('include/'));
 
-s = RandStream('mt19937ar','Seed',1);
-RandStream.setGlobalStream(s); 
+x = (0:0.00001:50)' + 0.00001;
+GamMat = gamma(x);
 
-x_gam = (0:0.00001:100)'+0.00001;
-GamMat = gamma(x_gam);
-
-model = 't_gas_ML';
+model = 'arch_ML';
 algo = 'Direct';
 
-y = csvread('GSPC_ret_tgarch.csv');
-y = 100*y;
-data = y;
+% Direct
+data = csvread('GSPC_ret.csv');
+data = 100*data;
+ind_arch = find(data<=-5.5, 1, 'last' );
+data = data(1:ind_arch,1);
+data = data - mean(data);
 
-T = size(data,1);
+T = length(data);
 y_T = data(T);
-S = var(data);
- 
-M = 10000;
+S = var(data); % data variance for the variance targeting
+        
+M = 10000; % number of draws for preliminary and IS computations
+
 N_sim = 20;
+p_bar = 0.01;
+H = 250; % forecast horizon
+% d = H+1; % dimension of theta
+% partition = [1,3:H+1];
 
 plot_on = true;
 save_on = true;
-
-p_bar = 0.01;
-H = 10;     % prediction horizon 
-
 
 VaR_direct = zeros(N_sim,1);
 ES_direct = zeros(N_sim,1);
 time_direct = zeros(2,1);
 
-% kernel_init = @(a) - posterior_t_garch_noS_mex(a, data, S, GamMat);
+kernel_init = @(a) - posterior_arch(a, data, S, true);
+% kernel_init = @(a) - posterior_arch_noS(a, data, true);
+mu_init = 0.03;
 
-hyper = 0.01;
-kernel_init = @(xx) - posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
-kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
-% mu_init = [0, 0.01, 0.1, 0.89, 8];
-mu_init = [0.047, 0.0095, 0.06, 0.96, 12];
-
-%   0.0473    0.0098    0.0666    0.9931   11.8485
 
 tic
 theta_mle = fn_initopt(kernel_init, mu_init);
-time_direct(1,1) = toc;
+time_direct(1,1)= toc;
 
-f_mle = volatility_t_gas_mex(theta_mle, y);
 theta_direct = repmat(theta_mle, M, 1);
-f_direct = repmat(f_mle, M, 1);
+
 
 tic
 for sim = 1:N_sim
     fprintf('\nDirect sim = %i.\n', sim);
-    [y_direct, eps_direct] = predict_t_gas(theta_direct, y_T, f_direct, H);
-
+    
+    [y_direct, eps_direct] = predict_arch(theta_direct, y_T, S, H);
+%     y_direct = predict_arch_noS(alpha_direct, y_T, S, H, eps_direct);
+    
     ind_real = find(sum(imag(y_direct),2)==0);
     M_real = length(ind_real); 
     fprintf('M_real = %i.\n',M_real)
@@ -74,19 +74,18 @@ time_direct(2,1) = toc/N_sim;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_direct','ES_direct','theta_mle','f_mle','time_direct')
+    save(name,'VaR_direct','ES_direct','theta_mle','time_direct')
 end
 
 
 %% Generate many high loss draws to initialise the HL density approximation
 % If we want many draws (to obtain a better approximation) better use BigDraw function (memory considerations)
-DD = 5;
-y_predict = @(draw) predict_t_gas_new(draw(:,1:DD), y, H, draw(:,DD+1:end));
+y_predict = @(draw) predict_arch(draw(:,1), y_T, S, H, draw(:,2:end));  
 tic
-[draw_hl, VaR_est, ~, ~] = BigDraw(10000, H, [], p_bar, theta_mle, [], y_predict, GamMat, 5);
+[draw_hl, VaR_est, ~, ~] = BigDraw(10000, H, [], p_bar, theta_mle, [], y_predict, GamMat);
 time_bigdraw = toc;
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_direct','ES_direct','theta_mle','f_mle','time_direct','draw_hl','VaR_est','time_bigdraw')
+    save(name,'VaR_direct','ES_direct','theta_mle','time_direct','draw_hl','VaR_est','time_bigdraw')
 end
