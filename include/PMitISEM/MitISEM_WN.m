@@ -48,7 +48,7 @@ time_mit = zeros(2,1);
 M = 10000; % number of draws for preliminary and IS computations
 BurnIn = 1000;
 
-H = 20; % forecast horizon
+H = 40; % forecast horizon
 p_bar = 0.01;
 
 %% PRELIM & BIG DRAW
@@ -148,10 +148,13 @@ for sim = 1:N_sim
 end
 time_mit(2,1) = toc/N_sim;
 
+y_mit = bsxfun(@times,draw2(:,2:d),sqrt(draw2(:,1)));  
+PL_mit = fn_PL(y_mit);
+mit_eff = sum(PL_mit <= mean(VaR_prelim))/(M/2);
 
 if save_on
     name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'cont2','VaR_mit','ES_mit','mit2','summary2','time_mit','RNE_mit')
+    save(name,'cont2','VaR_mit','ES_mit','mit2','summary2','time_mit','RNE_mit','mit_eff')
 end
 
 

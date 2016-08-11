@@ -1,24 +1,5 @@
 function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
-    switch model
-        case 't_gas'
-            model_tex = 'GAS(1,1)-$t$';          
-            ML = false;
-        case 't_gas_ML'
-            model_tex = 'GAS(1,1)-$t$';   
-            ML = true;
-        case 't_garch2_noS'
-            model_tex = 'GARCH(1,1)-$t$';
-            ML = false;        
-        case 'arch'
-            model_tex = 'ARCH(1,1)';
-            ML = false;        
-        case 'WN'
-            model_tex = 'White Noise';
-            ML = false;        
-        case 'WN_ML'
-            model_tex = 'White Noise';    
-            ML = true;        
-    end
+    [model_tex, ML] = fn_model_tex(model);
     
     if strcmp(model,'WN_ML')
         estimation = {'_true','_mle'};
@@ -32,9 +13,11 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
         
         fprintf(FID, '\\footnotesize{  \n');
         fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
-        fprintf(FID, '\\begin{table}[h] \n');
-        fprintf(FID, '\\centering \n');
-
+        if ML
+            fprintf(FID, '\\begin{longtable}{ccccccccc}  \n');
+        else
+            fprintf(FID, '\\begin{longtable}{ccccccccccc}  \n');            
+        end
         if strcmp(model,'WN_ML')
             est2 = char(est); 
             if strcmp(est2,'_mle')
@@ -52,13 +35,11 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
         end
         fprintf(FID, caption);
 
-        label = ['\\label{tab:res_algos_',model,'} \n'];
+        label = ['\\label{tab:res_algos_',model,'} \\\\ \n'];
         fprintf(FID, label);
         if ML
-            fprintf(FID, '\\begin{tabular}{ccccccccc}  \n');
             fprintf(FID, ' H & & $VaR_{naive}$ & $VaR_{mit}$ & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{mit}$ & $ES_{pmit}$ \\\\ \\hline \n');
         else
-            fprintf(FID, '\\begin{tabular}{ccccccccccc}  \n');
             fprintf(FID, ' H & & $VaR_{naive}$ & $VaR_{adapt}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{adapt}$ & $ES_{mit}$ & $ES_{pmit}$ \\\\ \\hline \n');
         end
 
@@ -130,12 +111,10 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
             fprintf(FID, '$[$%6.4f$]$ & & ', iqr(VaR_pmit));
             fprintf(FID, '$[$%6.4f$]$ & ' , iqr(ES_direct));
             if ~ML     
-                fprintf(FID, '$[$%6.4f$]$ & ' , iqr(ES_prelim));
+                fprintf(FID, '$[$%6.4f$]$  &' , iqr(ES_prelim));
             end
             fprintf(FID, '$[$%6.4f$]$ & ' , iqr(ES_mit));    
-            if (~ML && ~strcmp(model,'arch'))
-                fprintf(FID, '$[$%6.4f$]$  \\\\ [1ex] \n', iqr(ES_pmit));
-            elseif strcmp(model,'arch')
+            if (~ML)
                 fprintf(FID, '$[$%6.4f$]$  \\\\  \n', iqr(ES_pmit));
                 fprintf(FID, '  & RNE & ');
                 fprintf(FID, '%6.2f & ' , mean(RNE_direct));
@@ -144,7 +123,7 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
                 fprintf(FID, '%6.2f &  &' , mean(RNE_pmit));
 
                 fprintf(FID, '? %6.2f & ' , (1/std(ES_direct))^2);
-                fprintf(FID, '? %6.2f & & ', (1/std(ES_prelim))^2);
+                fprintf(FID, '? %6.2f &  ', (1/std(ES_prelim))^2);
                 fprintf(FID, '? %6.2f & ' , (1/std(ES_mit))^2);
                 fprintf(FID, '? %6.2f   \\\\ [1ex] \n', (1/std(ES_pmit))^2);
             else
@@ -160,11 +139,14 @@ function Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
 
         end 
         fprintf(FID, '\\hline \n');
-        fprintf(FID, '\\end{tabular} \n');
-        fprintf(FID, '\\raggedright \n\n'); 
-        fprintf(FID, '\\vspace{5pt}\\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.} \\\\ \n');
-        fprintf(FID, '\\vspace{5pt}\\footnotesize{IQR: interquantile range.} \n');
-        fprintf(FID, '\\end{table} \n');
+        if ML
+            fprintf(FID, '  \\multicolumn{9}{l}{\\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.}} \\\\ \n');     
+            fprintf(FID, '  \\multicolumn{9}{l}{\\footnotesize{IQR: interquantile range.}} \\\\ \n');                 
+        else
+            fprintf(FID, '  \\multicolumn{11}{l}{\\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.}} \\\\ \n');     
+            fprintf(FID, '  \\multicolumn{11}{l}{\\footnotesize{IQR: interquantile range.}} \\\\ \n');             
+        end
+        fprintf(FID, '\\end{longtable} \n');
         fprintf(FID, '} \n');
         fprintf(FID, '} \n');
         fclose(FID);

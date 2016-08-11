@@ -1,23 +1,23 @@
 \footnotesize{  
 { \renewcommand{\arraystretch}{1.3} 
 \begin{longtable}{rr rrr r rrr}  
-\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in WN(true) model for different horizons.} 
+\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in \textbf{White Noise} \textbf{(true)} model for different horizons.} 
 \label{tab:time_precision_WN_ML} \\ 
  & & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-5} \cline{7-9} 
  H & & Naive & MitISEM & PMitISEM & & Naive & MitISEM & PMitISEM \\ \hline 
  & & \multicolumn{3}{c}{Total time} & & & \multicolumn{2}{c}{(Time initialisation)}  \\ \cline{3-5} \cline{8-9}
-10 & & 0.28 s & 1.47 s & 11.55 s &&& \multicolumn{2}{c}{(0.50 s)} \\ 
-20 & & 0.25 s & 0.89 s & 29.53 s &&& \multicolumn{2}{c}{(0.79 s)} \\ 
-40 & & 0.37 s & 3.09 s & 82.31 s &&& \multicolumn{2}{c}{(1.40 s)} \\ 
-100 & & 0.53 s &  NaN s & 425.83 s &&& \multicolumn{2}{c}{(3.18 s)} \\ 
-250 & & 1.70 s &  NaN s & 2703.36 s &&& \multicolumn{2}{c}{(7.36 s)} \\ 
+10 & & 0.00 s & 1.47 s & 11.55 s &&& \multicolumn{2}{c}{(0.49 s)} \\ 
+20 & & 0.01 s & 0.89 s & 29.53 s &&& \multicolumn{2}{c}{(0.79 s)} \\ 
+40 & & 0.01 s & 3.09 s & 82.31 s &&& \multicolumn{2}{c}{(1.40 s)} \\ 
+100 & & 0.02 s &  NaN s & 425.83 s &&& \multicolumn{2}{c}{(3.16 s)} \\ 
+250 & & 0.05 s &  NaN s & 2703.36 s &&& \multicolumn{2}{c}{(7.39 s)} \\ 
 \hline 
  & & \multicolumn{3}{c}{Construction time} & & \multicolumn{3}{c}{ Sampling time} \\ \cline{3-5}  \cline{7-9}
-10 & & 0.00 s & 1.43 s & 11.23 s &&  0.28 s & 0.04 s & 0.32 s \\ 
-20 & & 0.00 s & 0.85 s & 28.91 s &&  0.25 s & 0.04 s & 0.62 s \\ 
-40 & & 0.00 s & 3.04 s & 81.16 s &&  0.37 s & 0.05 s & 1.15 s \\ 
-100 & & 0.00 s &  NaN s & 423.06 s &&  0.53 s &  NaN s & 2.77 s \\ 
-250 & & 0.00 s &  NaN s & 2696.00 s &&  1.70 s &  NaN s & 7.36 s \\ 
+10 & & 0.00 s & 1.43 s & 11.23 s &&  0.00 s & 0.04 s & 0.32 s \\ 
+20 & & 0.00 s & 0.85 s & 28.91 s &&  0.01 s & 0.04 s & 0.62 s \\ 
+40 & & 0.00 s & 3.04 s & 81.16 s &&  0.01 s & 0.05 s & 1.15 s \\ 
+100 & & 0.00 s &  NaN s & 423.06 s &&  0.02 s &  NaN s & 2.77 s \\ 
+250 & & 0.00 s &  NaN s & 2696.00 s &&  0.05 s &  NaN s & 7.36 s \\ 
 \hline 
  & & \multicolumn{3}{c}{VaR NSE} &&  \multicolumn{3}{c}{ES NSE} \\ \cline{3-5}  \cline{7-9}
 10 && 0.1098  & 0.0072  & 0.0080 && 0.1202  & 0.0106  & 0.0162  \\ 
@@ -33,12 +33,12 @@
 100 &&  15.4775 &    NaN & 467.5091 & & 7.2201 &    NaN & 369.2205 \\ 
 250 &&  6.0064 &    NaN & 137.9545 & & 5.3574 &    NaN & 35.2993 \\ 
 \hline 
- & & \multicolumn{3}{c}{ VaR slope} && \multicolumn{3}{c}{ES slope} \\ \cline{3-5}  \cline{7-9}
-10 && 299.23 & 452725.56 & 48828.61 && 249.71 & 212106.67 & 11967.02 \\ 
-20 && 170.10 & 73556.20 & 4249.49 && 161.91 & 8056.19 & 502.73 \\ 
-40 && 62.27 & 14041.99 & 1245.84 && 43.52 & 2217.15 & 344.93 \\ 
-100 && 29.45 &  NaN & 168.92 && 13.74 &  NaN & 133.41 \\ 
-250 && 3.53 &  NaN & 18.74 && 3.14 &  NaN & 4.79 \\ 
+ & & \multicolumn{3}{c}{ \TR{VaR slope}} && \multicolumn{3}{c}{\TR{ES slope}} \\ \cline{3-5}  \cline{7-9}
+10 && \TR{23195.36} & \TR{452725.56} & \TR{48828.61} && \TR{19356.71} & \TR{212106.67} & \TR{11967.02} \\ 
+20 && \TR{7551.66} & \TR{73556.20} & \TR{4249.49} && \TR{7188.30} & \TR{8056.19} & \TR{502.73} \\ 
+40 && \TR{2470.35} & \TR{14041.99} & \TR{1245.84} && \TR{1726.65} & \TR{2217.15} & \TR{344.93} \\ 
+100 && \TR{759.95} & \TR{ NaN} & \TR{168.92} && \TR{354.51} & \TR{ NaN} & \TR{133.41} \\ 
+250 && \TR{129.16} & \TR{ NaN} & \TR{18.74} && \TR{115.21} & \TR{ NaN} & \TR{4.79} \\ 
 \hline 
  & & \multicolumn{3}{c}{ VaR intercept} &&  \multicolumn{3}{c}{ES intercept} \\ \cline{3-5}  \cline{7-9}
 10 &&  -0.00 & -648481.47 & -548396.30 && -0.00 & -303820.36 & -134402.09 \\ 
@@ -48,11 +48,11 @@
 250 &&  -0.00 &  NaN & -50517.00 && -0.00 &  NaN & -12926.10 \\ 
 \hline 
  & & \multicolumn{3}{c}{VaR time required} && \multicolumn{3}{c}{ES time required} \\ \cline{3-5}  \cline{7-9}
-10 & & 5.14 s & 1.44 s & 11.26 s && 6.15 s & 1.44 s & 11.36 s \\ 
-20 & & 9.03 s & 0.88 s & 29.27 s && 9.49 s & 1.05 s & 31.96 s \\ 
-40 & & 24.68 s & 3.15 s & 82.40 s && 35.31 s & 3.73 s & 85.62 s \\ 
-100 & & 52.18 s &  NaN s & 432.16 s && 111.86 s &  NaN s & 434.58 s \\ 
-250 & & 435.91 s &  NaN s & 2778.01 s && 488.72 s &  NaN s & 3016.50 s \\ 
+10 & & 0.07 s & 1.44 s & 11.26 s && 0.08 s & 1.44 s & 11.36 s \\ 
+20 & & 0.20 s & 0.88 s & 29.27 s && 0.21 s & 1.05 s & 31.96 s \\ 
+40 & & 0.62 s & 3.15 s & 82.40 s && 0.89 s & 3.73 s & 85.62 s \\ 
+100 & & 2.02 s &  NaN s & 432.16 s && 4.33 s &  NaN s & 434.58 s \\ 
+250 & & 11.90 s &  NaN s & 2778.01 s && 13.34 s &  NaN s & 3016.50 s \\ 
 \hline 
  && \multicolumn{3}{c}{VaR draws required} &&   \multicolumn{3}{c}{ES draws required} \\  \cline{3-5}  \cline{7-9} 
 10 & & 185239 & 807 & 990 && 221974 & 1722 & 4038 \\ 

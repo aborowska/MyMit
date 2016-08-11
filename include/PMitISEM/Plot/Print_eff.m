@@ -5,48 +5,27 @@ function Print_eff(model, horizons)
     N_sim = 20;
     p_bar = 0.01;
  
-    switch model
-        case 't_gas'
-            model_tex = '\\textbf{GAS(1,1)-$t$}';          
-            ML = false;
-        case 't_gas_ML'
-            model_tex = '\\textbf{GAS(1,1)-$t$}';   
-            ML = true;
-        case 't_garch2_noS'
-            model_tex = '\\textbf{GARCH(1,1)-$t$}';
-            ML = false;        
-        case 'arch'
-            model_tex = '\\textbf{ARCH(1)}';
-            ML = false;        
-        case 'WN'
-            model_tex = '\\textbf{White Noise}';
-            ML = false;        
-        case 'WN_ML'
-            model_tex = '\\textbf{White Noise}';    
-            ML = true;        
-    end
+    [model_tex, ML] = fn_model_tex(model);
  
     %% Latex table
     fname = ['results/PMitISEM/results_',model,'_eff.tex'];
 
     FID = fopen(fname, 'w+');
-    fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
+    fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.2} \n');
 
-    fprintf(FID, '\\begin{table}[h] \n');
-    fprintf(FID, '\\centering \n');
+    fprintf(FID, '\\begin{longtable}{cc cc c cc} \n');
 
     caption = ['\\caption{Efficiency of the high-loss space approximations in ', model_tex,...
-        ' model: basic MitISEM vs. PMitISEM.} \n'];
+        ' model:\\\\ basic MitISEM vs. PMitISEM.} \n'];
     fprintf(FID, caption);
 
-    label = ['\\label{tab:eff',model,'} \n'];
+    label = ['\\label{tab:eff',model,'} \\\\ \n'];
     fprintf(FID, label);
-    fprintf(FID, '\\begin{tabular}{cc cc c cc}  \n');
     fprintf(FID, ' && \\multicolumn{2}{c}{MitISEM} && \\multicolumn{2}{c}{PMitISEM} \\\\ \\cline{3-4} \\cline{6-7} \n'); 
-    fprintf(FID, ' $H$ && Eff  & RNE && Eff & RNE  \\\\ \\cline{3-4} \\cline{6-7} \n'); 
+    fprintf(FID, ' $H$ && Eff  & RNE && Eff & RNE  \\\\ \\cline{1-1} \\cline{3-4} \\cline{6-7} \n'); 
 
     for hh = 1: length(horizons)
-        fprintf(FID, '%s & ', num2str(horizons(hh)));
+        fprintf(FID, '%s & &', num2str(horizons(hh)));
         
         algo = 'MitISEM';
         name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(horizons(hh)),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
@@ -65,15 +44,13 @@ function Print_eff(model, horizons)
         algo = 'PMitISEM';
         name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(horizons(hh)),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'RNE_pmit','pmit_eff')
-        fprintf(FID, '%6.4f &  %6.4f \\ [1ex] \n', pmit_eff, mean(RNE_pmit) );  
+        fprintf(FID, '%6.4f &  %6.4f \\\\ [1ex] \n', pmit_eff, mean(RNE_pmit) );  
     end
     fprintf(FID, '\\hline \n');
-    fprintf(FID, '\\end{tabular} \n');
-    fprintf(FID, '\\raggedright \n\n'); 
-    fprintf(FID, '\\vspace{5pt}\\footnotesize{Eff: the fraction of draws generated from an approximation that result in high-losses.} \\\\ \n');
-    fprintf(FID, '\\vspace{5pt}\\footnotesize{RNE: for Bayesian $VaR$ estimation.} \n');
+    fprintf(FID, '\\multicolumn{7}{p{7cm}}{\\footnotesize{Eff: the fraction of draws generated from an approximation that result in high-losses.}}  \\\\ \n');
+    fprintf(FID, '\\multicolumn{7}{l}{\\footnotesize{RNE: for Bayesian $VaR$ estimation.}} \n');
   
-    fprintf(FID, '\\end{table} \n');
+    fprintf(FID, '\\end{longtable} \n');
     fprintf(FID, '} \n');
     fclose(FID);
 end

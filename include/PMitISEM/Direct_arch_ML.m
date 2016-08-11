@@ -27,7 +27,7 @@ M = 10000; % number of draws for preliminary and IS computations
 
 N_sim = 20;
 p_bar = 0.01;
-H = 250; % forecast horizon
+H = 10; % forecast horizon
 % d = H+1; % dimension of theta
 % partition = [1,3:H+1];
 

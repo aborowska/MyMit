@@ -18,7 +18,7 @@ GamMat = gamma(x_gam);
 model = 'WN_ML';
 algo = 'Direct';
 
-estimation = 'mle'; % 'true' or 'mle'
+estimation = 'true'; % 'true' or 'mle'
 
 % Artificial, white noise data 
 T = 10000;
@@ -38,7 +38,7 @@ time_direct = zeros(2,1);
 
 M = 10000; % number of draws for preliminary and IS computations
 
-H = 250; % forecast horizon
+H = 40; % forecast horizon
 p_bar = 0.01;
 
 % loglik = @(ss,yy) - 0.5*sum(log(2*pi) + log(ss) + (y.^2)./ss);
@@ -65,6 +65,7 @@ if plot_on
     plotTickLatex2D('FontSize',12);
 end
 
+tic
 for sim = 1:N_sim
     fprintf('\nDirect sim = %i.\n', sim); 
     y_direct = sqrt(sigma2_used)*randn(M,H);

@@ -30,7 +30,7 @@ N_sim = 20;
 sim = 1;
 
 plot_on = true;
-save_on = true;
+save_on = false;
 
 % Control parameters for PMitISEM
 cont2 = MitISEM_Control;
@@ -70,14 +70,17 @@ w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
 
  if (H == 250)
-    cont2.mit.Hmax = 10;
+    cont2.mit.Hmax = 1;
 else
-    cont2.mit.Hmax = 2;    
+    cont2.mit.Hmax = 1;    
 end
 
-if (H == 250)
-    cont2.mit.dfnc = 15; 
-    cont2.df.range = [5,20];
+if (H >= 100)
+    cont2.mit.dfnc = 20; 
+    cont2.df.range = [15,25];
+% elseif (H == 100)
+%     cont2.mit.dfnc = 15; 
+%     cont2.df.range = [5,20];
 else
     cont2.mit.dfnc = 10; 
     cont2.df.range = [5,15];
@@ -105,9 +108,9 @@ s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2_up;
 
-% s = RandStream('mt19937ar','Seed',1);
-% RandStream.setGlobalStream(s); 
-% pmit = pmit_step3;
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step3;
 
 tic
 for sim = 1:N_sim
@@ -116,10 +119,10 @@ for sim = 1:N_sim
     y_pmit = input_X_pmit.y_cum;
     kernel = @(xx) - 0.5*(log(2*pi) + log(1) + (xx.^2)/1);
     lnk_pmit = sum(kernel(draw_pmit),2);
-    PL_mit = fn_PL(y_pmit);
+    PL_pmit = fn_PL(y_pmit);
     
     w_pmit = exp(lnk_pmit - lnd_pmit)/M;
-    [PL, ind] = sort(PL_mit);         
+    [PL, ind] = sort(PL_pmit);         
     w_pmit = w_pmit(ind,:);
     cum_w = cumsum(w_pmit);
     ind_var = min(find(cum_w >= p_bar))-1; 
@@ -140,8 +143,8 @@ ES_step2 = ES_pmit;
 VaR_step2_up = VaR_pmit;
 ES_step2_up = ES_pmit;
 
-% VaR_step3 = VaR_pmit;
-% ES_step3 = ES_pmit;
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
 
 % VaR_pmit = VaR_step2_up;
 % ES_pmit = ES_step2_up;

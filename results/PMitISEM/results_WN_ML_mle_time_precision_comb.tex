@@ -1,7 +1,7 @@
 \footnotesize{  
 { \renewcommand{\arraystretch}{1.3} 
 \begin{longtable}{rr rrr r rrr}  
-\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in WN(mle) model for different horizons.} 
+\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in \textbf{White Noise} \textbf{(mle)} model for different horizons.} 
 \label{tab:time_precision_WN_ML} \\ 
  & & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-5} \cline{7-9} 
  H & & Naive & MitISEM & PMitISEM & & Naive & MitISEM & PMitISEM \\ \hline 
@@ -33,12 +33,12 @@
 100 &&  15.6840 &    NaN & 704.4993 & & 7.3108 &    NaN & 144.7502 \\ 
 250 &&  6.0725 &    NaN & 103.4283 & & 5.4106 &    NaN & 34.6613 \\ 
 \hline 
- & & \multicolumn{3}{c}{ VaR slope} && \multicolumn{3}{c}{ES slope} \\ \cline{3-5}  \cline{7-9}
-10 && 5737.96 & 493607.98 & 75521.51 && 4787.31 & 231200.90 & 10901.82 \\ 
-20 && 2670.61 & 79903.66 & 21770.50 && 2541.41 & 8746.21 & 2489.85 \\ 
-40 && 1157.03 & 14170.53 & 766.46 && 808.36 & 2236.13 & 111.98 \\ 
-100 && 505.68 &  NaN & 255.10 && 235.72 &  NaN & 52.41 \\ 
-250 && 105.31 &  NaN & 13.86 && 93.83 &  NaN & 4.65 \\ 
+ & & \multicolumn{3}{c}{ \TR{VaR slope}} && \multicolumn{3}{c}{\TR{ES slope}} \\ \cline{3-5}  \cline{7-9}
+10 && \TR{5737.96} & \TR{493607.98} & \TR{75521.51} && \TR{4787.31} & \TR{231200.90} & \TR{10901.82} \\ 
+20 && \TR{2670.61} & \TR{79903.66} & \TR{21770.50} && \TR{2541.41} & \TR{8746.21} & \TR{2489.85} \\ 
+40 && \TR{1157.03} & \TR{14170.53} & \TR{766.46} && \TR{808.36} & \TR{2236.13} & \TR{111.98} \\ 
+100 && \TR{505.68} & \TR{ NaN} & \TR{255.10} && \TR{235.72} & \TR{ NaN} & \TR{52.41} \\ 
+250 && \TR{105.31} & \TR{ NaN} & \TR{13.86} && \TR{93.83} & \TR{ NaN} & \TR{4.65} \\ 
 \hline 
  & & \multicolumn{3}{c}{ VaR intercept} &&  \multicolumn{3}{c}{ES intercept} \\ \cline{3-5}  \cline{7-9}
 10 &&  -1237.68 & -704212.89 & -852294.00 && -1032.62 & -329846.07 & -123031.90 \\ 

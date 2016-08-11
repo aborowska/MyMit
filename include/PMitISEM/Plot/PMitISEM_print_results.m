@@ -17,27 +17,9 @@ p_bar = 0.01;
 % model = 'WN';
 % model = 't_gas_ML';
 % model = 'WN_ML';
+% model = 'arch_ML'
+% model = 't_garch2_noS_ML'
 
-switch model
-    case 't_gas'
-        model_tex = '\\textbf{GAS(1,1)-$t$}';          
-        ML = false;
-    case 't_gas_ML'
-        model_tex = '\\textbf{GAS(1,1)-$t$}';   
-        ML = true;
-    case 't_garch2_noS'
-        model_tex = '\\textbf{GARCH(1,1)-$t$}';
-        ML = false;        
-    case 'arch'
-        model_tex = '\\textbf{ARCH(1)}';
-        ML = false;        
-    case 'WN'
-        model_tex = '\\textbf{White Noise}';
-        ML = false;        
-    case 'WN_ML'
-        model_tex = '\\textbf{White Noise}';    
-        ML = true;        
-end
 
 horizons = [10,20,40,100,250];
 
@@ -66,12 +48,11 @@ end
 % ML case
 estimation = '';
 estimation = 'mle';
-
 algo = 'PMitISEM';
 for h = horizons
-    name = ['results/PMitISEM/',model,'_Direct_',estimation,'_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_Direct_',estimation,num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     load(name,'VaR_direct','ES_direct')
-    name = ['results/PMitISEM/',model,'_PMitISEM_',estimation,'_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = ['results/PMitISEM/',model,'_PMitISEM_',estimation,num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     load(name,'VaR_pmit','ES_pmit')
     labels_in = {'naive','pmit'};
     if strcmp(model,'WN_ML')
@@ -82,11 +63,31 @@ for h = horizons
     Boxplot_PMitISEM(VaR_direct,VaR_pmit,ES_direct,ES_pmit,model,algo_est,h,N_sim,save_on, labels_in);
 end
 
+
 %% VaR results diff algo 
-Print_PMitISEM_alg_comb(model, horizons, algos, M, N_sim, p_bar)
+algos = {'Direct','Prelim','MitISEM','PMitISEM'};
+Print_PMitISEM_alg_comb('WN', horizons, algos, M, N_sim, p_bar);
+Print_PMitISEM_alg_comb('arch', horizons, algos, M, N_sim, p_bar);
+Print_PMitISEM_alg_comb('t_garch2_noS', horizons, algos, M, N_sim, p_bar);
+Print_PMitISEM_alg_comb('t_gas', horizons, algos, M, N_sim, p_bar);
+
+algos = {'Direct','MitISEM','PMitISEM'};
+Print_PMitISEM_alg_comb('arch_ML', horizons, algos, M, N_sim, p_bar);
+Print_PMitISEM_alg_comb('WN_ML', horizons, algos, M, N_sim, p_bar);
+Print_PMitISEM_alg_comb('t_gas_ML', horizons, algos, M, N_sim, p_bar);
+Print_PMitISEM_alg_comb('t_garch2_noS_ML', horizons, algos, M, N_sim, p_bar);
 
 %% Pmit print
-Print_pmit(model,model_tex,10,p_bar,N_sim)
+H = 10;
+Print_pmit('WN', H, p_bar, N_sim);
+Print_pmit('arch', H, p_bar, N_sim);
+Print_pmit('t_garch2_noS', H, p_bar, N_sim);
+Print_pmit('t_gas', H, p_bar, N_sim);
+Print_pmit('WN_ML', H, p_bar, N_sim,'true');
+Print_pmit('WN_ML', H, p_bar, N_sim,'mle');
+Print_pmit('arch_ML', H, p_bar, N_sim);
+Print_pmit('t_garch2_noS_ML', H, p_bar, N_sim);
+Print_pmit('t_gas_ML', H, p_bar, N_sim);
 
 
 %% Pmit posterior
@@ -127,9 +128,9 @@ switch model
         b = 1;
         kernel = @(x) posterior_WN(x, y, a, b, true);         
 end  
-results_arch = Print_posterior([], model, parameter, kernel, save_on, GamMat);
-results_t_garch = Print_posterior([], model, parameter, kernel, save_on, GamMat);
-results_t_gas = Print_posterior([], model, parameter, kernel, save_on, GamMat);
+results_arch = Print_posterior([], model, parameter, kernel, GamMat);
+results_t_garch = Print_posterior([], model, parameter, kernel, GamMat);
+results_t_gas = Print_posterior([], model, parameter, kernel, GamMat);
  
 
 %% Time-Precision Combined
@@ -155,7 +156,11 @@ Plot_time_precision2(results_t_gas,'t_gas', save_on, horizons) %, p_bar, N_sim, 
 results_t_gas_ML = Print_time_precision('t_gas_ML',horizons,p_bar,N_sim,M);
 Plot_time_precision2(results_t_gas_ML,'t_gas_ML', save_on, horizons) %, p_bar, N_sim, M)
 
+results_t_garch_ML = Print_time_precision('t_garch2_noS_ML',horizons,p_bar,N_sim,M);
+Plot_time_precision2(results_t_garch_ML,'t_garch2_noS_ML', save_on, horizons) %, p_bar, N_sim, M)
 
+results_arch_ML = Print_time_precision('arch_ML',horizons,p_bar,N_sim,M);
+Plot_time_precision2(results_arch_ML,'arch_ML', save_on, horizons) %, p_bar, N_sim, M)
 
 results_WN_ML_true = Print_time_precision('WN_ML',horizons,p_bar,N_sim,M,'true');
 Plot_time_precision2(results_WN_ML_true,'WN_ML_true', save_on, horizons,'true') %, p_bar, N_sim, M)
@@ -166,11 +171,14 @@ Plot_time_precision2(results_WN_ML_mle,'WN_ML', save_on, horizons,'mle') %, p_ba
 
 % Efficiency
 
- Print_eff(model, horizons)
+ Print_eff('WN', horizons)
+  Print_eff('arch', horizons)
+  Print_eff('t_garch2_noS', horizons)
+  Print_eff('t_gas', horizons)
  
  
 %% Horizons
-H = 10;
+H = 100;
 % model = 't_gas';
 % model = 't_garch2_noS';
 model = 'arch';
@@ -234,8 +242,13 @@ switch model
         b = 1;
         kernel = @(x) posterior_WN(x, y, a, b, true); 
         DD = 1;
-end 
+end
 save_on = true;
+partition = [1,DD+2:H+DD];
+Plot_hor(y, model, DD, H, p_bar, N_sim, M, BurnIn, save_on, kernel, fn_vol, fn_predict, fn_predict2, partition, fn_const_X, fn_input_X, GamMat)
+
+
+    
 for H = horizons
     fn_vol = @(xx) randn(M,H);
     partition = [1,DD+2:H+DD];

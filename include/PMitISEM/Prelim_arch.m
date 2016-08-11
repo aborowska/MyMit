@@ -34,11 +34,10 @@ p_bar = 0.01;
 
 H = 250; % forecast horizon
 plot_on = true;
-save_on = false;
+save_on = true;
 
-% Control parameters for MitISEM (cont) and PMitiISEM (cont2)
+% Control parameters for MitISEM
 cont1 = MitISEM_Control;
-% cont1.mit.dfnc = 5;
 cont1.mit.dfnc = 5;
 cont1.mit.N = 10000;
 

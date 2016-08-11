@@ -1,7 +1,7 @@
 \footnotesize{  
 { \renewcommand{\arraystretch}{1.3} 
 \begin{longtable}{rr rrrr r rrrr}  
-\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in GARCH(1,1)-$t$ model for different horizons.} 
+\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in \textbf{GARCH(1,1)-$t$} model for different horizons.} 
 \label{tab:time_precision_t_garch2_noS} \\ 
  & & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-6} \cline{8-11} 
  H & & Naive & Adapted & MitISEM & PMitISEM & & Naive & Adapted & MitISEM & PMitISEM \\ \hline 
@@ -33,12 +33,12 @@
 100 && 2.3690 & 6.2335 &    NaN & 16.8935 & & 1.5116 & 1.6862 &    NaN & 10.2797 \\ 
 250 && 2.2030 & 1.5760 &    NaN & 9.3744 & & 0.5955 & 0.6425 &    NaN & 4.7600 \\ 
 \hline 
- & & \multicolumn{4}{c}{ VaR slope} && \multicolumn{4}{c}{ES slope} \\ \cline{3-6}  \cline{8-11}
-10 && 2.28 & 2.42 & 26.34 & 105.78 && 1.42 & 2.00 & 5.23 & 10.74 \\ 
-20 && 0.92 & 1.59 & 3.51 & 17.75 && 0.50 & 0.62 & 2.62 & 5.34 \\ 
-40 && 0.62 & 0.77 &  NaN & 6.92 && 0.23 & 0.25 &  NaN & 1.81 \\ 
-100 && 0.18 & 0.45 &  NaN & 1.14 && 0.12 & 0.12 &  NaN & 0.69 \\ 
-250 && 0.17 & 0.11 &  NaN & 0.56 && 0.05 & 0.05 &  NaN & 0.28 \\ 
+ & & \multicolumn{4}{c}{ \TR{VaR slope}} && \multicolumn{4}{c}{\TR{ES slope}} \\ \cline{3-6}  \cline{8-11}
+10 && \TR{2.28} & \TR{2.42} & \TR{26.34} & \TR{105.78} && \TR{1.42} & \TR{2.00} & \TR{5.23} & \TR{10.74} \\ 
+20 && \TR{0.92} & \TR{1.59} & \TR{3.51} & \TR{17.75} && \TR{0.50} & \TR{0.62} & \TR{2.62} & \TR{5.34} \\ 
+40 && \TR{0.62} & \TR{0.77} & \TR{ NaN} & \TR{6.92} && \TR{0.23} & \TR{0.25} & \TR{ NaN} & \TR{1.81} \\ 
+100 && \TR{0.18} & \TR{0.45} & \TR{ NaN} & \TR{1.14} && \TR{0.12} & \TR{0.12} & \TR{ NaN} & \TR{0.69} \\ 
+250 && \TR{0.17} & \TR{0.11} & \TR{ NaN} & \TR{0.56} && \TR{0.05} & \TR{0.05} & \TR{ NaN} & \TR{0.28} \\ 
 \hline 
  & & \multicolumn{4}{c}{ VaR intercept} &&  \multicolumn{4}{c}{ES intercept} \\ \cline{3-6}  \cline{8-11}
 10 && -2.01 & -206.07 & -2991.52 & -21716.50 && -1.25 & -170.54 & -594.40 & -2205.33 \\ 

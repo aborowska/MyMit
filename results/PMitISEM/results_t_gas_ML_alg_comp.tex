@@ -1,10 +1,8 @@
 \footnotesize{  
 { \renewcommand{\arraystretch}{1.3} 
-\begin{table}[h] 
-\centering 
-\caption{Results for the $99\%$ VaR and ES, in the GAS(1,1)-$t$ model, based on $N=10000$ candidate draws and $20$ replications to obtain NSEs.} 
-\label{tab:res_algos_t_gas_ML} 
-\begin{tabular}{ccccccccc}  
+\begin{longtable}{ccccccccc}  
+\caption{Results for the $99\%$ VaR and ES, in the \textbf{GAS(1,1)-$t$} model, based on $N=10000$ candidate draws and $20$ replications to obtain NSEs.} 
+\label{tab:res_algos_t_gas_ML} \\ 
  H & & $VaR_{naive}$ & $VaR_{mit}$ & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{mit}$ & $ES_{pmit}$ \\ \hline 
 10 & & -8.3521 & -8.2854 & -8.2826 & & -9.8847 & -9.8337 & -9.8321  \\ 
   & NSE & (0.1728) & (0.0199) & (0.0153) & & (0.2125) & (0.0246) & (0.0469)   \\ 
@@ -27,11 +25,8 @@
  & IQR & $[$1.4605$]$ & $[$   NaN$]$ & $[$0.1793$]$ & & $[$1.8830$]$ & $[$   NaN$]$ & $[$0.2308$]$  \\  
   & RNE &   1.00 &    NaN &  31.19 & &   1.00 &    NaN &  13.20   \\ [1ex] 
 \hline 
-\end{tabular} 
-\raggedright 
-
-\vspace{5pt}\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.} \\ 
-\vspace{5pt}\footnotesize{IQR: interquantile range.} 
-\end{table} 
+  \multicolumn{9}{l}{\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.}} \\ 
+  \multicolumn{9}{l}{\footnotesize{IQR: interquantile range.}} \\ 
+\end{longtable} 
 } 
 } 

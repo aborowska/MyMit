@@ -1,4 +1,4 @@
-function results = Print_posterior(results, model, parameter, kernel, save_on, GamMat)
+function results = Print_posterior(results, model, parameter, kernel, GamMat)
   
     M = 10000;
     BurnIn = 1000;
@@ -6,26 +6,7 @@ function results = Print_posterior(results, model, parameter, kernel, save_on, G
     p_bar = 0.01;
     H = 10;
 
-    switch model
-        case 't_gas'
-            model_tex = '\\textbf{GAS(1,1)-$t$}';          
-            ML = false;
-        case 't_gas_ML'
-            model_tex = '\\textbf{GAS(1,1)-$t$}';   
-            ML = true;
-        case 't_garch2_noS'
-            model_tex = '\\textbf{GARCH(1,1)-$t$}';
-            ML = false;        
-        case 'arch'
-            model_tex = '\\textbf{ARCH(1)}';
-            ML = false;        
-        case 'WN'
-            model_tex = '\\textbf{White Noise}';
-            ML = false;        
-        case 'WN_ML'
-            model_tex = '\\textbf{White Noise}';    
-            ML = true;        
-    end
+    model_tex = fn_model_tex(model);
 
     %%
     if isempty(results)

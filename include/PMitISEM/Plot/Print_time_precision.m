@@ -1,30 +1,10 @@
 function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
-    
-    if isempty(strfind(model,'_ML'))
-        ML = false;
-    else
-        ML = true;
-    end
-    
-    switch model
-        case 't_gas'
-            model_tex = 'GAS(1,1)-$t$';  
-        case 't_gas_ML'
-            model_tex = 'GAS(1,1)-$t$';        
-        case 't_garch2_noS'
-            model_tex = 'GARCH(1,1)-$t$';
-        case 'arch'
-            model_tex = 'ARCH(1)';
-        case 'WN'
-            model_tex = 'White Noise';
-        case 'WN_ML'
-            model_tex = 'White Noise';
-    end
+	[model_tex, ML] = fn_model_tex(model);
   
     if (nargin < 6)
         estimation = '';
     else
-        model_tex = ['WN(',estimation,')'];
+        model_tex = [model_tex,' \\textbf{(',estimation,')}'];
         estimation = [estimation,'_'];
     end
     
@@ -249,15 +229,15 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
 
     
     if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{ VaR slope} && \\multicolumn{3}{c}{ES slope} \\\\ \\cline{3-5}  \\cline{7-9}\n');         
+        fprintf(FID, ' & & \\multicolumn{3}{c}{ \\TR{VaR slope}} && \\multicolumn{3}{c}{\\TR{ES slope}} \\\\ \\cline{3-5}  \\cline{7-9}\n');         
     else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{ VaR slope} && \\multicolumn{4}{c}{ES slope} \\\\ \\cline{3-6}  \\cline{8-11}\n'); 
+        fprintf(FID, ' & & \\multicolumn{4}{c}{ \\TR{VaR slope}} && \\multicolumn{4}{c}{\\TR{ES slope}} \\\\ \\cline{3-6}  \\cline{8-11}\n'); 
     end
     for h = 1:Hno
         if ML
-            fprintf(FID, '%i && %4.2f & %4.2f & %4.2f && %4.2f & %4.2f & %4.2f \\\\ \n',horizons(1,h), VaR_slope(h,:),  ES_slope(h,:));            
+            fprintf(FID, '%i && \\TR{%4.2f} & \\TR{%4.2f} & \\TR{%4.2f} && \\TR{%4.2f} & \\TR{%4.2f} & \\TR{%4.2f} \\\\ \n',horizons(1,h), VaR_slope(h,:),  ES_slope(h,:));            
         else
-            fprintf(FID, '%i && %4.2f & %4.2f & %4.2f & %4.2f && %4.2f & %4.2f & %4.2f & %4.2f \\\\ \n',horizons(1,h), VaR_slope(h,:),  ES_slope(h,:));
+            fprintf(FID, '%i && \\TR{%4.2f} & \\TR{%4.2f} & \\TR{%4.2f} & \\TR{%4.2f} && \\TR{%4.2f} & \\TR{%4.2f} & \\TR{%4.2f} & \\TR{%4.2f} \\\\ \n',horizons(1,h), VaR_slope(h,:),  ES_slope(h,:));
         end
     end
     fprintf(FID, '\\hline \n');
