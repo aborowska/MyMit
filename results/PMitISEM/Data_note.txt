@@ -1,0 +1,27 @@
+Old data:
+* from the original QERMit paper
+* 2513 observations
+* 02.01.1998 - 31.12.2007
+* kurtosis: 5.6470
+* last y: -0.6875
+
+Crisis data:
+* last 11.5 year
+* 2893 observations
+* 03.01.2005 -- 30.06.2016
+* kurtosis: 13.8356
+* last y: 1.3474
+
+Recent data:
+* shorter, 6 years, without the crisis
+* 1509 observations
+* 02.08.2016 - 29.07.2016
+* kurtosis: 7.4469
+* last y: 0.1630
+
+Recent "end" data
+* almost like recent but the end data chosen to match the original dataset (end after the US holiday)
+* 1512 observations
+* 01.07.2010 -- 05.07.2016
+* kurtosis: 7.2837
+* last y: -0.6871

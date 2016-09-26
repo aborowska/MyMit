@@ -26,8 +26,8 @@ function [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim, VaR_IS, ES_pre
     clear GP GO GT move
     
     if save_on
-%         name = ['figures/PMitISEM/',model,'_',algo,'_VaR_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
-        name = ['figures/PMitISEM/',model,'_',algo,'_VaR_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];        
+%         name = [figures_path,model,'_',algo,'_VaR_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
+        name = [figures_path,model,'_',algo,'_VaR_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];        
         set(gcf,'PaperPositionMode','auto');
         print_fail = 1;
         while print_fail 
@@ -69,8 +69,8 @@ function [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim, VaR_IS, ES_pre
     clear GP GO GT move
     
     if save_on
-%         name = ['figures/PMitISEM/',model,'_',algo,'_ES_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
-        name = ['figures/PMitISEM/',model,'_',algo,'_ES_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];        
+%         name = [figures_path,model,'_',algo,'_ES_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
+        name = [figures_path,model,'_',algo,'_ES_box','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];        
         set(gcf,'PaperPositionMode','auto');
         print_fail = 1;
         while print_fail 

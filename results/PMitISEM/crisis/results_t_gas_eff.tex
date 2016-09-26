@@ -1,0 +1,17 @@
+{ \renewcommand{\arraystretch}{1.2} 
+\begin{longtable}{cc cc c cc} 
+\caption{Efficiency of the high-loss space approximations in \textbf{GAS(1,1)-$t$} model:\\ basic MitISEM vs. PMitISEM.} 
+\label{tab:efft_gas} \\ 
+ && \multicolumn{2}{c}{MitISEM} && \multicolumn{2}{c}{PMitISEM} \\ \cline{3-4} \cline{6-7} 
+ $H$ && Eff  & RNE && Eff & RNE  \\ \cline{1-1} \cline{3-4} \cline{6-7} 
+10 & &0.8060 &  5.0467 && 0.8252 &  9.9237 \\ [1ex] 
+20 & &0.7312 &  2.4818 && 0.7878 &  8.4343 \\ [1ex] 
+40 & &-- & -- && 0.7402 &  7.6736 \\ [1ex] 
+100 & &-- & -- && 0.7380 &  5.7256 \\ [1ex] 
+250 & &-- & -- && 0.6066 &  4.4112 \\ [1ex] 
+\hline 
+\multicolumn{7}{p{7cm}}{\footnotesize{Eff: the fraction of draws generated from an approximation that result in high-losses.}}  \\ 
+\multicolumn{7}{l}{\footnotesize{RNE: for Bayesian $VaR$ estimation.}} 
+\end{longtable} 
+} 
+\normalsize 

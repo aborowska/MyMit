@@ -1,0 +1,23 @@
+\footnotesize{  
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{longtable}{ccccccccccc}  
+\caption{RNE for the $99\%$ VaR and ES, in the \textbf{GAS(1,1)-$t$} model, based on $N=10000$ candidate draws and $20$ replications to obtain NSEs and RNEs.} 
+\label{tab:res_RNE_t_gas} \\ 
+ H & & $VaR_{naive}$ & $VaR_{adapt}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{adapt}$ & $ES_{mit}$ & $ES_{pmit}$ \\ \hline 
+10 & & $[$0.1505$]$  \\  
+  & RNE &   1.02 &   1.03 & 5.0467 &   9.92 &  &  1.67 &   1.59 &    8.82 &  26.39   \\ [1ex] 
+20 & & $[$0.1832$]$  \\  
+  & RNE &   1.01 &   1.03 & 2.4818 &   8.43 &  &  1.65 &   1.60 &    4.62 &  24.17   \\ [1ex] 
+40 & & $[$0.2692$]$  \\  
+  & RNE &   1.00 &   1.01 &    -- &   7.67 &  &  1.76 &   1.65 &     -- &  30.58   \\ [1ex] 
+100 & & $[$0.3251$]$  \\  
+  & RNE &   1.04 &   1.02 &    -- &   5.73 &  &  1.71 &   1.69 &     -- &  14.57   \\ [1ex] 
+250 & & $[$0.5731$]$  \\  
+  & RNE &   1.02 &   1.01 &    -- &   4.41 &  &  1.71 &   1.71 &     -- &   3.10   \\ [1ex] 
+\hline 
+  \multicolumn{11}{l}{\footnotesize{Missing value (--): it was not possible to generate the particular result with the corresponding algorithm.}} \\ 
+  \multicolumn{11}{l}{\footnotesize{IQR: interquantile range.}} \\ 
+\end{longtable} 
+} 
+} 
+\normalsize 

@@ -1,0 +1,49 @@
+\footnotesize{  
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{longtable}{rr rrr r rrr}  
+\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in \textbf{GAS(1,1)-$t$} model for different horizons.} 
+\label{tab:time_precision_t_gas_ML} \\ 
+ & & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{1}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-5} \cline{7-9} 
+ H & & Naive & MitISEM & PMitISEM & & Naive & MitISEM & PMitISEM \\ \hline 
+ & & \multicolumn{3}{c}{Total time} & & & \\ \cline{3-5} 
+10 & & 4.35 s & 0.67 s & 3.12 s &&&   \\ 
+20 & & 4.35 s & 4.78 s & 9.46 s &&&   \\ 
+40 & & 4.38 s &  -- & 23.71 s &&&   \\ 
+100 & & 4.48 s &  -- & 145.31 s &&&   \\ 
+250 & & 4.85 s &  -- & 988.06 s &&&   \\ 
+\hline 
+ & & \multicolumn{3}{c}{Construction time} & & \multicolumn{3}{c}{ Sampling time} \\ \cline{3-5}  \cline{7-9}
+10 & & 4.33 s & 0.64 s & 2.98 s &&  0.02 s & 0.03 s & 0.14 s \\ 
+20 & & 4.31 s & 4.73 s & 9.16 s &&  0.03 s & 0.05 s & 0.29 s \\ 
+40 & & 4.31 s &  -- & 23.10 s &&  0.06 s &  -- & 0.61 s \\ 
+100 & & 4.32 s &  -- & 143.79 s &&  0.15 s &  -- & 1.52 s \\ 
+250 & & 4.47 s &  -- & 983.40 s &&  0.38 s &  -- & 4.66 s \\ 
+\hline 
+ & & \multicolumn{3}{c}{ \TR{VaR slope$^{*}$}} && \multicolumn{3}{c}{\TR{ES slope$^{*}$}} \\ \cline{3-5}  \cline{7-9}
+10 && \TR{974.26} & \TR{9,752.17} & \TR{5789.43} && \TR{880.80} & \TR{3,101.69} & \TR{1,372.74} \\ 
+20 && \TR{293.21} & \TR{1,389.32} & \TR{749.19} && \TR{174.13} & \TR{332.71} & \TR{784.13} \\ 
+40 && \TR{182.63} & \TR{ --} & \TR{276.93} && \TR{46.30} & \TR{ --} & \TR{184.56} \\ 
+100 && \TR{17.45} & \TR{ --} & \TR{22.90} && \TR{8.01} & \TR{ --} & \TR{25.98} \\ 
+250 && \TR{4.48} & \TR{ --} & \TR{4.94} && \TR{1.35} & \TR{ --} & \TR{3.82} \\ 
+\hline 
+ & & \multicolumn{3}{c}{VaR time required$^{*}$} && \multicolumn{3}{c}{ES time required$^{*}$} \\ \cline{3-5}  \cline{7-9}
+10 & & 5.91 s & 0.80 s & 3.24 s && 6.08 s & 1.14 s & 4.09 s \\ 
+20 & & 9.55 s & 5.83 s & 11.22 s && 13.14 s & 9.35 s & 11.12 s \\ 
+40 & & 12.73 s &  -- & 28.65 s && 37.50 s &  -- & 31.43 s \\ 
+100 & & 92.40 s &  -- & 210.89 s && 196.11 s &  -- & 202.93 s \\ 
+250 & & 347.47 s &  -- & 1,294.69 s && 1,140.28 s &  -- & 1,385.65 s \\ 
+\hline 
+ && \multicolumn{3}{c}{VaR draws required$^{**}$} &&   \multicolumn{3}{c}{ES draws required$^{**}$} \\  \cline{3-5}  \cline{7-9} 
+10 & & 845,752 & 53,194 & 18,395 && 935,498 & 167248 & 77,581 \\ 
+20 & & 1,519,296 & 229,489 & 69,609 && 2,558,257 & 958,281 & 66,507 \\ 
+40 & & 1,321,478 & -- & 90,766 && 5,212,265 & -- & 136,195 \\ 
+100 & & 5,705,631 & -- & 441,394 && 12,423,807 & -- & 388,979 \\ 
+250 & & 9,112,650 & -- & 667,648 && 30,176,110 & -- & 862,735 \\ 
+\hline 
+\multicolumn{9}{p{10cm}}{\footnotesize{Missing value (--): it was not possible to generate the particular result with the corresponding algorithm.}} \\ 
+\multicolumn{9}{l}{\footnotesize{$^{*}$Slope $=$ Precision/Sampling time.}}  \\ 
+\multicolumn{9}{l}{\footnotesize{$^{**}$Required for \% estimate with 1 digit of precision (with 95\% confidence).}} \\ 
+\end{longtable} 
+} 
+} 
+\normalsize 

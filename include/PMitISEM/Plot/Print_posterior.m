@@ -1,4 +1,4 @@
-function results = Print_posterior(results, model, parameter, kernel, GamMat)
+function results = Print_posterior(results, model, parameter, kernel, GamMat, results_path)
   
     M = 10000;
     BurnIn = 1000;
@@ -11,7 +11,7 @@ function results = Print_posterior(results, model, parameter, kernel, GamMat)
     %%
     if isempty(results)
         algo = 'Direct';
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'mit_direct','accept_direct','time_direct')
 
         theta_mle = mit_direct.mu;
@@ -31,15 +31,17 @@ function results = Print_posterior(results, model, parameter, kernel, GamMat)
             end
             IF_direct(1,ii) = 1 + 2*sum(h(1:L));
         end
+        results.mit_direct = mit_direct;
         results.accept_direct = accept_direct;
 %         results.RNE_direct = RNE_direct;
+        results.mean_theta_direct = mean(theta_direct);
         results.theta_direct = theta_direct;
         results.IF_direct = IF_direct;
         results.time_direct = time_direct;
 
         %%
         algo = 'Prelim';
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'mit1','cont1','summary1','accept','time_prelim')
         accept_prelim = accept; 
         clear accept
@@ -57,15 +59,17 @@ function results = Print_posterior(results, model, parameter, kernel, GamMat)
             IF_prelim(1,ii) = 1 + 2*sum(h(1:L));
         end 
 
+        results.mit_prelim = mit1;
         results.accept_prelim = accept_prelim;
 %         results.RNE_prelim = RNE_prelim;
+        results.mean_theta_prelim = mean(theta_prelim);
         results.theta_prelim = theta_prelim;
         results.IF_prelim = IF_prelim;
         results.time_prelim = time_prelim;
     end
     
     %% Latex table
-    fname = ['results/PMitISEM/results_',model,'_posterior.tex'];
+    fname = [results_path,'results_',model,'_posterior.tex'];
 
     FID = fopen(fname, 'w+');
     fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
@@ -130,5 +134,6 @@ function results = Print_posterior(results, model, parameter, kernel, GamMat)
     fprintf(FID, '\\end{tabular} \n');
     fprintf(FID, '\\end{table} \n');
     fprintf(FID, '} \n');
+    fprintf(FID, '\\normalsize \n');    
     fclose(FID);
 end

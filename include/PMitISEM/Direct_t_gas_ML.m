@@ -12,7 +12,22 @@ GamMat = gamma(x_gam);
 model = 't_gas_ML';
 algo = 'Direct';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = true;
+recent = false;
+old = false;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
 data = y;
 
@@ -27,7 +42,7 @@ plot_on = true;
 save_on = true;
 
 p_bar = 0.01;
-H = 10;     % prediction horizon 
+H = 250;     % prediction horizon 
 
 
 VaR_direct = zeros(N_sim,1);
@@ -39,14 +54,31 @@ time_direct = zeros(2,1);
 hyper = 0.01;
 kernel_init = @(xx) - posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
 kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
-% mu_init = [0, 0.01, 0.1, 0.89, 8];
-mu_init = [0.047, 0.0095, 0.06, 0.96, 12];
+% % mu_init = [0, 0.01, 0.1, 0.89, 8];
+% mu_init = [0.047, 0.0095, 0.06, 0.96, 12];
+% %   0.0473    0.0098    0.0666    0.9931   11.8485
 
-%   0.0473    0.0098    0.0666    0.9931   11.8485
 
-tic
-theta_mle = fn_initopt(kernel_init, mu_init);
-time_direct(1,1) = toc;
+
+if crisis
+    mu_init = [0.07, 0.02, 0.1, 0.98, 6.9];
+    tic
+    theta_mle = fn_initopt(kernel_init, mu_init);
+    theta_mle = fn_initopt(kernel_init, theta_mle);
+    theta_mle = fn_initopt(kernel_init, theta_mle);
+    theta_mle = fn_initopt(kernel_init, theta_mle);
+    theta_mle = fn_initopt(kernel_init, theta_mle);
+    time_direct(1,1) = toc;   
+elseif recent
+    % mu_init = [0, 0.01, 0.1, 0.89, 6.2];
+    % mu_init = [  0.0707    0.0214    0.0982    0.9802    7.0722];
+%     mu_init = [0.047, 0.0095, 0.06, 0.96, 12];
+% mu_init = [0.09, 0.043, 0.06, 0.95, 6.1];    
+    mu_init = [0.09, 0.05, 0.14, 0.95, 6.9];    
+    tic
+    theta_mle = fn_initopt(kernel_init, mu_init);
+    time_direct(1,1) = toc
+end
 
 f_mle = volatility_t_gas_mex(theta_mle, y);
 theta_direct = repmat(theta_mle, M, 1);
@@ -73,7 +105,7 @@ end
 time_direct(2,1) = toc/N_sim;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_direct','ES_direct','theta_mle','f_mle','time_direct')
 end
 
@@ -87,6 +119,6 @@ tic
 time_bigdraw = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'VaR_direct','ES_direct','theta_mle','f_mle','time_direct','draw_hl','VaR_est','time_bigdraw')
 end

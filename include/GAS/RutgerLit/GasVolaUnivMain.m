@@ -14,18 +14,21 @@ GAUSS = 0; STUD_T = 1; SIGMA = 2; LOG_SIGMA = 3; INV_FISHER = 4; INV_SQRT_FISHER
 %	Specify scaling, distribution, link function, order of gas model,	   
 %	choice of standard errors and starting values 					   
 %*************************************************************************************************
-
 % Load data
 % mdata = xlsread('DJInd19801999.xls');  
 % vy = mdata(2:end,5)';
 
-y = csvread('GSPC_ret_tgarch.csv');
-vy = 100*y';
+vy = csvread('GSPC_ret_updated.csv');
+vy = 100*vy';
+results_path = 'results/PMitISEM/crisis/';
+name =  [results_path,'t_gas_ML_Direct_',num2str(0.01),'_H',num2str(10),'_VaR_results_Nsim',num2str(20),'.mat'];
+load(name,'theta_mle')
+permut = [2 3 4 1 5]; 
+my_mle = theta_mle(permut)';
 
 dscaling = 1; % Scaling data can improve stability, 1 for no scaling
 vy = vy.*dscaling;
 % Distribution: GAUSS, STUD_T
-idistribution = GAUSS;
 idistribution = STUD_T;
 
 % Link function: SIGMA (f_t=sigma^2_t), LOG_SIGMA (f_t=log(sigma^2_t))
@@ -63,3 +66,8 @@ horzcat(aparnames, num2cell(horzcat(vpplot, vse)))
 PlotSeries(vp_mle, vinput, vy, cT);
 
 toc
+
+
+[my_mle, ~] = StartingValues(vinput, my_mle);
+my_llh = objfun(my_mle);
+

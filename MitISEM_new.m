@@ -1,4 +1,4 @@
-function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat)
+function [mit_new, CV] = MitISEM_new(kernel_init, kernel, mu_init, cont, GamMat)
     d = size(mu_init,2);
  
     N = cont.mit.N;
@@ -42,7 +42,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 %     display(ind_red);
     lnd = dmvgt(theta, mit_init, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
-    [CV, ~] = fn_CVstop(w, CV_old, CV_tol);
+    [CV, ~] = fn_CVstop(w, CV_old, CV_tol)
     
 %% Step 1: Adaptation - apply ISEM to the initial = adapted naive
 %     % update scale and location using IS-EM
@@ -96,14 +96,14 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
     lnd = dmvgt(theta, mit_adapt, true, GamMat);
     w = fn_ISwgts(lnk, lnd, norm);
     [CV_new, ~] = fn_CVstop(w, CV_old, CV_tol);
-    CV = [CV, CV_new];
+    CV = [CV, CV_new]
     
 %% Step 2: APPLY ISEM
     % optimize mixture using IS weighted EM and get draws from the new mit
     % optimize mode, scale and df
     cont.df.opt = true;
     mit_old = mit_adapt;
-    [mit_new, summary_adapt] = fn_optimt(theta, mit_adapt, w, cont, GamMat);
+    mit_new = fn_optimt(theta, mit_adapt, w, cont, GamMat);
 
     % get draws and log kernel evaluation
     [theta, lnk, ~] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on);
@@ -113,7 +113,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 	
 	% stopping criteria
     [CV_new, ~] = fn_CVstop(w, CV_old, CV_tol);
-    CV = [CV, CV_new];    
+    CV = [CV, CV_new]    
     
     H = length(mit_new.p);  % number of components
 
@@ -154,7 +154,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
 %%%%%%%%%%%
         % UPDATE COMBINED
         % update mode, scale and df  of all mixture components
-        [mit_new, summary_new] = fn_optimt(theta, mit_new, w, cont, GamMat);
+        mit_new = fn_optimt(theta, mit_new, w, cont, GamMat);
         H = size(mit_new.p,2);
 
         % DRAW FROM UPDATED
@@ -174,14 +174,7 @@ function [mit_new, summary] = MitISEM_new(kernel_init, kernel, mu_init, cont, Ga
             hstop = hstop_new;
 %         end       
     end
-
-%%
-    summary.init = summary_adapt;
-    if (Hmax > 1)
-        summary.EM = summary_new;
-    end
-    summary.CV = CV; 
-    
+  
         
     if (CV(end) > CV(end-1))
         mit_new = mit_old;

@@ -12,7 +12,22 @@ GamMat = gamma(x_gam);
 model = 't_gas_ML';
 algo = 'MitISEM';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = true;
+recent = false;
+old = false;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent/';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
 data = y;
 
@@ -33,11 +48,6 @@ plot_on = true;
 save_on = false;
 
 cont2 = MitISEM_Control;
-% cont2.mit.dfnc = 5;
-cont2.mit.dfnc = 10; % <--!!
-
-cont2.mit.Hmax = 10;
-cont2.df.range = [5, 15];
 
 p_bar = 0.01;
 H = 40;     % prediction horizon 
@@ -47,7 +57,7 @@ ES_mit = zeros(N_sim,1);
 time_mit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 theta_mat = repmat(theta_mle,M,1);
@@ -68,10 +78,26 @@ mit_hl.df = cont2.mit.dfnc;
 mit_hl.p = 1;
 % mu_init = mu_hl;
 
-if (H < 40)
+if (H == 10)
+% %     cont2.mit.dfnc = 10; 
+% %     cont2.mit.Hmax = 2;
+% %     cont2.mit.iter_max = 1;
+    cont2.mit.dfnc = 5; 
+    cont2.mit.Hmax = 1;
+    cont2.mit.iter_max = 0;
+%     cont2.mit.dfnc = 3; 
+%     cont2.mit.Hmax = 1;
+%     cont2.mit.iter_max = 6;    
+elseif (H == 20)
+    cont2.mit.dfnc = 10; 
+    cont2.df.range = [3,10];
     cont2.mit.Hmax = 10;
+    cont2.mit.iter_max = 7; %10
 else
-    cont2.mit.Hmax = 1;  % <<<<<< !!
+    cont2.mit.dfnc = 15;
+    cont2.df.range = [3,15];
+    cont2.mit.Hmax = 10;  % <<<<<< !!
+    cont2.mit.iter_max = 10;    
 end
 % cont = cont2;
 
@@ -89,7 +115,7 @@ end
 time_mit(1,1) = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2')
 end
 
@@ -118,7 +144,7 @@ end
 time_mit(2,1) = toc/N_sim;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit')
 end
 
@@ -127,7 +153,7 @@ PL2 = fn_PL(y2);
 mit_eff = sum(PL2 <= mean(VaR_direct))/M;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff')
 end
 

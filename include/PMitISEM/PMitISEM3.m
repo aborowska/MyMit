@@ -44,6 +44,9 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
     end
     
   CV0 =  fn_CVstop(w0, [], []);   
+  
+  time_step2_up = 0;
+  time_step3 = 0;
   tic
     %% STEP 1: ADAPTATION
     % Adapted patial mixture - to have an input to ISEM
@@ -85,8 +88,10 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
     pmit = pmit_adapt;
     hstop_mix = false;
     iter = 0;
-
+    time_pmit(1,1) = toc
+    
 %     while ((iter < iter_max) )%&& (hstop_mix == false))
+        tic
         iter = iter + 1;
         
         pmit_old = pmit;
@@ -125,6 +130,12 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
             CV_old = CV{s};
             [CV_new, ~] = fn_CVstop(w_curr, [], []);
             CV(s) = {[CV{s}, CV_new]}; 
+            
+%             if  (s == SS)
+%                 Hmax  = cont.mit.Hmax2;
+%             else
+%                 Hmax  = cont.mit.Hmax1;                
+%             end
             
             % Step 2b & 2c:
             while ((H_s < Hmax) && (hstop == false)) % still the same s thus the same theta and thus input
@@ -175,8 +186,8 @@ function [pmit, CV_mix, CV, iter, pmit_step2, pmit_step3, pmit_adapt] = PMitISEM
             end
         end
         pmit_step2 = pmit;
-time_pmit(1,1) =  toc 
- 
+        
+time_pmit(1,1) = time_pmit(1,1) + toc 
 tic
         input_X = input_X0;
 %         Step 2 up
@@ -197,7 +208,7 @@ tic
             end
         end
         pmit_step2_up = pmit;
-time_step2_up =  toc 
+time_step2_up = time_step2_up + toc 
 
         %% STEP 3: sample from pmit and check convergence
  tic
@@ -242,7 +253,7 @@ time_step2_up =  toc
         input_X0 = input_X_pmit;
         input_X = input_X0;
         
- time_step3 = toc; 
+ time_step3 = time_step3 + toc; 
 %     end
 %     if (CV_mix(end,2) > CV_mix(end-1,2))
 %         pmit = pmit_old;

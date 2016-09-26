@@ -1,4 +1,4 @@
-function Plot_hor_direct(y_H, y_T, VaR_prelim, model, save_on)
+function Plot_hor_direct(y_H, y_T, VaR_prelim, model, save_on, figures_path)
     [M,H] = size(y_H);
     
     f_pl = @(aa) 100*(exp(aa/100) - 1); % percentage profit loss
@@ -57,8 +57,8 @@ function Plot_hor_direct(y_H, y_T, VaR_prelim, model, save_on)
     set(YL,'Position',YLp)
     
     if save_on
-%         name = ['figures/PMitISEM/',model,'_hor_direct_H', num2str(H),'.png'];
-        name = ['figures/PMitISEM/',model,'_hor_direct_H', num2str(H),'.eps'];
+%         name = [figures_path,model,'_hor_direct_H', num2str(H),'.png'];
+        name = [figures_path,model,'_hor_direct_H', num2str(H),'.eps'];
         set(gcf,'PaperPositionMode','auto');
         print_fail = 1;
         while print_fail 

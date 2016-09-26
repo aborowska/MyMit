@@ -12,14 +12,29 @@ GamMat = gamma(x_gam);
 model = 't_gas';
 algo = 'PMitISEM';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = true;
+recent = false;
+old = false;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent/';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
+
 T = size(y,1);
 y_T = y(T,1);
 
 p_bar = 0.01;
-H = 10;
-
+H = 250;
 M = 10000;
 BurnIn = 1000;
 N_sim = 20;
@@ -41,7 +56,7 @@ RNE_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 hyper = 0.01;
@@ -72,23 +87,98 @@ draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
 
-% if (H > 10)
-%     cont2.mit.iter_max = 1;
-% else
-    cont2.mit.iter_max = 1;%6;%8;
-% end
-cont2.mit.Hmax = 10;
-if ((H == 250) || (H == 40))
-    cont2.mit.dfnc = 15;
-    cont2.df.range = [5,20];
+if crisis
+    % if (H > 10)
+    %     cont2.mit.iter_max = 1;
+    % else
+        cont2.mit.iter_max = 1;%6;%8;
+    % end
+    cont2.mit.Hmax = 10;
+    if (H == 250)
+    % % %     cont2.mit.dfnc = 15;
+    % % %     cont2.df.range = [5,20];
+    % %     cont2.mit.dfnc = 10;
+    % %     cont2.df.range = [5,20];
+    %     cont2.mit.dfnc = 5;
+    %     cont2.df.range = [3,15];
+        cont2.mit.dfnc = 7;
+        cont2.df.range = [5,15];
+    elseif (H == 40)
+    % % % %     cont2.mit.dfnc = 15;
+    % % % %     cont2.df.range = [5,20];
+    % % %     cont2.mit.dfnc = 10;
+    % % %     cont2.df.range = [5,20];
+    % %     cont2.mit.dfnc = 7;
+    % %     cont2.df.range = [5,15];
+    %     cont2.mit.dfnc = 5;
+    %     cont2.df.range = [3,15];
+        cont2.mit.dfnc = 3;
+        cont2.df.range = [1,10];
+    elseif (H == 20)
+    % %     cont2.mit.dfnc = 10;
+    % %     cont2.df.range = [1,20];
+        cont2.mit.dfnc = 5;
+        cont2.df.range = [1,10];
+    %     cont2.mit.dfnc = 7;
+    %     cont2.df.range = [5,15];
+    elseif (H == 100)
+    % %     cont2.mit.dfnc = 10;
+    % %     cont2.df.range = [5,15];    
+    %     cont2.mit.dfnc = 5;
+    %     cont2.df.range = [3,10];  
+        cont2.mit.dfnc = 7;
+        cont2.df.range = [3,10];  
+    end
+
+    if (H == 40)
+        cont2.mit.Hmax = 1;
+    elseif (H >= 100)
+        cont2.mit.Hmax = 1;
+    %     cont2.mit.Hmax1 = 1;
+    %     cont2.mit.Hmax2 = 2;
+    else
+        cont2.mit.Hmax = 3;    
+    end
+
+elseif recent
+    % if (H > 10)
+    %     cont2.mit.iter_max = 1;
+    % else
+        cont2.mit.iter_max = 1;%6;%8;
+    % end
+    cont2.mit.Hmax = 10;
+    if (H == 250) 
+% % %         cont2.mit.dfnc = 15; %15
+% % %         cont2.df.range = [15,20]; %[5,20];
+% %         cont2.mit.dfnc = 7;
+% %         cont2.df.range = [5,15];
+%         cont2.mit.dfnc = 5;
+%         cont2.df.range = [3,15];
+        cont2.mit.dfnc = 6;
+        cont2.df.range = [5,15];        
+    elseif (H == 100)
+        cont2.mit.dfnc = 10; %15
+        cont2.df.range = [5,20]; %[5,20]
+    elseif (H == 40)
+        cont2.mit.dfnc = 15; %15
+        cont2.df.range = [15,20]; %[5,20]
+% %         cont2.mit.dfnc = 10;
+% %         cont2.df.range = [5,15];  
+%         cont2.mit.dfnc = 20;
+%         cont2.df.range = [20,25];          
+    else
+        cont2.mit.dfnc = 10;
+        cont2.df.range = [5,15];    
+    end
+    if (H == 250)
+        cont2.mit.Hmax = 1;
+    elseif (H == 100)
+        cont2.mit.Hmax = 2;        
+    else
+        cont2.mit.Hmax = 2;    
+    end
 else
-    cont2.mit.dfnc = 10;
-    cont2.df.range = [5,15];    
-end
-if (H > 20)
-    cont2.mit.Hmax = 1;
-else
-    cont2.mit.Hmax = 2;    
+    % ?
 end
 cont = cont2;
 
@@ -97,7 +187,7 @@ tic
 time_pmit(1,1) = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'pmit','CV_mix','CV','iter')
 end
 
@@ -108,14 +198,6 @@ end
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2;
-
-s = RandStream('mt19937ar','Seed',1);
-RandStream.setGlobalStream(s); 
-pmit = pmit_step2_up;
-
-s = RandStream('mt19937ar','Seed',1);
-RandStream.setGlobalStream(s); 
-pmit = pmit_step3;
 
 tic
 for sim = 1:N_sim  
@@ -170,19 +252,130 @@ time_pmit(2,1) = toc/N_sim;
 VaR_step2 = VaR_pmit;
 ES_step2 = ES_pmit;
 
+%%%
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step2_up;
+
+tic
+for sim = 1:N_sim  
+    fprintf('\nVaR IS iter: %d\n',sim)
+
+    theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
+    eps1 = zeros(M/2, H);
+    for hh = 1:H
+        eps1(:,hh) = trnd(theta1(:,DD)); % ERRORS ARE iid T!!
+    end
+    draw1 = [theta1, eps1];
+    input_X_1 = fn_input_X(draw1);
+    [lnd1, input_X_1] = fn_dpmit3(input_X_1, pmit, partition, fn_const_X, true, GamMat);        
+
+%     [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt3(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
+    [draw_pmit, lnd_pmit, input_X_pmit] = fn_p_rmvgt_dpmit3(M/2, pmit,  d, SS, partition, fn_const_X, fn_input_X, GamMat);
+
+    draw_opt = [draw1; draw_pmit];   
+    
+    kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
+    lnk_opt = kernel(draw_opt(:,1:5)); 
+
+    eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
+    lnk_opt = lnk_opt + eps_pdf;
+
+    % optimal weights
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:DD), mit1, true, GamMat));
+ %     exp_lnd2 = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
+    exp_lnd2 = [lnd1; lnd_pmit];  
+    
+    exp_lnd2 = 0.5*exp(exp_lnd2);
+    exp_lnd = exp_lnd1 + exp_lnd2;
+    lnd_opt = log(exp_lnd);
+    w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
+
+    % IS VaR estimation
+%     f_T = volatility_t_gas_mex(draw_opt(:,1:DD), y);
+%     f_T = input_X.f_T;
+%     y_opt = predict_t_gas(draw_opt(:,1:DD), y_T, f_T, H, draw_opt(:,DD+1:H+DD));
+    y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt); 
+    dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
+    IS_estim = fn_PL(dens, 1);
+    VaR_pmit(sim,1) = IS_estim(1,1);
+    ES_pmit(sim,1) = IS_estim(1,2);   
+
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
+end
+time_pmit(2,1) = toc/N_sim;
+
 VaR_step2_up = VaR_pmit;
 ES_step2_up = ES_pmit;
 
+%%%
+s = RandStream('mt19937ar','Seed',1);
+RandStream.setGlobalStream(s); 
+pmit = pmit_step3;
+
+tic
+for sim = 1:N_sim  
+    fprintf('\nVaR IS iter: %d\n',sim)
+
+    theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
+    eps1 = zeros(M/2, H);
+    for hh = 1:H
+        eps1(:,hh) = trnd(theta1(:,DD)); % ERRORS ARE iid T!!
+    end
+    draw1 = [theta1, eps1];
+    input_X_1 = fn_input_X(draw1);
+    [lnd1, input_X_1] = fn_dpmit3(input_X_1, pmit, partition, fn_const_X, true, GamMat);        
+
+%     [draw_pmit, ~, input_X_pmit] = fn_p_rmvgt3(M/2, pmit, d, partition, [], fn_const_X, fn_input_X);         
+    [draw_pmit, lnd_pmit, input_X_pmit] = fn_p_rmvgt_dpmit3(M/2, pmit,  d, SS, partition, fn_const_X, fn_input_X, GamMat);
+
+    draw_opt = [draw1; draw_pmit];   
+    
+    kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
+    lnk_opt = kernel(draw_opt(:,1:5)); 
+
+    eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
+    lnk_opt = lnk_opt + eps_pdf;
+
+    % optimal weights
+    exp_lnd1 = 0.5*exp(eps_pdf + dmvgt(draw_opt(:,1:DD), mit1, true, GamMat));
+ %     exp_lnd2 = fn_dpmit3(input_X, pmit, partition, fn_const_X, true, GamMat);        
+    exp_lnd2 = [lnd1; lnd_pmit];  
+    
+    exp_lnd2 = 0.5*exp(exp_lnd2);
+    exp_lnd = exp_lnd1 + exp_lnd2;
+    lnd_opt = log(exp_lnd);
+    w_opt = fn_ISwgts(lnk_opt, lnd_opt, false);
+
+    % IS VaR estimation
+%     f_T = volatility_t_gas_mex(draw_opt(:,1:DD), y);
+%     f_T = input_X.f_T;
+%     y_opt = predict_t_gas(draw_opt(:,1:DD), y_T, f_T, H, draw_opt(:,DD+1:H+DD));
+    y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt); 
+    dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
+    IS_estim = fn_PL(dens, 1);
+    VaR_pmit(sim,1) = IS_estim(1,1);
+    ES_pmit(sim,1) = IS_estim(1,2);   
+
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo);  
+end
+time_pmit(2,1) = toc/N_sim;
+
 VaR_step3 = VaR_pmit;
 ES_step3 = ES_pmit;
+
 % time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
 % time_pmit(1,1) = time_pmit(1,1) + time_step3;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
 end
-
+% load(name,'VaR_pmit','ES_pmit')
 
 f_pmit = volatility_t_gas_mex(draw_pmit(:,1:DD), y);
 y_pmit = predict_t_gas(draw_pmit(:,1:DD), y_T, f_pmit, H, draw_pmit(:,DD+1:H+DD));
@@ -190,7 +383,7 @@ PL_pmit = fn_PL(y_pmit);
 pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 

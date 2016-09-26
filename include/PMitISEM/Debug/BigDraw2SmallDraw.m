@@ -20,7 +20,7 @@ VaRs = zeros(length(horizons),1);
 ii = 0;
 for H = horizons;
     ii = ii+1;
-    name =  ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name =  ['results/PMitISEM/arch/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     load(name,'draw_hl','VaR_est');
     Draw_hl{ii} = draw_hl;
     VaRs(ii,1) = VaR_est;
@@ -31,6 +31,54 @@ for ii = 1:length(horizons)
     alpha(:,ii) = Draw_hl{1,ii}(:,1);
 end
 hist(alpha)
+
+
+sums =  zeros(length(horizons),1);
+
+ff = figure(102);
+set(gcf,'units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+hold all
+for ii = length(horizons):-1:1
+    plot(mean(Draw_hl{1,ii}(:,2:end)))
+    sums(ii) = sum(mean(Draw_hl{1,ii}(:,4:end)));
+end
+hold off
+legend('250','100','40','20','10')
+
+name = ['include/PMitISEM/Debug/mean_high_loss_series_all_H.eps'];        
+set(gcf,'PaperPositionMode','auto');                   
+print(ff,name,'-depsc','-r0')
+
+
+name = ['include/PMitISEM/Debug/mean_high_loss_series_all_H.png'];        
+set(gcf,'PaperPositionMode','auto');                   
+print(ff,name,'-dpng','-r0')
+
+% plot(sums,VaRs)
+scatter(sums,VaRs)
+
+
+ff = figure(103);
+set(gcf,'units','normalized','outerposition',[0.1 0.1 0.9 0.9]);
+
+hold all
+for ii = length(horizons):-1:1
+    plot(mean(Draw_hl{1,ii}(:,2:11)))
+end
+hold off
+set(gca,'YTick',[-1.5:0.15:0])
+legend('250','100','40','20','10')
+
+name = ['include/PMitISEM/Debug/mean_high_loss_series_first_10_h.eps'];        
+set(gcf,'PaperPositionMode','auto');                   
+print(ff,name,'-depsc','-r0')
+
+
+name = ['include/PMitISEM/Debug/mean_high_loss_series_first_10_h.png'];        
+set(gcf,'PaperPositionMode','auto');                   
+print(ff,name,'-dpng','-r0')
+
+
 
 eps10 = zeros(M,length(horizons));
 for ii = 1:length(horizons)

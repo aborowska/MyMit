@@ -1,13 +1,13 @@
-function Print_pmit(model,h,p_bar,N_sim,estimation)
+function Print_pmit(model,h,p_bar,N_sim,results_path,estimation)
     
     [model_tex, ML] = fn_model_tex(model);
 
-    if (nargin == 5)
+    if (nargin == 6)
         model_tex = [model_tex,' \\textbf{(',estimation,')}'];
         estimation = [estimation,'_'];  
-        fname = ['results/PMitISEM/results_',model,'_',estimation,'pmit.tex']; 
+        fname = [results_path,'results_',model,'_',estimation,'pmit.tex']; 
     else
-        fname = ['results/PMitISEM/results_',model,'_pmit.tex']; 
+        fname = [results_path,'results_',model,'_pmit.tex']; 
         estimation = '';
     end
     
@@ -19,10 +19,10 @@ function Print_pmit(model,h,p_bar,N_sim,estimation)
         param = '\theta';
     end
  
-    if (nargin == 5)
-        name = ['results/PMitISEM/',model,'_PMitISEM_',estimation,num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    if (nargin == 6)
+        name = [results_path,model,'_PMitISEM_',estimation,num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     else
-        name = ['results/PMitISEM/',model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_PMitISEM_',num2str(p_bar),'_H',num2str(h),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     end
     load(name)
     FID = fopen(fname, 'w+');
@@ -62,5 +62,6 @@ function Print_pmit(model,h,p_bar,N_sim,estimation)
     fprintf(FID, '\\end{longtable} \n');
     fprintf(FID, '} \n');
     fprintf(FID, '} \n');    
+    fprintf(FID, '\\normalsize \n');    
     fclose(FID);
 end

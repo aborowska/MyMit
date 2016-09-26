@@ -1,4 +1,4 @@
-function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
+function Boxplot_Combine(model, H, N_sim, p_bar, save_on,results_path,figures_path)
     
     if isempty(strfind(model,'_ML'))
         ML = 0;
@@ -15,17 +15,17 @@ function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
     for est = estimation
         close all
         algo = ['Direct',char(est)];
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'VaR_direct','ES_direct')
 
         if ~ML
             algo = 'Prelim';
-            name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+            name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
             load(name,'VaR_prelim','ES_prelim')
         end
 
         algo = ['MitISEM',char(est)];
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         try
             load(name,'VaR_mit','ES_mit')
         catch
@@ -33,7 +33,7 @@ function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
             ES_mit = NaN*ones(N_sim,1);
         end
         algo = ['PMitISEM',char(est)];
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'VaR_pmit','ES_pmit')
 
         if ML
@@ -73,8 +73,8 @@ function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
             clear GP GO GT move
 
             if save_on
-        %         name = ['figures/PMitISEM/',model,'_VaR_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
-                name = ['figures/PMitISEM/',model,char(est),'_VaR_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];
+        %         name = [figures_path,model,'_VaR_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
+                name = [figures_path,model,char(est),'_VaR_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];
                 set(gcf,'PaperPositionMode','auto');
                 print_fail = 1;
                 while print_fail 
@@ -116,8 +116,8 @@ function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
             clear GP GO GT move
 
             if save_on
-        %         name = ['figures/PMitISEM/',model,'_ES_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
-                name = ['figures/PMitISEM/',model,char(est),'_ES_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];
+        %         name = [figures_path,model,'_ES_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
+                name = [figures_path,model,char(est),'_ES_box_comb','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];
                 set(gcf,'PaperPositionMode','auto');
                 print_fail = 1;
                 while print_fail 
@@ -160,8 +160,8 @@ function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
             plotTickLatex2D('FontSize',12);
 
             if save_on
-        %         name = ['figures/PMitISEM/',model,'_VaR_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
-                name = ['figures/PMitISEM/',model,char(est),'_VaR_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];
+        %         name = [figures_path,model,'_VaR_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
+                name = [figures_path,model,char(est),'_VaR_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];
                 set(gcf,'PaperPositionMode','auto');
                 print_fail = 1;
                 while print_fail 
@@ -205,8 +205,8 @@ function Boxplot_Combine(model, H, N_sim, p_bar, save_on)
             plotTickLatex2D('FontSize',12);
 
             if save_on
-        %         name = ['figures/PMitISEM/',model,'_ES_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
-                name = ['figures/PMitISEM/',model,char(est),'_ES_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];      
+        %         name = [figures_path,model,'_ES_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.png'];
+                name = [figures_path,model,char(est),'_ES_errorbar','_H', num2str(H),'_Nsim',num2str(N_sim),'.eps'];      
                 set(gcf,'PaperPositionMode','auto');
                 print_fail = 1;
                 while print_fail 

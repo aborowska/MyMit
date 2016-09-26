@@ -1,0 +1,32 @@
+\footnotesize{  
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{longtable}{ccccccccccc}  
+\caption{Results for the $99\%$ VaR and ES, in the \textbf{GARCH(1,1)-$t$} model, based on $N=10000$ candidate draws and $20$ replications to obtain NSEs.} 
+\label{tab:res_algos_t_garch2_noS} \\ 
+ H & & $VaR_{naive}$ & $VaR_{adapt}$ & $VaR_{mit}$  & $VaR_{pmit}$ &  & $ES_{naive}$ & $ES_{adapt}$ & $ES_{mit}$ & $ES_{pmit}$ \\ \hline 
+10 & & -10.6339 & -10.7046 &    NaN & -10.6647 & & -13.5697 & -13.6700 &    NaN & -13.5245  \\ 
+  & NSE & (0.2410) & (0.2493) & (   NaN) & (0.0569) & & (0.4842) & (0.4143) & (   NaN) & (0.1740)   \\ 
+ & IQR & $[$0.3393$]$ & $[$0.2553$]$ & $[$   NaN$]$ & $[$0.0852$]$ & & $[$0.7828$]$ & $[$0.3513$]$  &$[$   NaN$]$ & $[$0.1631$]$  \\  
+  & RNE &   1.02 &   1.00 &    NaN &  11.22 &  &?   4.27 & ?   5.83 &  ?    NaN & ?  33.04   \\ [1ex] 
+20 & & -14.3792 & -14.4791 &    NaN &    NaN & & -18.7578 & -18.7440 &    NaN &    NaN  \\ 
+  & NSE & (0.3648) & (0.3732) & (   NaN) & (   NaN) & & (0.5620) & (0.5466) & (   NaN) & (   NaN)   \\ 
+ & IQR & $[$0.3342$]$ & $[$0.5057$]$ & $[$   NaN$]$ & $[$   NaN$]$ & & $[$0.4710$]$ & $[$0.7750$]$  &$[$   NaN$]$ & $[$   NaN$]$  \\  
+  & RNE &   1.03 &   1.01 &    NaN &    NaN &  &?   3.17 & ?   3.35 &  ?    NaN & ?    NaN   \\ [1ex] 
+40 & & -19.3403 & -19.5714 &    NaN & -19.3307 & & -25.4467 & -25.8115 &    NaN & -25.5066  \\ 
+  & NSE & (0.5970) & (0.4533) & (   NaN) & (0.2293) & & (1.1015) & (0.7988) & (   NaN) & (0.6964)   \\ 
+ & IQR & $[$0.7463$]$ & $[$0.6184$]$ & $[$   NaN$]$ & $[$0.3458$]$ & & $[$1.2895$]$ & $[$1.2327$]$  &$[$   NaN$]$ & $[$0.7353$]$  \\  
+  & RNE &   1.02 &   1.04 &    NaN &   4.23 &  &?   0.82 & ?   1.57 &  ?    NaN & ?   2.06   \\ [1ex] 
+100 & & -26.6196 & -26.9931 &    NaN &    NaN & & -36.7496 & -37.2047 &    NaN &    NaN  \\ 
+  & NSE & (0.9465) & (0.6913) & (   NaN) & (   NaN) & & (1.4119) & (1.0192) & (   NaN) & (   NaN)   \\ 
+ & IQR & $[$1.0857$]$ & $[$0.9755$]$ & $[$   NaN$]$ & $[$   NaN$]$ & & $[$1.5402$]$ & $[$1.3393$]$  &$[$   NaN$]$ & $[$   NaN$]$  \\  
+  & RNE &   1.02 &   1.03 &    NaN &    NaN &  &?   0.50 & ?   0.96 &  ?    NaN & ?    NaN   \\ [1ex] 
+250 & & -32.8741 & -32.8319 &    NaN &    NaN & & -46.8063 & -46.8054 &    NaN &    NaN  \\ 
+  & NSE & (1.3606) & (1.4055) & (   NaN) & (   NaN) & & (1.6183) & (1.5246) & (   NaN) & (   NaN)   \\ 
+ & IQR & $[$1.7471$]$ & $[$1.8249$]$ & $[$   NaN$]$ & $[$   NaN$]$ & & $[$1.2249$]$ & $[$2.2281$]$  &$[$   NaN$]$ & $[$   NaN$]$  \\  
+  & RNE &   1.03 &   1.04 &    NaN &    NaN &  &?   0.38 & ?   0.43 &  ?    NaN & ?    NaN   \\ [1ex] 
+\hline 
+  \multicolumn{11}{l}{\footnotesize{NaN: it was not possible to generate the particular result with the corresponding algorithm.}} \\ 
+  \multicolumn{11}{l}{\footnotesize{IQR: interquantile range.}} \\ 
+\end{longtable} 
+} 
+} 

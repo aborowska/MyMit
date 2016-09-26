@@ -12,14 +12,29 @@ GamMat = gamma(x_gam);
 model = 't_gas_ML';
 algo = 'PMitISEM';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = true;
+recent = false;
+old = false;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent/';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
+
 T = size(y,1);
 y_T = y(T,1);
 
 p_bar = 0.01;
 H = 100;
-
 M = 10000;
 N_sim = 20;
 sim = 1;
@@ -29,14 +44,13 @@ save_on = false;
 
 % Control parameters for PMitISEM
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
 
 VaR_pmit = zeros(N_sim,1);
 ES_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 theta_mat = repmat(theta_mle,M,1);
@@ -76,11 +90,16 @@ lnk0 = lnk_hl; %kernel(draw0);
     cont2.mit.iter_max = 1;%3;%6;%8;
 % end
 if (H == 250)
-    cont2.mit.dfnc = 15;
-    cont2.df.range = [5,20];
-elseif (H >= 40)
-    cont2.mit.dfnc = 10;
+%     cont2.mit.dfnc = 15;
+%     cont2.df.range = [5,20];
+    cont2.mit.dfnc = 7;
+    cont2.df.range = [5,15];
+elseif (H == 40)
+    cont2.mit.dfnc = 6;%7; %10;
     cont2.df.range = [1,10];
+elseif (H == 100)
+    cont2.mit.dfnc = 9; %10; 
+    cont2.df.range = [1,11]; %[1,10];
 else
     cont2.mit.dfnc = 5;
     cont2.df.range = [1,10];
@@ -98,11 +117,9 @@ tic
 time_pmit(1,1) = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter')
 end
-
-
 
 %% VaR with PMit
 
@@ -110,10 +127,72 @@ s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2;
 
+tic
+for sim = 1:N_sim
+    fprintf('\nVaR IS iter: %d\n',sim)
+    [draw_pmit, lnd_pmit, input_X_pmit] = fn_p_rmvgt_dpmit3(M, pmit,  d, SS, partition, fn_const_X, fn_input_X, GamMat);
+    y_pmit = input_X_pmit.y_cum;
+    lnk_pmit = duvt(draw_pmit, nu_mat, H, true); %log density
+    lnk_pmit = sum(lnk_pmit, 2); 
+    PL_mit = fn_PL(y_pmit);
+%     draw_pmit = fn_p_rmvgt2(M, pmit, d, partition, [], fn_const_X, fn_input_X);             
+%     [lnk_opt, PL_mit] = MLtarget_t_gas_hl(draw_pmit, theta_mle, f_mle, y_T, Inf);
+%     lnd_opt = fn_dpmit2(draw_pmit, pmit, partition, fn_const_X, true, GamMat);        
+    w_pmit = exp(lnk_pmit - lnd_pmit)/M;
+    [PL, ind] = sort(PL_mit);         
+    w_pmit = w_pmit(ind,:);
+    cum_w = cumsum(w_pmit);
+    ind_var = min(find(cum_w >= p_bar))-1; 
+    VaR_pmit(sim,1) = PL(ind_var);
+    ES = (w_pmit(1:ind_var)/sum(w_pmit(1:ind_var))).*PL(1:ind_var);
+    ES_pmit(sim,1) = sum(ES(isfinite(ES)));    
+    
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo); 
+end
+time_pmit(2,1) = toc/N_sim;
+
+VaR_step2 = VaR_pmit;
+ES_step2 = ES_pmit;
+% if (H == 250)
+%     VaR_step2(6,:) = [];
+%     ES_step2(6,:) = [];
+%     VaR_pmit = zeros(N_sim,1);
+%     ES_pmit = zeros(N_sim,1);
+% end
+
+%%%
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step2_up;
 
+tic
+for sim = 1:N_sim
+    fprintf('\nVaR IS iter: %d\n',sim)
+    [draw_pmit, lnd_pmit, input_X_pmit] = fn_p_rmvgt_dpmit3(M, pmit,  d, SS, partition, fn_const_X, fn_input_X, GamMat);
+    y_pmit = input_X_pmit.y_cum;
+    lnk_pmit = duvt(draw_pmit, nu_mat, H, true); %log density
+    lnk_pmit = sum(lnk_pmit, 2); 
+    PL_mit = fn_PL(y_pmit);
+%     draw_pmit = fn_p_rmvgt2(M, pmit, d, partition, [], fn_const_X, fn_input_X);             
+%     [lnk_opt, PL_mit] = MLtarget_t_gas_hl(draw_pmit, theta_mle, f_mle, y_T, Inf);
+%     lnd_opt = fn_dpmit2(draw_pmit, pmit, partition, fn_const_X, true, GamMat);        
+    w_pmit = exp(lnk_pmit - lnd_pmit)/M;
+    [PL, ind] = sort(PL_mit);         
+    w_pmit = w_pmit(ind,:);
+    cum_w = cumsum(w_pmit);
+    ind_var = min(find(cum_w >= p_bar))-1; 
+    VaR_pmit(sim,1) = PL(ind_var);
+    ES = (w_pmit(1:ind_var)/sum(w_pmit(1:ind_var))).*PL(1:ind_var);
+    ES_pmit(sim,1) = sum(ES(isfinite(ES)));    
+    
+    fprintf('IS 100*%4.2f%% VaR estimate: %6.4f (%s, %s). \n', p_bar, VaR_pmit(sim,1), model, algo); 
+end
+time_pmit(2,1) = toc/N_sim;
+
+VaR_step2_up = VaR_pmit;
+ES_step2_up = ES_pmit;
+
+%%%
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
 pmit = pmit_step3;
@@ -142,34 +221,26 @@ for sim = 1:N_sim
 end
 time_pmit(2,1) = toc/N_sim;
 
-VaR_step2 = VaR_pmit;
-ES_step2 = ES_pmit;
-if (H == 250)
-    VaR_step2(6,:) = [];
-    ES_step2(6,:) = [];
-    VaR_pmit = zeros(N_sim,1);
-    ES_pmit = zeros(N_sim,1);
-end
+VaR_step3 = VaR_pmit;
+ES_step3 = ES_pmit;
+
+%%%
 
 % VaR_pmit = VaR_step2;s
 % ES_pmit = ES_step2;
-
-VaR_step2_up = VaR_pmit;
-ES_step2_up = ES_pmit;
-
-VaR_step3 = VaR_pmit;
-ES_step3 = ES_pmit;
 
 % VaR_pmit = VaR_step2_up;
 % ES_pmit = ES_step2_up;
 
 % time_pmit(1,1) = time_pmit(1,1) + time_step2_up;
+% time_pmit(1,1) = time_pmit(1,1) + time_step3;
 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit')
 end
+load(name,'VaR_pmit','ES_pmit')
 
 
 y_pmit = predict_t_gas(theta_mat, y_T, f_mat, H, draw_pmit);
@@ -178,7 +249,7 @@ pmit_eff = sum(PL_pmit <= mean(VaR_direct))/M;
 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff')
 end
 

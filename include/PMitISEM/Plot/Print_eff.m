@@ -1,4 +1,4 @@
-function Print_eff(model, horizons)
+function Print_eff(model, horizons,results_path)
   
     M = 10000;
     BurnIn = 1000;
@@ -8,7 +8,7 @@ function Print_eff(model, horizons)
     [model_tex, ML] = fn_model_tex(model);
  
     %% Latex table
-    fname = ['results/PMitISEM/results_',model,'_eff.tex'];
+    fname = [results_path,'results_',model,'_eff.tex'];
 
     FID = fopen(fname, 'w+');
     fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.2} \n');
@@ -28,7 +28,7 @@ function Print_eff(model, horizons)
         fprintf(FID, '%s & &', num2str(horizons(hh)));
         
         algo = 'MitISEM';
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(horizons(hh)),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(horizons(hh)),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         try
             load(name,'mit_eff')
             fprintf(FID, '%6.4f & ', mit_eff );
@@ -42,7 +42,7 @@ function Print_eff(model, horizons)
             fprintf(FID, '-- && ');       
         end
         algo = 'PMitISEM';
-        name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(horizons(hh)),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(horizons(hh)),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'RNE_pmit','pmit_eff')
         fprintf(FID, '%6.4f &  %6.4f \\\\ [1ex] \n', pmit_eff, mean(RNE_pmit) );  
     end
@@ -52,5 +52,7 @@ function Print_eff(model, horizons)
   
     fprintf(FID, '\\end{longtable} \n');
     fprintf(FID, '} \n');
+    fprintf(FID, '\\normalsize \n');
+    
     fclose(FID);
 end

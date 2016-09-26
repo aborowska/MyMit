@@ -12,7 +12,22 @@ GamMat = gamma(x_gam);
 model = 't_garch2_noS_ML';
 algo = 'MitISEM';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = false;
+recent = false;
+old = true;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = results_path;    
+end
 y = 100*y;
 data = y;
 
@@ -46,7 +61,7 @@ ES_mit = zeros(N_sim,1);
 time_mit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 theta_mat = repmat(theta_mle,M,1);
@@ -104,7 +119,7 @@ if (plot_on && (H == 1))
 end 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2')
 end
 
@@ -135,7 +150,7 @@ end
 time_mit(2,1) = toc/N_sim;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit')
 end
 
@@ -144,7 +159,7 @@ PL_mit = fn_PL(y_mit);
 mit_eff = sum(PL_mit <= mean(VaR_direct))/M;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff')
 end
 

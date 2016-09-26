@@ -1,0 +1,47 @@
+\footnotesize{  
+{ \renewcommand{\arraystretch}{1.3} 
+\begin{longtable}{rr rrrr r rrrr}  
+\caption{Computation time-precision trade-off for the  $99\%$ VaR and ES evaluation in \textbf{GARCH(1,1)-$t$} model for different horizons.} 
+\label{tab:time_precision_t_garch2_noS} \\ 
+ & & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit}&  & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{QERMit} \\ \cline{3-6} \cline{8-11} 
+ H & & Naive & Adapted & MitISEM & PMitISEM & & Naive & Adapted & MitISEM & PMitISEM \\ \hline 
+ & & \multicolumn{4}{c}{Total time} & & && \multicolumn{2}{c}{(Time initialisation)} \\ \cline{3-6} \cline{10-11}
+10 & & 13.89 s & 98.65 s & 127.00 s & 218.56 s &&&& \multicolumn{2}{c}{(1248.31 s)} \\ 
+20 & & 13.78 s & 98.57 s & 270.51 s & 150.68 s &&&& \multicolumn{2}{c}{(1245.39 s)} \\ 
+40 & & 13.96 s & 98.61 s &  NaN s & 328.77 s &&&& \multicolumn{2}{c}{(1249.77 s)} \\ 
+100 & & 13.95 s & 98.93 s &  NaN s & 544.84 s &&&& \multicolumn{2}{c}{(1269.47 s)} \\ 
+250 & & 14.09 s & 99.20 s &  NaN s & 1193.52 s &&&& \multicolumn{2}{c}{(1282.12 s)} \\ 
+\hline 
+ & & \multicolumn{4}{c}{Construction time} & & \multicolumn{4}{c}{ Sampling time} \\ \cline{3-6}  \cline{8-11}
+10 & & 0.88 s & 85.14 s & 113.56 s & 205.31 s && 13.01 s & 13.52 s & 13.44 s & 13.26 s \\ 
+20 & & 0.88 s & 85.01 s & 257.03 s & 136.29 s && 12.91 s & 13.56 s & 13.48 s & 14.39 s \\ 
+40 & & 0.91 s & 85.01 s &  NaN s & 314.87 s && 13.05 s & 13.60 s &  NaN s & 13.90 s \\ 
+100 & & 0.87 s & 85.16 s &  NaN s & 530.03 s && 13.08 s & 13.77 s &  NaN s & 14.81 s \\ 
+250 & & 0.87 s & 85.30 s &  NaN s & 1176.81 s && 13.22 s & 13.90 s &  NaN s & 16.72 s \\ 
+\hline 
+ & & \multicolumn{4}{c}{ \TR{VaR slope}} && \multicolumn{4}{c}{\TR{ES slope}} \\ \cline{3-6}  \cline{8-11}
+10 && \TR{2.28} & \TR{2.42} & \TR{26.34} & \TR{105.78} && \TR{1.42} & \TR{2.00} & \TR{5.23} & \TR{10.74} \\ 
+20 && \TR{0.92} & \TR{1.59} & \TR{3.51} & \TR{17.75} && \TR{0.50} & \TR{0.62} & \TR{2.62} & \TR{5.34} \\ 
+40 && \TR{0.62} & \TR{0.77} & \TR{ NaN} & \TR{6.92} && \TR{0.23} & \TR{0.25} & \TR{ NaN} & \TR{1.81} \\ 
+100 && \TR{0.18} & \TR{0.45} & \TR{ NaN} & \TR{1.14} && \TR{0.12} & \TR{0.12} & \TR{ NaN} & \TR{0.69} \\ 
+250 && \TR{0.17} & \TR{0.11} & \TR{ NaN} & \TR{0.56} && \TR{0.05} & \TR{0.05} & \TR{ NaN} & \TR{0.28} \\ 
+\hline 
+ & & \multicolumn{4}{c}{VaR time required$^{*}$} && \multicolumn{4}{c}{ES time required$^{*}$} \\ \cline{3-6}  \cline{8-11}
+10 & & 674.42 s & 719.98 s & 171.89 s & 219.84 s && 1085.54 s & 852.25 s & 407.13 s & 348.36 s \\ 
+20 & & 1677.00 s & 1049.22 s & 694.79 s & 222.84 s && 3053.12 s & 2544.50 s & 843.71 s & 423.86 s \\ 
+40 & & 2485.72 s & 2085.40 s &  NaN s & 536.97 s && 6762.26 s & 6338.28 s &  NaN s & 1161.81 s \\ 
+100 & & 8486.05 s & 3480.60 s &  NaN s & 1877.18 s && 13299.21 s & 12637.37 s &  NaN s & 2743.92 s \\ 
+250 & & 9220.75 s & 13640.17 s &  NaN s & 3917.09 s && 34108.73 s & 33336.37 s &  NaN s & 6573.53 s \\ 
+\hline 
+ && \multicolumn{4}{c}{VaR draws required$^{*}$} &&   \multicolumn{4}{c}{ES draws required$^{*}$} \\  \cline{3-6}  \cline{8-11} 
+10 & & 517761 & 469580 & 43392 & 10959 && 833801 & 567412 & 218386  & 107921 \\ 
+20 & & 1298426 & 711093 & 324786 & 60162 && 2364446 & 1813836 & 435278  & 199891 \\ 
+40 & & 1903737 & 1470764 & NaN & 159768 && 5180194 & 4597643 & NaN  & 609227 \\ 
+100 & & 6486508 & 2465138 & NaN & 909605 && 10165937 & 9113098 & NaN  & 1494828 \\ 
+250 & & 6975069 & 9750193 & NaN & 1639192 && 25803439 & 23917916 & NaN  & 3228229 \\ 
+\hline 
+\multicolumn{9}{l}{\footnotesize{$^{*}$ Required for 0ne digit .}} \\ 
+
+\end{longtable} 
+} 
+} 

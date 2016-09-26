@@ -1,4 +1,4 @@
-function Plot_time_precision2(results, model, save_on, horizons, estimation)
+function Plot_time_precision2(results, model, save_on, horizons, figures_path, estimation)
 
     close all
     if isempty(strfind(model,'_ML'))
@@ -13,7 +13,7 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
         leg = {'One Digit Precision', 'Direct Naive', 'QERMit MitISEM', 'QERMit PMitISEM'};
     end
     
-    if (nargin < 5)
+    if (nargin < 6)
         estimation = '';
     else
         model_tex = ['WN(',estimation,')'];
@@ -30,15 +30,13 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
         limit = [0, Xmax, 0, 2500];  
         xx = 0:0.01:Xmax;
         leg_h = leg;
-
-       
+      
         set(gcf,'units','normalized','outerposition',[0.1 0.1 0.3 0.4]);
    
         axis(limit)
         set(gca,'XTick',0:Xt:Xmax)
         set(gca,'XTickLabel', num2str(get(gca, 'XTick')'))
         set(gca,'YTick',0:500:2500) 
-        
          
         hold on
         plot(xx,precision_one_digit + 0*xx,'k','LineWidth',2)
@@ -73,7 +71,7 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
         set(XL,'Position',XLp)
         
         if save_on
-            name = ['figures/PMitISEM/',model,'_',estimation,'time_precision_VaR_H', num2str(horizons(hh)),'.eps'];
+            name = [figures_path,model,'_',estimation,'time_precision_VaR_H', num2str(horizons(hh)),'.eps'];
             set(gcf,'PaperPositionMode','auto');
             print_fail = 1;
             while print_fail 
@@ -86,7 +84,6 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
             end
         end
     end
-
   
     for hh = 1:length(horizons)
         ff = figure(10*hh);
@@ -97,7 +94,6 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
         xx = 0:0.01:Xmax;
         leg_h = leg;
 
-       
         set(gcf,'units','normalized','outerposition',[0.1 0.1 0.3 0.4]);
    
         axis(limit)
@@ -139,7 +135,7 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
         set(XL,'Position',XLp)
         
         if save_on
-            name = ['figures/PMitISEM/',model,'_',estimation,'time_precision_ES_H', num2str(horizons(hh)),'.eps'];
+            name = [figures_path,model,'_',estimation,'time_precision_ES_H', num2str(horizons(hh)),'.eps'];
             set(gcf,'PaperPositionMode','auto');
             print_fail = 1;
             while print_fail 
@@ -152,15 +148,10 @@ function Plot_time_precision2(results, model, save_on, horizons, estimation)
             end
         end
     end
-
-  
-
 end
- 
-    
-    
+     
 function Xmax = fn_Xmax(x)
-    Xmax = 2.0*max(x,[],2);
+    Xmax = 3.0*max(x,[],2);
     ord = floor(log(Xmax)./log(10));
     next = Xmax./10^(ord);
     next = ceil(next*2)./2;

@@ -1,0 +1,17 @@
+{ \renewcommand{\arraystretch}{1.2} 
+\begin{longtable}{cc cc c cc} 
+\caption{Efficiency of the high-loss space approximations in \textbf{GARCH(1,1)-$t$} model:\\ basic MitISEM vs. PMitISEM.} 
+\label{tab:efft_garch2_noS} \\ 
+ && \multicolumn{2}{c}{MitISEM} && \multicolumn{2}{c}{PMitISEM} \\ \cline{3-4} \cline{6-7} 
+ $H$ && Eff  & RNE && Eff & RNE  \\ \cline{1-1} \cline{3-4} \cline{6-7} 
+10 & &0.8140 &  5.8198 && 0.8540 &  12.3682 \\ [1ex] 
+20 & &0.7632 &  2.6315 && 0.8062 &  8.7492 \\ [1ex] 
+40 & &-- & -- && 0.7736 &  7.7936 \\ [1ex] 
+100 & &-- & -- && 0.7044 &  5.4263 \\ [1ex] 
+250 & &-- & -- && 0.6572 &  3.7262 \\ [1ex] 
+\hline 
+\multicolumn{7}{p{7cm}}{\footnotesize{Eff: the fraction of draws generated from an approximation that result in high-losses.}}  \\ 
+\multicolumn{7}{l}{\footnotesize{RNE: for Bayesian $VaR$ estimation.}} 
+\end{longtable} 
+} 
+\normalsize 

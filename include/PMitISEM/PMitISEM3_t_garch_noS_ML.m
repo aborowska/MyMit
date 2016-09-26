@@ -12,13 +12,28 @@ GamMat = gamma(x_gam);
 model = 't_garch2_noS_ML';
 algo = 'PMitISEM';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = false;
+recent = false;
+old = true;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
 T = size(y,1);
 y_T = y(T,1);
 
 p_bar = 0.01;
-H = 40;
+H = 250;
 
 M = 10000;
 N_sim = 20;
@@ -35,7 +50,7 @@ ES_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Direct_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 theta_mat = repmat(theta_mle,M,1);
@@ -97,7 +112,7 @@ tic
 time_pmit(1,1) = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter')
 end
 
@@ -166,7 +181,7 @@ ES_step3 = ES_pmit;
 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit')
 end
 
@@ -176,7 +191,7 @@ pmit_eff = sum(PL_pmit <= mean(VaR_direct))/M;
 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff')
 end
 

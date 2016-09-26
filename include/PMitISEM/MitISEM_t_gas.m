@@ -12,13 +12,27 @@ GamMat = gamma(x_gam);
 model = 't_gas';
 algo = 'MitISEM';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = true;
+recent = false;
+old = false;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent/';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
-data = y;
 
-T = size(data,1);
-y_T = data(T);
-S = var(data);
+T = size(y,1);
+y_T = y(T);
+S = var(y);
  
 M = 10000;
 BurnIn = 1000;
@@ -33,8 +47,6 @@ plot_on = true;
 save_on = true;
 
 cont2 = MitISEM_Control;
-cont2.mit.dfnc = 5;
-cont2.df.range = [1, 10];
 
 p_bar = 0.01;
 H = 20;     % prediction horizon 
@@ -45,8 +57,10 @@ RNE_mit = zeros(N_sim,1);
 time_mit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
+
+N = size(draw_hl,1);
 
 % WEIGHTS to initialise MitISEM
 % future disturbances are generated from the target thus have weights 1
@@ -64,12 +78,16 @@ lnd_hl = dmvgt(draw_hl(:,1:d), mit1, true, GamMat);
 w_hl = lnk_hl - lnd_hl;
 w_hl = exp(w_hl - max(w_hl));
 
+% % restrict the draws to nicely behaving
+% [w_hl, ind] = sort(w_hl);
+% draw_hl = draw_hl(ind,:);
+% draw_hl = draw_hl(0.025*N:0.975*M,:);
+% w_hl = w_hl(0.1*N:0.9*M,:);
+
 [mu_hl, Sigma_hl] = fn_muSigma(draw_hl, w_hl);
 Sigma_hl = reshape(Sigma_hl,d+H,d+H);
 Sigma_hl(d+1:d+H,d+1:d+H) = eye(H);
 Sigma_hl = reshape(Sigma_hl,1,(d+H)^2);
-% cont2.mit.N = 10000;
-% cont2.mit.Hmax = 1;
 
 mit_hl.mu = mu_hl;
 mit_hl.Sigma = Sigma_hl;
@@ -77,11 +95,20 @@ mit_hl.df = cont2.mit.dfnc;
 mit_hl.p = 1;
 % mu_init = mu_hl;
 % mit_init = mit_hl;
-cont = cont2;
+
 % cont2.mit.Hmax = 10;
-if (H > 10)
+if (H == 10)
+    cont2.mit.dfnc = 5;
     cont2.mit.Hmax = 1;  % <<<<<< !!
+    cont2.mit.iter_max = 10;  % <<<<<< !! 
+%     cont2.mit.CV_tol = 0.01;
+elseif (H == 20)
+    cont2.mit.dfnc = 10;
+    cont2.mit.Hmax = 2;  % <<<<<< !!
+    cont2.mit.iter_max = 10;  % <<<<<< !!    
 end
+
+cont = cont2;
 kernel_init = @(a) - posterior_t_gas_hl_hyper_mex(a, y, hyper, mean(VaR_prelim), GamMat);
 kernel = @(a) posterior_t_gas_hl_hyper_mex(a, y, hyper, mean(VaR_prelim), GamMat);
 
@@ -94,7 +121,7 @@ tic
 time_mit(1,1) = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2')
 end
 
@@ -120,7 +147,7 @@ for sim = 1:N_sim
     draw_opt = [draw1_eps1; draw2];
 
     % IS weights
-%     kernel = @(a) posterior_t_garch_noS_mex(a, data ,S, GamMat);
+%     kernel = @(a) posterior_t_garch_noS_mex(a, y ,S, GamMat);
     kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
     lnk = kernel(draw_opt(:,1:d));
     eps_pdf = duvt(draw_opt(:,d+1:H+d), draw_opt(:,d), H, true);
@@ -148,7 +175,7 @@ end
 time_mit(2,1) = toc/N_sim;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
 end
 
@@ -158,7 +185,7 @@ PL2 = fn_PL(y2);
 mit_eff = sum(PL2 <= mean(VaR_prelim))/(M/2);
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','mit_eff','RNE_mit')
 end
 

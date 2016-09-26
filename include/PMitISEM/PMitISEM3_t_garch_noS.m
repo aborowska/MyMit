@@ -13,18 +13,30 @@ GamMat = gamma(x_gam);
 algo = 'PMitISEM';
 model = 't_garch2_noS';
 
-y = csvread('GSPC_ret_tgarch.csv');
+crisis = false;
+recent = false;
+old = true;
+if crisis 
+    y = csvread('GSPC_ret_updated.csv'); 
+    results_path = 'results/PMitISEM/crisis/';
+elseif recent
+    y = csvread('GSPC_ret_updated_short.csv');
+    results_path = 'results/PMitISEM/recent';
+elseif old
+    y = csvread('GSPC_ret_tgarch.csv');
+    results_path = 'results/PMitISEM/old/';        
+else
+    y = csvread('GSPC_ret_updated_short_end.csv');
+    results_path = 'results/PMitISEM/';    
+end
 y = 100*y;
-% y = csvread('GSPC_ret.csv');
-% y = y - mean(y);
-data = y;
 
-T = size(data,1);
-y_T = data(T);
-S = var(data);
+T = size(y,1);
+y_T = y(T);
+S = var(y);
 
 p_bar = 0.01;
-H = 20; % forecast horizon
+H = 10; % forecast horizon
 
 M = 10000;
 BurnIn = 1000;
@@ -35,10 +47,12 @@ sim = 1;
 % theta = [omega, alpha, beta, mu, nu]
 % mu_init = [0.008, 0.07, 0.9, 0.01, 10];
 % % mu_init = [0.065 0.93 0.048 8.4];
-mu_init = [0.009, 0.07, 0.9, 0.05, 11];
+% mu_init = [0.009, 0.07, 0.9, 0.05, 11];
+mu_init = [0.02, 0.12, 0.85, 0.075, 6.3];
+
 DD = size(mu_init,2);
 
-plot_on = true;
+plot_on = false;
 save_on = false;
 
 % Control parameters for PMitiISEM
@@ -50,16 +64,16 @@ RNE_pmit = zeros(N_sim,1);
 time_pmit = zeros(2,1);
 
 %% PRELIM & BIG DRAW
-name =  ['results/PMitISEM/t_garch_prelim/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+name =  [results_path,model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 load(name);
 
 % WEIGHTS to initialise PMitISEM
 % future disturbances are generated from the target thus have weights 1
 % log kernel evaluation - only for the parameter draws, epsilons are drawn
 % from the target so their weigths are 1
-% % kernel = @(xx) posterior_t_garch_noS_mex(xx, data, S, GamMat);
-hyper = 0.1; 
-kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+% % kernel = @(xx) posterior_t_garch_noS_mex(xx, y, S, GamMat);
+hyper = 0.01; 
+kernel = @(a) posterior_t_garch_noS_hyper_mex(a, y, S, GamMat, hyper);
 lnk_hl = kernel(draw_hl(:,1:DD)); 
 % log candidate evaluation
 lnd_hl = dmvgt(draw_hl(:,1:DD), mit1, true, GamMat);
@@ -74,8 +88,8 @@ SS = length(partition);
 d = H+DD;
 
 fn_const_X = @(xx) t_garch_noS_const_X3(xx);
-fn_input_X = @(xx) t_garch_noS_input_X3(xx, data, S);
-kernel = @(a) posterior_t_garch_hl_noS_hyper_mex(a, data, S, mean(VaR_prelim), GamMat, hyper);
+fn_input_X = @(xx) t_garch_noS_input_X3(xx, y, S);
+kernel = @(a) posterior_t_garch_hl_noS_hyper_mex(a, y, S, mean(VaR_prelim), GamMat, hyper);
 
 CV_old = cont2.mit.CV_old;
 CV_tol = cont2.mit.CV_tol;
@@ -84,32 +98,112 @@ draw0 = draw_hl;
 w0 = w_hl;
 lnk0 = lnk_hl; %kernel(draw0);
 
-if (H == 10)
-    cont2.mit.iter_max = 2;%3;
-elseif (H == 40)
-    cont2.mit.iter_max = 2; % <=== actually 1.5
-else
-    cont2.mit.iter_max = 1;%3;
-end
+if crisis
+    if (H == 10)
+        cont2.mit.iter_max = 4;%5
+    elseif (H == 40)
+        cont2.mit.iter_max = 2; % <=== actually 1.5
+    else
+        cont2.mit.iter_max = 1;%3;
+    end
 
-if (H == 250)
-	cont2.mit.Hmax = 1;
-elseif (H == 100)
-    cont2.mit.Hmax = 2; 
-else
-    cont2.mit.Hmax = 10; 
-end
+    if (H == 250)
+        cont2.mit.Hmax = 1;
+    %     cont2.mit.Hmax1 = 1;
+    %     cont2.mit.Hmax2 = 1;
+    elseif (H == 100)
+        cont2.mit.Hmax = 2; 
+    elseif (H == 40)
+        cont2.mit.Hmax = 1; 
+    else
+        cont2.mit.Hmax = 10; 
+    %     cont2.mit.Hmax1 = 10; 
+    %     cont2.mit.Hmax2 = 10; 
+    end
 
-if ((H == 250))
-    cont2.mit.dfnc = 10;
-    cont2.df.range = [5,15]; %<<<==== was: [1;10]
-elseif (H == 100)
-    cont2.mit.dfnc = 5; %???
-    cont2.df.range = [3,10];
+    if (H == 250)
+        cont2.mit.dfnc = 5; %was: 10
+        cont2.df.range = [1,20]; %<<<==== was: [5,15]
+    elseif (H == 100)
+        cont2.mit.dfnc = 5; %???
+        cont2.df.range = [3,10];
+    else
+        cont2.mit.dfnc = 3;
+        cont2.df.range = [1,15]; %<<<==== was: [1;10]    
+    end
+
+elseif recent
+    
+    if (H == 10)
+        cont2.mit.iter_max = 4;
+    elseif (H == 20)
+        cont2.mit.iter_max = 1; % <=== actually 1.5        
+    elseif (H == 40)
+        cont2.mit.iter_max = 2; % <=== actually 1.5
+    else
+        cont2.mit.iter_max = 1;%3;
+    end
+
+    if (H == 250)
+        cont2.mit.Hmax = 1;
+    elseif (H == 100)
+        cont2.mit.Hmax = 2; 
+    elseif (H == 20)
+        cont2.mit.Hmax = 3;         
+    else
+        cont2.mit.Hmax = 2; %10; 
+    end
+
+    if (H == 250)
+        cont2.mit.dfnc = 10;
+        cont2.df.range = [5,15]; %<<<==== was: [1;10]
+    elseif (H == 100)
+        cont2.mit.dfnc = 5; %???
+        cont2.df.range = [3,10];
+    elseif (H == 20)
+        cont2.mit.dfnc = 10; %???
+        cont2.df.range = [3,15];        
+    else
+        cont2.mit.dfnc = 5;
+        cont2.df.range = [3,10]; %<<<==== was: [1;10]    
+    end
+
 else
-    cont2.mit.dfnc = 5;
-    cont2.df.range = [3,10]; %<<<==== was: [1;10]    
+    if (H == 10)
+        cont2.mit.iter_max = 2;% <=== actually 1.5 up
+    elseif (H == 20)
+        cont2.mit.iter_max = 1; %        
+    elseif (H == 40)
+        cont2.mit.iter_max = 2; % <=== actually 1.5
+    else
+        cont2.mit.iter_max = 1;%3;
+    end
+
+    if (H == 250)
+        cont2.mit.Hmax = 1;
+    elseif (H == 100)
+        cont2.mit.Hmax = 2; 
+    elseif (H == 20)
+        cont2.mit.Hmax = 3;         
+    else
+        cont2.mit.Hmax = 1;%10; 
+    end
+
+    if (H == 250)
+        cont2.mit.dfnc = 10;
+        cont2.df.range = [5,15]; %<<<==== was: [1;10]
+    elseif (H == 100)
+        cont2.mit.dfnc = 5; %???
+        cont2.df.range = [3,10];
+    elseif (H == 20)
+        cont2.mit.dfnc = 3; %???
+        cont2.df.range = [1,10];        
+    else
+        cont2.mit.dfnc = 3;
+        cont2.df.range = [1,10]; %<<<==== was: [1;10]    
+    end
 end
+    
 cont = cont2;
 
 tic
@@ -117,7 +211,7 @@ tic
 time_pmit(1,1) = toc;
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter')
 end
 % load(name)
@@ -145,7 +239,7 @@ for sim = 1:N_sim
 
     draw_opt = [draw1; draw_pmit];
 
-    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, y, S, GamMat, hyper);
     lnk_opt = kernel(draw_opt(:,1:5)); 
 
     eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
@@ -165,8 +259,8 @@ for sim = 1:N_sim
 %     h_T = input_X.h_last;     
 %     y_opt = predict_t_garch_noS(draw_opt(:,1:DD), y_T, h_T, H, draw_opt(:,DD+1:H+DD));
     y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
-%     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
-%     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);
@@ -182,7 +276,7 @@ ES_step2 = ES_pmit;
 %%%
 s = RandStream('mt19937ar','Seed',1);
 RandStream.setGlobalStream(s); 
-pmit = pmit_step2_up;
+pmit = pmit_step2_up;  
 
 tic
 for sim = 1:N_sim   
@@ -202,7 +296,7 @@ for sim = 1:N_sim
 
     draw_opt = [draw1; draw_pmit];
 
-    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, y, S, GamMat, hyper);
     lnk_opt = kernel(draw_opt(:,1:5)); 
 
     eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
@@ -259,7 +353,7 @@ for sim = 1:N_sim
 
     draw_opt = [draw1; draw_pmit];
 
-    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, data, S, GamMat, hyper);
+    kernel = @(a) posterior_t_garch_noS_hyper_mex(a, y, S, GamMat, hyper);
     lnk_opt = kernel(draw_opt(:,1:5)); 
 
     eps_pdf = duvt(draw_opt(:,DD+1:H+DD), draw_opt(:,DD), H, true);
@@ -279,8 +373,8 @@ for sim = 1:N_sim
 %     h_T = input_X.h_last;     
 %     y_opt = predict_t_garch_noS(draw_opt(:,1:DD), y_T, h_T, H, draw_opt(:,DD+1:H+DD));
     y_opt = [input_X_1.y_cum; input_X_pmit.y_cum];
-%     ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
-%     RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
+    ind_opt = (fn_PL(y_opt) <= mean(VaR_prelim));
+    RNE_pmit(sim,1) = fn_RNE(ind_opt, 'IS', w_opt);     
     dens = struct('y',y_opt,'w',w_opt,'p_bar',p_bar);
     IS_estim = fn_PL(dens, 1);
     VaR_pmit(sim,1) = IS_estim(1,1);
@@ -310,24 +404,24 @@ ES_step3 = ES_pmit;
 
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','RNE_pmit')
 end
 
-h_pmit = volatility_t_garch_noS_mex(draw_pmit(:,1:DD), data, S);
+h_pmit = volatility_t_garch_noS_mex(draw_pmit(:,1:DD), y, S);
 y_pmit = predict_t_garch_noS(draw_pmit(:,1:DD), y_T, h_pmit, H, draw_pmit(:,DD+1:H+DD));
 PL_pmit = fn_PL(y_pmit);
 pmit_eff = sum(PL_pmit <= mean(VaR_prelim))/(M/2);
 
 if save_on
-    name = ['results/PMitISEM/',model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+    name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name,'cont2','pmit','CV_mix','CV','iter','VaR_pmit','ES_pmit','time_pmit','pmit_eff','RNE_pmit')
 end
 
 if plot_on
     [VaR_outlier, ES_outlier] = Boxplot_PMitISEM(VaR_prelim,VaR_pmit,ES_prelim,ES_pmit,model,algo,H,N_sim,save_on);
 
-    h_T = volatility_t_garch_noS_mex(draw_pmit(:,1:DD), data, S);
+    h_T = volatility_t_garch_noS_mex(draw_pmit(:,1:DD), y, S);
     [y_pmit, ~] = predict_t_garch_noS(draw_pmit(:,1:DD), y_T, h_T, H, draw_pmit(:,DD+1:H+DD));
     Plot_hor_pmit(y_pmit, y_T, mean(VaR_prelim),model,algo, save_on)
 
@@ -366,7 +460,7 @@ end
 % %%% REDO and resave
 % 
 % if save_on
-%     name = ['results/PMitISEM/',model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+%     name = [results_path,model,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
 %     save(name,'VaR_prelim','ES_prelim','mit1','accept',...
 %         'draw_hl','w_hl','lnk_hl','pmit','VaR_IS','ES_IS')
 % end

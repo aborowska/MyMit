@@ -1,0 +1,20 @@
+[2]  Perhaps an easy method to compute the RNE for the Bayesian ES is to just ignore that it is a conditional mean. 
+So, you can just use the vector of values (x% largest losses), X[i] (i=1,....,n ; with n "largest losses"), of which the estimated ES is the sample mean.  
+There you can compute the Newey-West standard error in a regression of X[i] (i=1,....,n) on a constant. 
+And you can compute stdev(X)/sqrt(n), which is the "regular" OLS standard error in a regression of X[i](i=1,....,n) on a constant.
+
+Then the RNE of the naive Bayesian method is simply the ratio
+
+(RNE of naive Bayesian method) = (regular OLS standard error)^2 / (Newey-West standard error)^2.
+
+For the other approaches you can compute
+
+(RNE of other method) = (RNE of naive Bayesian method) * (NSE of naive Bayesian method)^2  / (NSE of other method)^2
+
+where these NSE's are "simply" computed as the sample standard deviation of 20 ES estimates. (That is the way the NSE is computed, isn't it?)
+
+
+Does this make sense? Please tell if I overlook something here....
+
+
+It is also fine if there are still question marks for the RNE of the Bayesian ES in the "draft of the draft".

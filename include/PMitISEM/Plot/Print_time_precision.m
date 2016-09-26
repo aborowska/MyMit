@@ -1,7 +1,7 @@
-function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
+function results = Print_time_precision(model,horizons,p_bar,N_sim,M,results_path,estimation)
 	[model_tex, ML] = fn_model_tex(model);
   
-    if (nargin < 6)
+    if (nargin < 7)
         estimation = '';
     else
         model_tex = [model_tex,' \\textbf{(',estimation,')}'];
@@ -22,7 +22,7 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     for H = horizons
         h = h+1;
         % load results
-        name = ['results/PMitISEM/',model,'_Direct_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_Direct_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         if ~ML
           	load(name,'VaR_direct','ES_direct','time_direct')
         else
@@ -39,7 +39,7 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
         clear VaR_direct ES_direct time_direct
         
         if ~ML
-            name = ['results/PMitISEM/',model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+            name = [results_path,model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
             load(name,'VaR_prelim','ES_prelim','time_prelim','time_bigdraw') 
             time_BD(h,1) = time_bigdraw;
             clear time_bigdraw;
@@ -59,7 +59,7 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
         clear VaR_prelim ES_prelim time_prelim        
         
         try
-            name = ['results/PMitISEM/',model,'_MitISEM_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+            name = [results_path,model,'_MitISEM_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
             load(name,'VaR_mit','ES_mit','time_mit') 
             mit_ok = true;    
             if ~exist('VaR_mit','var')
@@ -83,7 +83,7 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
         time_sampling(h,3) = time_mit(2,1);
         clear VaR_mit ES_mit time_mit
         
-        name = ['results/PMitISEM/',model,'_PMitISEM_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
+        name = [results_path,model,'_PMitISEM_',estimation,num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
         load(name,'VaR_pmit','ES_pmit','time_pmit')    
         VaR_NSE(h,4) = std(VaR_pmit);
         ES_NSE(h,4) = std(ES_pmit);
@@ -102,7 +102,9 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
         time_construction(:,2) = [];
         time_sampling(:,2) = [];
     end
-    precision_one_digit = (1.96/0.05)^2; % 1.96*NSE<=0.05
+    
+    precision_one_digit = (1.96/0.05)^2; % 1.96*NSE<=0.05, norminv(0.975)
+%     precision_one_digit = (2.5758/0.05)^2; % 1.96*NSE<=0.05, norminv(0.995)
 
     VaR_slope = VaR_precision./time_sampling;
     ES_slope = ES_precision./time_sampling;
@@ -146,7 +148,7 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
  
     
     %% create a tex table
-    fname = ['results/PMitISEM/results_',model,'_',estimation,'time_precision_comb.tex'];
+    fname = [results_path,'results_',model,'_',estimation,'time_precision_comb.tex'];
     FID = fopen(fname, 'w+');
     fprintf(FID, '\\footnotesize{  \n');
     fprintf(FID, '{ \\renewcommand{\\arraystretch}{1.3} \n');
@@ -169,15 +171,19 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     end
     
     if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{Total time} & & & \\multicolumn{2}{c}{(Time initialisation)}  \\\\ \\cline{3-5} \\cline{8-9}\n');     
+%         fprintf(FID, ' & & \\multicolumn{3}{c}{Total time} & & &  \\multicolumn{2}{c}{(Time initialisation)}  \\\\ \\cline{3-5} \\cline{8-9}\n');     
+        fprintf(FID, ' & & \\multicolumn{3}{c}{Total time} & & & \\\\ \\cline{3-5} \n');     
     else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{Total time} & & && \\multicolumn{2}{c}{(Time initialisation)} \\\\ \\cline{3-6} \\cline{10-11}\n');     
+%         fprintf(FID, ' & & \\multicolumn{4}{c}{Total time} & & &&  \\multicolumn{2}{c}{(Time initialisation)} \\\\ \\cline{3-6} \\cline{10-11}\n');     
+        fprintf(FID, ' & & \\multicolumn{4}{c}{Total time} & & &&  \\\\ \\cline{3-6} \n');     
     end
     for h = 1:Hno
         if ML        
-            fprintf(FID, '%i & & %4.2f s & %4.2f s & %4.2f s &&& \\multicolumn{2}{c}{(%4.2f s)} \\\\ \n',horizons(1,h), time_total(h,:), time_BD(h,:));            
+%             fprintf(FID, '%i & & %4.2f s & %4.2f s & %4.2f s &&&  \\multicolumn{2}{c}{(%4.2f s)} \\\\ \n',horizons(1,h), time_total(h,:), time_BD(h,:));            
+            fprintf(FID, '%i & & %4.2f s & %4.2f s & %4.2f s &&&   \\\\ \n',horizons(1,h), time_total(h,:));            
         else
-            fprintf(FID, '%i & & %4.2f s & %4.2f s & %4.2f s & %4.2f s &&&& \\multicolumn{2}{c}{(%4.2f s)} \\\\ \n',horizons(1,h), time_total(h,:), time_BD(h,:));
+%             fprintf(FID, '%i & & %4.2f s & %4.2f s & %4.2f s & %4.2f s &&&&  \\multicolumn{2}{c}{(%4.2f s)} \\\\ \n',horizons(1,h), time_total(h,:), time_BD(h,:));
+            fprintf(FID, '%i & & %4.2f s & %4.2f s & %4.2f s & %4.2f s &&&&  \\\\ \n',horizons(1,h), time_total(h,:));
         end
     end
     fprintf(FID, '\\hline \n');    
@@ -198,40 +204,40 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     fprintf(FID, '\\hline \n');
 
     
-    if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{VaR NSE} &&  \\multicolumn{3}{c}{ES NSE} \\\\ \\cline{3-5}  \\cline{7-9}\n');             
-    else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{VaR NSE} &&  \\multicolumn{4}{c}{ES NSE} \\\\ \\cline{3-6}  \\cline{8-11}\n'); 
-    end
-    for h = 1:Hno
-        if ML
-            fprintf(FID, '%i && %6.4f  & %6.4f  & %6.4f && %6.4f  & %6.4f  & %6.4f  \\\\ \n',horizons(1,h), VaR_NSE(h,:),  ES_NSE(h,:));
-        else
-            fprintf(FID, '%i && %6.4f  & %6.4f  & %6.4f & %6.4f && %6.4f  & %6.4f  & %6.4f & %6.4f \\\\ \n',horizons(1,h), VaR_NSE(h,:),  ES_NSE(h,:));
-        end
-    end
-    fprintf(FID, '\\hline \n');
+%     if ML
+%         fprintf(FID, ' & & \\multicolumn{3}{c}{VaR NSE} &&  \\multicolumn{3}{c}{ES NSE} \\\\ \\cline{3-5}  \\cline{7-9}\n');             
+%     else
+%         fprintf(FID, ' & & \\multicolumn{4}{c}{VaR NSE} &&  \\multicolumn{4}{c}{ES NSE} \\\\ \\cline{3-6}  \\cline{8-11}\n'); 
+%     end
+%     for h = 1:Hno
+%         if ML
+%             fprintf(FID, '%i && %6.4f  & %6.4f  & %6.4f && %6.4f  & %6.4f  & %6.4f  \\\\ \n',horizons(1,h), VaR_NSE(h,:),  ES_NSE(h,:));
+%         else
+%             fprintf(FID, '%i && %6.4f  & %6.4f  & %6.4f & %6.4f && %6.4f  & %6.4f  & %6.4f & %6.4f \\\\ \n',horizons(1,h), VaR_NSE(h,:),  ES_NSE(h,:));
+%         end
+%     end
+%     fprintf(FID, '\\hline \n');
+% 
+%     
+%     if ML
+%         fprintf(FID, ' & & \\multicolumn{3}{c}{VaR precision} &&  \\multicolumn{3}{c}{ES precision} \\\\ \\cline{3-5}  \\cline{7-9}\n');             
+%     else
+%         fprintf(FID, ' & & \\multicolumn{4}{c}{VaR precision} &&  \\multicolumn{4}{c}{ES precision} \\\\ \\cline{3-6}  \\cline{8-11}\n');     
+%     end
+%     for h = 1:Hno
+%         if ML
+%             fprintf(FID, '%i &&  %6.4f & %6.4f & %6.4f & & %6.4f & %6.4f & %6.4f \\\\ \n',horizons(1,h), VaR_precision(h,:),  ES_precision(h,:));
+%         else            
+%             fprintf(FID, '%i && %6.4f & %6.4f & %6.4f & %6.4f & & %6.4f & %6.4f & %6.4f & %6.4f \\\\ \n',horizons(1,h), VaR_precision(h,:),  ES_precision(h,:));
+%         end
+%     end
+%     fprintf(FID, '\\hline \n');
 
     
     if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{VaR precision} &&  \\multicolumn{3}{c}{ES precision} \\\\ \\cline{3-5}  \\cline{7-9}\n');             
+        fprintf(FID, ' & & \\multicolumn{3}{c}{ \\TR{VaR slope$^{*}$}} && \\multicolumn{3}{c}{\\TR{ES slope$^{*}$}} \\\\ \\cline{3-5}  \\cline{7-9}\n');         
     else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{VaR precision} &&  \\multicolumn{4}{c}{ES precision} \\\\ \\cline{3-6}  \\cline{8-11}\n');     
-    end
-    for h = 1:Hno
-        if ML
-            fprintf(FID, '%i &&  %6.4f & %6.4f & %6.4f & & %6.4f & %6.4f & %6.4f \\\\ \n',horizons(1,h), VaR_precision(h,:),  ES_precision(h,:));
-        else            
-            fprintf(FID, '%i && %6.4f & %6.4f & %6.4f & %6.4f & & %6.4f & %6.4f & %6.4f & %6.4f \\\\ \n',horizons(1,h), VaR_precision(h,:),  ES_precision(h,:));
-        end
-    end
-    fprintf(FID, '\\hline \n');
-
-    
-    if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{ \\TR{VaR slope}} && \\multicolumn{3}{c}{\\TR{ES slope}} \\\\ \\cline{3-5}  \\cline{7-9}\n');         
-    else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{ \\TR{VaR slope}} && \\multicolumn{4}{c}{\\TR{ES slope}} \\\\ \\cline{3-6}  \\cline{8-11}\n'); 
+        fprintf(FID, ' & & \\multicolumn{4}{c}{ \\TR{VaR slope$^{*}$}} && \\multicolumn{4}{c}{\\TR{ES slope$^{*}$}} \\\\ \\cline{3-6}  \\cline{8-11}\n'); 
     end
     for h = 1:Hno
         if ML
@@ -243,25 +249,25 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     fprintf(FID, '\\hline \n');
 
     
-    if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{ VaR intercept} &&  \\multicolumn{3}{c}{ES intercept} \\\\ \\cline{3-5}  \\cline{7-9}\n');     
-    else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{ VaR intercept} &&  \\multicolumn{4}{c}{ES intercept} \\\\ \\cline{3-6}  \\cline{8-11}\n');
-    end
-    for h = 1:Hno
-        if ML
-            fprintf(FID, '%i &&  %4.2f & %4.2f & %4.2f && %4.2f & %4.2f & %4.2f \\\\ \n',horizons(1,h), VaR_intercept(h,:),  ES_intercept(h,:));
-        else            
-            fprintf(FID, '%i && %4.2f & %4.2f & %4.2f & %4.2f && %4.2f & %4.2f & %4.2f & %4.2f \\\\ \n',horizons(1,h), VaR_intercept(h,:),  ES_intercept(h,:));
-        end
-    end
-    fprintf(FID, '\\hline \n');
+%     if ML
+%         fprintf(FID, ' & & \\multicolumn{3}{c}{ VaR intercept} &&  \\multicolumn{3}{c}{ES intercept} \\\\ \\cline{3-5}  \\cline{7-9}\n');     
+%     else
+%         fprintf(FID, ' & & \\multicolumn{4}{c}{ VaR intercept} &&  \\multicolumn{4}{c}{ES intercept} \\\\ \\cline{3-6}  \\cline{8-11}\n');
+%     end
+%     for h = 1:Hno
+%         if ML
+%             fprintf(FID, '%i &&  %4.2f & %4.2f & %4.2f && %4.2f & %4.2f & %4.2f \\\\ \n',horizons(1,h), VaR_intercept(h,:),  ES_intercept(h,:));
+%         else            
+%             fprintf(FID, '%i && %4.2f & %4.2f & %4.2f & %4.2f && %4.2f & %4.2f & %4.2f & %4.2f \\\\ \n',horizons(1,h), VaR_intercept(h,:),  ES_intercept(h,:));
+%         end
+%     end
+%     fprintf(FID, '\\hline \n');
 
     
     if ML
-        fprintf(FID, ' & & \\multicolumn{3}{c}{VaR time required} && \\multicolumn{3}{c}{ES time required} \\\\ \\cline{3-5}  \\cline{7-9}\n');     
+        fprintf(FID, ' & & \\multicolumn{3}{c}{VaR time required$^{*}$} && \\multicolumn{3}{c}{ES time required$^{*}$} \\\\ \\cline{3-5}  \\cline{7-9}\n');     
     else
-        fprintf(FID, ' & & \\multicolumn{4}{c}{VaR time required} && \\multicolumn{4}{c}{ES time required} \\\\ \\cline{3-6}  \\cline{8-11}\n');     
+        fprintf(FID, ' & & \\multicolumn{4}{c}{VaR time required$^{*}$} && \\multicolumn{4}{c}{ES time required$^{*}$} \\\\ \\cline{3-6}  \\cline{8-11}\n');     
     end
     for h = 1:Hno
         if ML
@@ -273,9 +279,9 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
     fprintf(FID, '\\hline \n');
     
     if ML
-        fprintf(FID, ' && \\multicolumn{3}{c}{VaR draws required} &&   \\multicolumn{3}{c}{ES draws required} \\\\  \\cline{3-5}  \\cline{7-9} \n');     
+        fprintf(FID, ' && \\multicolumn{3}{c}{VaR draws required$^{**}$} &&   \\multicolumn{3}{c}{ES draws required$^{**}$} \\\\  \\cline{3-5}  \\cline{7-9} \n');     
     else
-        fprintf(FID, ' && \\multicolumn{4}{c}{VaR draws required} &&   \\multicolumn{4}{c}{ES draws required} \\\\  \\cline{3-6}  \\cline{8-11} \n');     
+        fprintf(FID, ' && \\multicolumn{4}{c}{VaR draws required$^{**}$} &&   \\multicolumn{4}{c}{ES draws required$^{**}$} \\\\  \\cline{3-6}  \\cline{8-11} \n');     
     end
     for h = 1:Hno
         if ML
@@ -285,11 +291,23 @@ function results = Print_time_precision(model,horizons,p_bar,N_sim,M,estimation)
         end
     end
     fprintf(FID, '\\hline \n');
-  
+
+    if ML
+        fprintf(FID, '\\multicolumn{9}{p{10cm}}{\\footnotesize{Missing value (--): it was not possible to generate the particular result with the corresponding algorithm.}} \\\\ \n');             
+        fprintf(FID, '\\multicolumn{9}{l}{\\footnotesize{$^{*}$Slope $=$ Precision/Sampling time.}}  \\\\ \n');        
+        fprintf(FID, '\\multicolumn{9}{l}{\\footnotesize{$^{**}$Required for \\%% estimate with 1 digit of precision (with 95\\%% confidence).}} \\\\ \n');                     
+    else
+        fprintf(FID, '\\multicolumn{11}{p{10cm}}{\\footnotesize{Missing value (--): it was not possible to generate the particular result with the corresponding algorithm.}} \\\\ \n');             
+        fprintf(FID, '\\multicolumn{11}{l}{\\footnotesize{$^{*}$Slope $=$ Precision/Sampling time.}}  \\\\ \n');        
+        fprintf(FID, '\\multicolumn{11}{l}{\\footnotesize{$^{**}$Required for \\%% estimate with 1 digit of precision (with 95\\%% confidence).} \\\\ \n');     
+    end  
         
     fprintf(FID, '\\end{longtable} \n');
     fprintf(FID, '} \n');
     fprintf(FID, '} \n');
-    fclose(FID);
+    fprintf(FID, '\\normalsize \n');
+
+    fclose(FID); 
     
+    Remove_NaN(fname);
 end
