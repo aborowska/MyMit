@@ -7,9 +7,11 @@ GamMat = gamma(x_gam);
 save_on = 1;
 
 
-crisis = true; %false;
+crisis = false;
 recent = false; % true;
 old =  false; %true;
+sv = true;
+
 if crisis 
     y = csvread('GSPC_ret_updated.csv');
     y = 100*y;
@@ -30,6 +32,13 @@ elseif old
     results_path = 'results/PMitISEM/old/';
     figures_path = 'figures/PMitISEM/old/';
     time = [1998,2008];   
+    data_old_stats = Plot_data(y,time,save_on,figures_path);
+elseif sv
+    y = csvread('GSPC_ret_updated_short_sv.csv');
+    y = 100*y;    
+    results_path = 'results/';
+    figures_path = 'figures/';
+    time = [2011 + 2/3,2016 + 2/3];   
     data_old_stats = Plot_data(y,time,save_on,figures_path);
 end
 

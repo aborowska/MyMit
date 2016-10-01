@@ -1,0 +1,9 @@
+install("quantmod")
+require("quantmod")
+sp500 <- new.env()
+getSymbols("^GSPC", env = sp500, src = "yahoo", from = as.Date("2005-01-01"), to = as.Date("2016-06-30"))
+GSPC <- sp500$GSPC
+Price <- GSPC$GSPC.Adjusted
+ret <- diff(log(Price))
+setwd("C:/Users/aba228/Dropbox/MPHIL/MitISEM/MyMit/include/Data") 
+write.csv(ret,file="my_data.csv")

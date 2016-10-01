@@ -12,14 +12,14 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init,
 %% Step 1: Initialisation
     fprintf('\nStep 1: Initialisation\n');
     if (N <= 2000)
-        [theta, lnk] = fn_rmvgt_robust(N, mit_init, kernel, resampl_on, cont.DUPA);
+        [theta, lnk] = fn_rmvgt_robust(N, mit_init, kernel, resampl_on, true);
     else
         theta = zeros(N,d);
         lnk = zeros(N,1);
         for ii = 1:(N/1000)
             fprintf('ii = %i\n',ii)            
             ind = (1:1000) + (ii-1)*1000; 
-            [theta(ind,:), lnk(ind,:)] = fn_rmvgt_robust(1000, mit_init, kernel, resampl_on, cont.DUPA);
+            [theta(ind,:), lnk(ind,:)] = fn_rmvgt_robust(1000, mit_init, kernel, resampl_on, true);
         end
     end
 
@@ -37,13 +37,13 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init,
     mit_adapt.p = 1;
 
     if (N <= 2000)
-        [theta, lnk] = fn_rmvgt_robust(N, mit_adapt, kernel, resampl_on, cont.DUPA);  
+        [theta, lnk] = fn_rmvgt_robust(N, mit_adapt, kernel, resampl_on, true);  
     else
         lnk = zeros(N,1);
         for ii = 1:(N/1000)
             fprintf('ii = %i\n',ii)
             ind = (1:1000) + (ii-1)*1000; 
-            [theta(ind,:), lnk(ind,:)] = fn_rmvgt_robust(1000, mit_adapt, kernel, resampl_on, cont.DUPA);
+            [theta(ind,:), lnk(ind,:)] = fn_rmvgt_robust(1000, mit_adapt, kernel, resampl_on, true);
         end
     end
     
@@ -59,7 +59,7 @@ mit_old = mit_adapt;
     [mit_new, ~] = fn_optimt(theta, mit_adapt, w_norm, cont, GamMat);
 
     if (N <= 2000)
-        [theta, lnk, ~, x, lng_y, lnw_x] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on, cont.DUPA);
+        [theta, lnk, ~, x, lng_y, lnw_x] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on, true);
     else
 %         x = zeros(N,T); 
         x = zeros(N,cont.nais.HP+1); 
@@ -69,7 +69,7 @@ mit_old = mit_adapt;
         for ii = 1:(N/1000)
             fprintf('ii = %i\n',ii)            
             ind = (1:1000) + (ii-1)*1000; 
-            [theta(ind,:), lnk(ind,:), ~, x(ind,:), lng_y(ind,:), lnw_x(ind,:)] = fn_rmvgt_robust(1000, mit_new, kernel, resampl_on, cont.DUPA);
+            [theta(ind,:), lnk(ind,:), ~, x(ind,:), lng_y(ind,:), lnw_x(ind,:)] = fn_rmvgt_robust(1000, mit_new, kernel, resampl_on, true);
         end
     end
     
@@ -121,7 +121,7 @@ mit_old = mit_adapt;
         % get new draws from mit and evaluate new IS weights
 
         if (N <= 2000)
-            [theta, lnk, ~, x, lng_y, lnw_x] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on, cont.DUPA);
+            [theta, lnk, ~, x, lng_y, lnw_x] = fn_rmvgt_robust(N, mit_new, kernel, resampl_on, true);
         else
 %             x = zeros(N,T); 
             x = zeros(N,cont.nais.HP+1); 
@@ -131,7 +131,7 @@ mit_old = mit_adapt;
             for ii = 1:(N/1000)
                 fprintf('ii = %i\n',ii)                
                 ind = (1:1000) + (ii-1)*1000; 
-                [theta(ind,:), lnk(ind,:), ~, x(ind,:), lng_y(ind,:), lnw_x(ind,:)] = fn_rmvgt_robust(1000, mit_new, kernel, resampl_on, cont.DUPA);
+                [theta(ind,:), lnk(ind,:), ~, x(ind,:), lng_y(ind,:), lnw_x(ind,:)] = fn_rmvgt_robust(1000, mit_new, kernel, resampl_on, true);
             end
         end
         

@@ -98,20 +98,17 @@ for sim = 1:N_sim
     fprintf('\nDirect sim = %i.\n', sim);
     kernel = @(xx) posterior_t_gas_hyper_mex(xx, y, hyper, GamMat);
     [theta_direct, accept_direct(sim,1)] = Mit_MH(M+BurnIn, kernel, mit_direct, GamMat);
-%     [theta_direct, accept_direct(sim,1), lnw_direct, lnk_direct, lnd_diredct] = Mit_MH_new(M+BurnIn, kernel, mit_direct, GamMat);
     fprintf('MH acceptance rate: %4.2f (%s, %s). \n', accept_direct(sim,1), model, algo);
     theta_direct = theta_direct(BurnIn+1:M+BurnIn,:);
 
     f_direct = volatility_t_gas_mex(theta_direct, y);
-    [y_direct, eps_direct] = predict_t_gas(theta_direct, y_T, f_direct, H);
+    y_direct = predict_t_gas(theta_direct, y_T, f_direct, H);
 
     ind_real = find(sum(imag(y_direct),2)==0);
     M_real = length(ind_real); 
     fprintf('M_real = %i.\n',M_real)
     y_direct = y_direct(ind_real,:);
-    theta_direct = theta_direct(ind_real,:);  
-    eps_direct = eps_direct(ind_real,:);
-
+  
     PL_direct_ind = fn_PL(y_direct);
     PL_direct = sort(PL_direct_ind);
     VaR_direct(sim,1) = PL_direct(round(p_bar*M_real));

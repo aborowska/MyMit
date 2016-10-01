@@ -7,7 +7,7 @@ function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND, y_star] = poste
     par_NAIS.C = -Inf*ones(T,N);
     for ii = 1:N
         if (mod(ii,100) == 0)
-            fprintf('nais_param ii = %i\n',ii); 
+            fprintf('Posterior svt: nais_param ii = %i\n',ii); 
         end
         par_SV = theta(ii,1:4); 
         [par_NAIS_iter] = NAIS_param(par_NAIS_init, y, par_SV, cont); % Efficient importance parameters via NAIS
@@ -15,7 +15,7 @@ function [d, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND, y_star] = poste
         par_NAIS.C(:,ii) = par_NAIS_iter.C;
     end
     par_SV = theta(:,1:4);
-    fprintf('nais_loglik\n');
+    fprintf('Posterior svt: nais_loglik\n');
     [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND, y_star] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
 
     d = lng_y + lnw_x + prior;
