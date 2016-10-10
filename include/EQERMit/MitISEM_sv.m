@@ -132,13 +132,13 @@ for sim = 1:N_sim
     end
     
     lnk = zeros(M,1);
-    x = zeros(M,cont.nais.HP+1);
+    x = zeros(M,cont2.nais.HP+1);
     lng_y = zeros(M,1);
     lnw_x = zeros(M,1);
     eps_bar = zeros(M,1);
     eps_sim = zeros(M,1);
     C_sim = zeros(M,1);
-    lnp_T = zeros(M,cont.nais.HP+1);
+    lnp_T = zeros(M,cont2.nais.HP+1);
     RND = zeros(M,1);
      
     for ii = 1:(M/1000)

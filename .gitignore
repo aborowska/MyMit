@@ -4,3 +4,6 @@
 *.jpg	
 *.fig
 *.doc
+*.eps
+C/
+ASIS/
