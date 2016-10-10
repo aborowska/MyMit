@@ -1,6 +1,6 @@
 function [lnk, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_svt_hl(y, theta, VaR, par_NAIS_init, prior_const, cont) 
     [N, d] = size(theta);
-    hp = (d - 3)/2;    
+    hp = (d - 4)/2;    
     T = size(y,1);
     
     b = -Inf*ones(T,N);
@@ -22,7 +22,7 @@ function [lnk, x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = posterior_s
     par_SV = theta(:,1:4);
     [x, lng_y, lnw_x, eps_bar, eps_sim, C_T, lnp_T, RND] = NAIS_loglik(y, par_SV, par_NAIS, cont); 
 
-    y_hp = predict_svt(theta(:,1:3), x(:,end), hp);
+    y_hp = predict_svt(theta, x(:,end), hp);
     PL = fn_PL(y_hp);
      
     prior_hl = prior_svt_hl(theta, prior_const, PL, VaR);   

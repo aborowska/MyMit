@@ -9,8 +9,8 @@ function [y_hp, eta_hp, eps_hp] = predict_svt(theta, x_T, H)
     rho = (nu-2)./nu;
    
     if (hp == 0) % theta is only the model parameters
-        eta_hp = randn(N,hp);               % prior: eta ~ N(0,1)
-        eps_hp = trnd(repmat(nu,1,hp));     % prior: eps ~ t(0,1,nu)
+        eta_hp = randn(N,H);               % prior: eta ~ N(0,1)
+        eps_hp = trnd(repmat(nu,1,H));     % prior: eps ~ t(0,1,nu)
     else % with given eta and eps      
         eta_hp = theta(:,5:4+hp);   
         eps_hp = theta(:,4+hp+1:d);   

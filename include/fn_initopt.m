@@ -10,7 +10,11 @@ function [mu, Sigma, val] = fn_initopt(kernel, mu0, fn_delta) % , options)
     if nargin > 2
         hessian = fn_delta(mu, hessian);
     end
-    [~, T] = kernel(mu0);
-	Sigma = inv(T*hessian);
+    try
+        [~, T] = kernel(mu0);
+        Sigma = inv(T*hessian);
+    catch
+        Sigma = inv(hessian);
+    end
     Sigma = reshape(Sigma,1,d^2);  
 end

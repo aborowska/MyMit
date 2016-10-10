@@ -9,7 +9,7 @@ RandStream.setGlobalStream(s);
 x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x_gam);
 
-model = 'sv'; % 'svt'
+model = 'svt'; % 'svt'
 algo = 'MitISEM';
 
 old = false;
@@ -32,7 +32,7 @@ y_T = y(T);
 
 M = 10000;
 BurnIn = 1000;
-N_sim = 1;
+N_sim = 20;
 p_bar = 0.01;
 H = 1;     % prediction horizon 
 
@@ -64,8 +64,8 @@ par_NAIS_init.b = zeros(T,1);
 par_NAIS_init.C = ones(T,1); 
 
 cont2 = EMitISEM_Control(model);
-cont2.mit.dfnc = 3;
-cont2.df.range = [1,20];
+cont2.mit.dfnc = 15;
+cont2.df.range = [5,20];
 
 mit_hl_init.df = cont2.mit.dfnc;
 
@@ -79,9 +79,9 @@ name =  [results_path,model,'_Prelim_',num2str(p_bar),'_H',num2str(H),'_VaR_resu
 load(name,'VaR_prelim','mit1','mit_hl_init');
     
 if strcmp(model,'sv')
-    kernel = @(aa) posterior_sv_hl(y, aa, VaR_prelim, par_NAIS_init, prior_const, cont2.nais); 
+    kernel = @(aa) posterior_sv_hl(y, aa, mean(VaR_prelim), par_NAIS_init, prior_const, cont2.nais); 
 else
-    kernel = @(aa) posterior_svt_hl(y, aa, VaR_prelim, par_NAIS_init, prior_const, cont2.nais); 
+    kernel = @(aa) posterior_svt_hl(y, aa, mean(VaR_prelim), par_NAIS_init, prior_const, cont2.nais); 
 end
 cont = cont2
 mit_init = mit_hl_init
@@ -92,7 +92,15 @@ if save_on
     name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name, 'cont2', 'mit2', 'theta2', 'x2', 'w2', 'lnk2', 'lng_y2', 'lnw_x2', 'CV2')
 end
- 
+%  
+% mit2 = mit_new;
+% theta2 = theta;
+% x2 = x;
+% w2 = w_norm;
+% lnk2 = lnk;
+% lng_y2 = lng_y;
+% lnw_x2 = lnw_x;
+% CV2 = CV;
 
 %% Generate set of draws of theta using independence MH with naive candiate
 % (based on the SML estimates) 
@@ -105,13 +113,13 @@ for sim = 1:N_sim
     fprintf('VaR IS sim = %i.\n', sim);
         
     theta1 = rmvgt2(M/2, mit1.mu, mit1.Sigma, mit1.df, mit1.p); 
-    eta_h1_1 = randn(M/2,1);
+    eta_h1_1 = randn(M/2,H);
     if strcmp(model,'sv')
-        eps_h1_1 = randn(M/2,1);
+        eps_h1_1 = randn(M/2,H);
     else
         nu1 = theta1(:,4);
         rho1 = (nu1-2)./nu1;
-        eps_h1_1 = trnd(repmat(nu1,1,hp));
+        eps_h1_1 = trnd(repmat(nu1,1,H));
     end      
     theta1 = [theta1, eta_h1_1, eps_h1_1];
     theta2 = rmvgt2(M/2, mit2.mu, mit2.Sigma, mit2.df, mit2.p); 
@@ -131,14 +139,14 @@ for sim = 1:N_sim
     eps_sim = zeros(M,1);
     C_sim = zeros(M,1);
     lnp_T = zeros(M,cont.nais.HP+1);
-    RND = zeros(M,cont.nais.HP+1);
+    RND = zeros(M,1);
      
     for ii = 1:(M/1000)
         fprintf('ii = %i\n',ii)
         ind = (1:1000) + (ii-1)*1000; 
         [lnk(ind,:), x(ind,:), lng_y(ind,:), lnw_x(ind,:), eps_bar(ind,:), eps_sim(ind,:), C_sim(ind,:), lnp_T(ind,:), RND(ind,:)] = kernel(theta_mit(ind,:));      
     end
-        
+    
     if strcmp(model,'sv')
         lnk = lnk + 2*prior_const(1,1) - 0.5*(theta_mit(:,4)).^2 - 0.5*(theta_mit(:,5)).^2;
     else
@@ -175,5 +183,5 @@ time_mit(2,1) = toc/N_sim;
  
 if save_on
     name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'cont2','mit2','summary2','VaR_mit','ES_mit','time_mit','RNE_mit')
+    save(name,'VaR_mit','ES_mit','time_mit','RNE_mit','-append')
 end

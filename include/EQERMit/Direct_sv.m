@@ -9,7 +9,7 @@ RandStream.setGlobalStream(s);
 x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x_gam);
 
-model = 'sv'; % 'svt'
+model = 'svt'; % 'svt'
 algo = 'Direct';
 
 old = false;
@@ -32,7 +32,7 @@ y_T = y(T);
 
 M = 10000;
 BurnIn = 1000;
-N_sim = 20;
+N_sim = 1;
 p_bar = 0.01;
 H = 1;     % prediction horizon 
 
@@ -87,9 +87,9 @@ if old
     end   
 elseif crisis 
     if strcmp(model,'sv')
-        load('SML_gspc_updated_sv.mat', 'par_SV_opt', 'V_SV_corr_opt') 
+        load('SML_gspc_updated.mat', 'par_SV_opt', 'V_SV_corr_opt') 
      else
-        load('SMLt_gspc_updated_sv.mat', 'par_SV_opt', 'V_SV_corr_opt') 
+        load('SMLt_gspc_updated.mat', 'par_SV_opt', 'V_SV_corr_opt') 
     end
 elseif recent
     if strcmp(model,'sv')

@@ -1,5 +1,5 @@
 function r2 = prior_svt(theta, prior_const)
-    [N, d] = size(theta,2);
+    [N, d] = size(theta);
     
     c = theta(:,1);     % prior: c ~ normpdf(c, 0, 1);
     phi = theta(:,2);   % prior: (phi+1)/2 ~ betapdf((phi+1)/2, 20, 1.5);

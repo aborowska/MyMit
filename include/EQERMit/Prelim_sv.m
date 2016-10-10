@@ -9,7 +9,7 @@ RandStream.setGlobalStream(s);
 x_gam = (0:0.00001:100)'+0.00001;
 GamMat = gamma(x_gam);
 
-model = 'sv'; % 'svt'
+model = 'svt'; % 'svt'
 algo = 'Prelim';
 
 old = false;
@@ -115,13 +115,24 @@ else
     kernel = @(aa) posterior_svt(y, aa, par_NAIS_init, prior_const, cont_prelim.nais);
 end
 
-[mit1, theta1, x1, w1, lnk1, lng_y1, lnw_x1, CV1] = EMitISEM(mit_init, kernel, cont, GamMat);
+cont = cont_prelim;
+
+[mit1, theta1, x1, w1, lnk1, lng_y1, lnw_x1, CV1] = EMitISEM(mit_init, kernel, cont_prelim, GamMat);
 
 if save_on
     name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
     save(name, 'cont_prelim', 'mit1', 'theta1', 'x1', 'w1', 'lnk1', 'lng_y1', 'lnw_x1', 'CV1')
 end
- 
+
+% mit1 = mit_new;
+% theta1 = theta;
+% x1 = x;
+% w1 = w_norm;
+% lnk1 = lnk;
+% lng_y1 = lng_y;
+% lnw_x1 = lnw_x;
+% CV1 = CV;
+% time_prelim(1,1) = time_emit
 
 %% Generate set of draws of theta using independence MH with naive candiate
 % (based on the SML estimates) 
@@ -165,7 +176,7 @@ time_prelim(2,1) = toc/N_sim;
  
 if save_on
     name = [results_path,model,'_',algo,'_',num2str(p_bar),'_H',num2str(H),'_VaR_results_Nsim',num2str(N_sim),'.mat'];
-    save(name,'VaR_prelim','ES_prelim','accept_prelim','time_prelim','RNE_prelim','RNE_ES_prelim','-append')
+    save(name,'VaR_prelim','ES_prelim','accept_prelim','time_prelim','RNE_prelim','RNE_ES_prelim','time_prelim','-append')
 end
 
 

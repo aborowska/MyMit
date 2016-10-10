@@ -1,6 +1,7 @@
 function [y_hp, eta_hp, eps_hp] = predict_sv(theta, x_T, H)
     [N, d] = size(theta);
     hp = (d - 3)/2;
+    
     c = theta(:,1);
     phi = theta(:,2);
     sigma2 = theta(:,3);   

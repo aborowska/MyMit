@@ -1,4 +1,5 @@
 function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init, kernel, cont, GamMat)
+tic    
     N = cont.mit.N;
     N = 1000*ceil(N/1000);
     Hmax = cont.mit.Hmax;
@@ -54,7 +55,7 @@ function [mit_new, theta, x, w_norm, lnk, lng_y, lnw_x, CV] = EMitISEM(mit_init,
 
 %% Step 3: ISEM
     fprintf('\nStep 3: ISEM\n');
-mit_old = mit_adapt;
+    mit_old = mit_adapt;
 
     [mit_new, ~] = fn_optimt(theta, mit_adapt, w_norm, cont, GamMat);
 
@@ -84,7 +85,10 @@ mit_old = mit_adapt;
     H = length(mit_new.p);  % number of components
     hstop = false;
 
+time_emit(1,1) = toc;
+
     while ((H < Hmax) && (hstop == false))
+        tic
         H = H+1;
 
         ind_nc = fn_select(w_norm,cont.mit.ISpc);
@@ -143,7 +147,9 @@ mit_old = mit_adapt;
         CV = [CV, CV_new];
         if (H > 1)
             hstop = hstop_new;
-        end       
+        end
+        
+        time_emit(1,1) = time_emit(1,1) + toc;
     end
     
     if (CV(end) > CV(end-1))
