@@ -6,7 +6,6 @@ __Quick Evaluation of Risk by Mixtures of t__ - a project originating from my MP
 _Modification:_ changing the underlying approximation algorithm from AdMit (Hoogerheide et al., 2007) to a more flexible and accurate one, MitISEM (Hoogerheide et al., 2012).
 
 _Extensions:_
-
 * to allow for nonlinear non-Gassian state space models (in the spirit of Barra et al., 2016) with the NAIS state sampler (Koopman et al., 2015);
 * to allow for long run risk predictions (like one-month-ahead or one-year-ahead), based on partial candidate construction (with the Partial MitISEM algorithm of Hoogerheide et al., 2012).
 
